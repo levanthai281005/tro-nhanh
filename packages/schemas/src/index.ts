@@ -70,6 +70,7 @@ export {
   ALLOWED_ROOM_STATUS_TRANSITIONS,
   canTransitionRoomStatus,
   ROOM_STATUS_VALUES,
+  roomAmenitiesSchema,
   roomAreaSchema,
   roomCodeSchema,
   roomFloorSchema,

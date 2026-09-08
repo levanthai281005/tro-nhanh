@@ -17,6 +17,7 @@ export interface RoomWriteInput {
   price: number;
   status: RoomStatus;
   note: string;
+  amenities: readonly string[];
   electricityPrice: number | null;
   waterPrice: number | null;
   servicePrice: number | null;
@@ -80,6 +81,7 @@ export async function createRoom(input: RoomWriteInput): Promise<RoomListItem> {
     price: input.price,
     status: input.status,
     note: input.note.trim() || null,
+    amenities: [...input.amenities],
     electricityPrice: input.electricityPrice,
     waterPrice: input.waterPrice,
     servicePrice: input.servicePrice,
@@ -110,6 +112,7 @@ export async function updateRoom(roomId: string, input: RoomWriteInput): Promise
     price: input.price,
     status: input.status,
     note: input.note.trim() || null,
+    amenities: [...input.amenities],
     electricityPrice: input.electricityPrice,
     waterPrice: input.waterPrice,
     servicePrice: input.servicePrice,

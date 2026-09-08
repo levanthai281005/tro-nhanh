@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { AMENITY_OPTIONS } from '@/features/marketplace/constants/amenities';
+import { AmenityPicker } from '@/components/ui/AmenityPicker';
 import { FormField, inputClassName, inputErrorClassName } from '@/components/ui/FormField';
 import type { AccessPolicy } from '@/features/marketplace/types/savedListings';
 import type { PostListingFormValues } from '@/features/marketplace/types/postListing';
@@ -141,35 +141,7 @@ export function StepRoomInfo() {
       </FormField>
 
       <FormField hint="Chọn những gì phòng có sẵn." label="Tiện ích nổi bật">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {AMENITY_OPTIONS.map(({ key, label, Icon }) => {
-            // Lưu NHÃN, không lưu `key` — bộ lọc tìm kiếm và phần đối chiếu icon đều so theo
-            // nhãn; ghi `key` xuống sẽ làm cả hai chết im lặng.
-            const isSelected = values.amenities.includes(label);
-
-            return (
-              <button
-                aria-pressed={isSelected}
-                className={cn(
-                  'flex items-center gap-2 rounded-md border-[1.5px] px-3 py-2.5 text-left text-[13px] transition-colors',
-                  isSelected
-                    ? 'border-primary bg-cream font-bold text-primary'
-                    : 'border-line bg-surface text-ink-muted hover:border-primary',
-                )}
-                key={key}
-                onClick={() => toggleAmenity(label)}
-                type="button"
-              >
-                <Icon
-                  aria-hidden="true"
-                  className={cn('size-4 shrink-0', isSelected ? 'text-primary' : 'text-sand')}
-                  strokeWidth={1.9}
-                />
-                {label}
-              </button>
-            );
-          })}
-        </div>
+        <AmenityPicker onToggle={toggleAmenity} selected={values.amenities} />
       </FormField>
     </div>
   );

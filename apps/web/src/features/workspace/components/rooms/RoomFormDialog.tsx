@@ -4,6 +4,7 @@ import type { RoomStatus } from '@tronhanh/schemas';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { FormField, inputClassName } from '@/components/ui/FormField';
+import { AmenityPicker } from '@/components/ui/AmenityPicker';
 import { FormSection } from '@/components/ui/FormSection';
 import { ModalShell } from '@/components/ui/ModalShell';
 import { NumberField } from '@/components/ui/NumberField';
@@ -141,6 +142,25 @@ export function RoomFormDialog({
           <RoomStatusPicker
             onChange={(status: RoomStatus) => setField('status', status)}
             value={values.status}
+          />
+        </FormSection>
+
+        <FormSection
+          description="Không chọn gì cũng được — phòng thô là dữ liệu thật, không phải thiếu thông tin."
+          title="Nội thất & tiện ích"
+        >
+          <AmenityPicker
+            onToggle={(label) =>
+              // Cập nhật theo hàm, không đọc `values.amenities` từ closure: bấm nhanh hai tiện
+              // ích trong cùng một khung hình sẽ cùng đọc mảng cũ và cái sau đè cái trước.
+              setValues((current) => ({
+                ...current,
+                amenities: current.amenities.includes(label)
+                  ? current.amenities.filter((item) => item !== label)
+                  : [...current.amenities, label],
+              }))
+            }
+            selected={values.amenities}
           />
         </FormSection>
 

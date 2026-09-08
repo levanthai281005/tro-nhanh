@@ -41,6 +41,14 @@ const inheritableUnitPriceSchema = z
   .nonnegative('Đơn giá không được âm')
   .nullable();
 
+/**
+ * Tiện ích của phòng — `DATA_ENTITIES.md`: `Room n-n Amenity`.
+ *
+ * Lưu **nhãn** tiếng Việt lấy từ catalog dùng chung, không lưu `key`. Danh sách rỗng là hợp
+ * lệ và có nghĩa thật: phòng thô, không có gì cả.
+ */
+export const roomAmenitiesSchema = z.array(z.string().trim().min(1)).max(30, 'Quá nhiều tiện ích');
+
 export const roomSchema = z.object({
   propertyId: z.string().min(1, 'Vui lòng chọn khu trọ'),
   roomCode: roomCodeSchema,
@@ -49,6 +57,7 @@ export const roomSchema = z.object({
   price: roomPriceSchema,
   status: roomStatusSchema,
   note: z.string().trim().max(500).optional(),
+  amenities: roomAmenitiesSchema,
   electricityPrice: inheritableUnitPriceSchema,
   waterPrice: inheritableUnitPriceSchema,
   servicePrice: inheritableUnitPriceSchema,

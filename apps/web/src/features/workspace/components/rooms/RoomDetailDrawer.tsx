@@ -3,6 +3,7 @@
 import { ALLOWED_ROOM_STATUS_TRANSITIONS, type RoomStatus } from '@tronhanh/schemas';
 import { FileSignature, Megaphone, Pencil, Trash2, Users, X } from 'lucide-react';
 import Link from 'next/link';
+import { amenityIconByLabel } from '@/constants/amenities';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { WriteGuardButton } from '@/features/session/components/WriteGuardButton';
@@ -90,6 +91,34 @@ export function RoomDetailDrawer({
               }
             />
           </dl>
+
+          <div>
+            <p className="m-0 mb-2 text-xs font-bold uppercase tracking-wide text-ink-muted">
+              Nội thất &amp; tiện ích
+            </p>
+            {room.amenities.length === 0 ? (
+              // Nói rõ "phòng thô" chứ không để trống: mảng rỗng là dữ liệu thật, còn khoảng
+              // trắng thì người đọc hiểu thành "chưa kịp khai".
+              <p className="m-0 text-[13px] text-ink-muted">Phòng thô, chưa có nội thất.</p>
+            ) : (
+              <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
+                {room.amenities.map((label) => {
+                  const Icon = amenityIconByLabel(label);
+                  return (
+                    <li
+                      key={label}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-[12.5px] text-ink"
+                    >
+                      {Icon ? (
+                        <Icon aria-hidden="true" className="size-3.5 text-sand" strokeWidth={1.9} />
+                      ) : null}
+                      {label}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
 
           {room.occupants.length > 0 ? (
             <div>
