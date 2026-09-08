@@ -11,6 +11,13 @@ export interface Room {
   price: number;
   status: RoomStatus;
   note: string | null;
+  /**
+   * Nội thất và tiện ích sẵn có — **nhãn** lấy từ catalog `constants/amenities`.
+   *
+   * Mảng rỗng là dữ liệu thật, không phải thiếu dữ liệu: phòng thô không có gì cả là trường
+   * hợp phổ biến, và chủ trọ cần phân biệt nó với phòng chưa kịp khai.
+   */
+  amenities: readonly string[];
   /** `null` = thừa hưởng đơn giá của khu (khác `0` = miễn phí). */
   electricityPrice: number | null;
   waterPrice: number | null;
@@ -58,6 +65,7 @@ export interface RoomFormValues {
   price: string;
   status: RoomStatus;
   note: string;
+  amenities: string[];
   hasCustomPricing: boolean;
   electricityPrice: string;
   waterPrice: string;

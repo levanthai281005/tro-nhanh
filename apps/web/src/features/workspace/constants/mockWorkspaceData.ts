@@ -81,6 +81,7 @@ function room(seed: {
   hasActiveListing?: boolean;
   hasActiveContract?: boolean;
   electricityPrice?: number | null;
+  amenities?: string[];
 }): MockRoomSeed {
   return {
     id: seed.id,
@@ -91,6 +92,8 @@ function room(seed: {
     price: seed.price,
     status: seed.status,
     note: seed.note ?? null,
+    // Mảng rỗng = phòng thô, là dữ liệu thật chứ không phải chưa khai.
+    amenities: seed.amenities ?? [],
     electricityPrice: seed.electricityPrice ?? null,
     waterPrice: null,
     servicePrice: null,
@@ -115,6 +118,7 @@ export const MOCK_ROOMS: readonly MockRoomSeed[] = [
     status: 'Rented',
     updatedAt: '2026-08-16T09:00:00.000Z',
     hasActiveContract: true,
+    amenities: ['Máy lạnh', 'Wifi', 'WC riêng', 'Tủ lạnh', 'Chỗ để xe'],
   }),
   room({
     id: '70000000-0000-4000-8000-000000000002',
@@ -127,6 +131,7 @@ export const MOCK_ROOMS: readonly MockRoomSeed[] = [
     updatedAt: '2026-08-15T09:00:00.000Z',
     hasActiveListing: true,
     note: 'Vừa sơn lại, đón khách được ngay',
+    amenities: ['Máy lạnh', 'Wifi', 'WC riêng'],
   }),
   room({
     id: '70000000-0000-4000-8000-000000000003',
@@ -149,6 +154,7 @@ export const MOCK_ROOMS: readonly MockRoomSeed[] = [
     updatedAt: '2026-08-13T09:00:00.000Z',
     hasActiveContract: true,
     electricityPrice: 3700,
+    amenities: ['Máy lạnh', 'Wifi', 'Gác lửng', 'WC riêng', 'Máy giặt riêng'],
   }),
   room({
     id: '70000000-0000-4000-8000-000000000005',
@@ -181,6 +187,7 @@ export const MOCK_ROOMS: readonly MockRoomSeed[] = [
     status: 'Rented',
     updatedAt: '2026-08-11T09:00:00.000Z',
     hasActiveContract: true,
+    amenities: ['Máy lạnh', 'Wifi', 'WC riêng', 'Tủ lạnh', 'Máy giặt riêng', 'Khóa vân tay'],
   }),
   room({
     id: '70000000-0000-4000-8000-000000000008',

@@ -106,6 +106,7 @@ export function saveRoom(room: RoomListItem): void {
     price: room.price,
     status: room.status,
     note: room.note,
+    amenities: room.amenities,
     electricityPrice: room.electricityPrice,
     waterPrice: room.waterPrice,
     servicePrice: room.servicePrice,

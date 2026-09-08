@@ -14,14 +14,20 @@ import {
 } from 'lucide-react';
 
 /**
- * Nguồn chân lý duy nhất cho tiện ích của tin cho thuê.
+ * Nguồn chân lý duy nhất cho tiện ích — dùng chung cho **tin cho thuê và phòng**.
+ *
+ * `DATA_ENTITIES.md` mô hình hóa `Amenity` là một **catalog** với quan hệ `n-n` tới cả
+ * `RentalListing` lẫn `Room`. Vì vậy file này nằm ở `src/constants/` chứ không thuộc feature
+ * nào: `features/marketplace` và `features/workspace` **cấm import chéo** (ESLint chặn ở mức
+ * `error`), nên để nó trong marketplace thì màn quản lý phòng không dùng được.
  *
  * ⚠️ **Lưu NHÃN tiếng Việt xuống dữ liệu, không lưu `key`.** Bộ lọc ở trang tìm kiếm và phần
  * đối chiếu icon đều so theo nhãn; ghi `key` vào sẽ làm cả bộ lọc lẫn icon chết im lặng —
  * không báo lỗi, chỉ là không khớp gì cả. `key` chỉ là định danh trong state của form.
  *
  * Prototype từng có hai danh sách lệch nhau (form 11 mục, trang chi tiết 6 mục, nhãn khác
- * nhau) nên trang chi tiết không khớp được icon và rơi hết về Wifi.
+ * nhau) nên trang chi tiết không khớp được icon và rơi hết về Wifi. Đó cũng là lý do **không**
+ * chép danh sách này sang workspace: hai bản sẽ lệch, và lệch một cách im lặng.
  */
 export interface AmenityOption {
   key: string;
