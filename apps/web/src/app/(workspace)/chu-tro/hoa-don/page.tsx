@@ -13,8 +13,14 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+interface BillingRouteProps {
+  /** `?phong=<roomId>` — link đi từ màn chi tiết phòng (B9). */
+  searchParams: Promise<{ phong?: string }>;
+}
+
 /** B12 — điện nước và hóa đơn. `SCREENS_WORKSPACE.md`, Surface Workspace. */
-export default async function BillingRoute() {
+export default async function BillingRoute({ searchParams }: BillingRouteProps) {
+  const { phong } = await searchParams;
   // TODO: nối AuthContext khi có; thay mock id bằng user.id từ session đã xác thực.
   const sellerId = MOCK_USER_ID;
   const queryClient = new QueryClient();
@@ -33,7 +39,7 @@ export default async function BillingRoute() {
   return (
     <SurfaceGate surface="workspace">
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <BillingPage properties={properties.items} sellerId={sellerId} />
+        <BillingPage focusedRoomId={phong} properties={properties.items} sellerId={sellerId} />
       </HydrationBoundary>
     </SurfaceGate>
   );

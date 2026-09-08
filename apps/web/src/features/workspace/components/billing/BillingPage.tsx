@@ -24,11 +24,19 @@ const TABS: ReadonlyArray<{ value: BillingTab; label: string; Icon: typeof Gauge
 export function BillingPage({
   sellerId,
   properties,
+  focusedRoomId,
 }: {
   sellerId: string;
   properties: readonly PropertyListItem[];
+  /**
+   * Phòng cần xem hóa đơn, đọc từ `?phong=` — link đi từ màn chi tiết phòng (B9).
+   *
+   * Có nó thì mở thẳng tab Hóa đơn: người bấm "Xem hóa đơn của phòng" mà rơi vào tab ghi chỉ
+   * số sẽ tưởng link hỏng.
+   */
+  focusedRoomId?: string;
 }) {
-  const [tab, setTab] = useState<BillingTab>('readings');
+  const [tab, setTab] = useState<BillingTab>(focusedRoomId ? 'invoices' : 'readings');
 
   return (
     <main className="flex flex-col gap-5 p-4 md:p-6">
@@ -75,7 +83,7 @@ export function BillingPage({
       {tab === 'readings' ? (
         <UtilityReadingsTab properties={properties} sellerId={sellerId} />
       ) : (
-        <InvoicesTab properties={properties} sellerId={sellerId} />
+        <InvoicesTab focusedRoomId={focusedRoomId} properties={properties} sellerId={sellerId} />
       )}
     </main>
   );

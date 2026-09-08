@@ -33,10 +33,15 @@ const ALL = 'all';
 export function InvoicesTab({
   sellerId,
   properties,
+  focusedRoomId,
 }: {
   sellerId: string;
   properties: readonly PropertyListItem[];
+  focusedRoomId?: string;
 }) {
+  // Lọc theo phòng là trạng thái **gỡ được**, không phải cố định theo URL: người dùng tới đây
+  // từ một phòng nhưng thường muốn xem tiếp các phòng khác mà không phải bấm quay lại.
+  const [roomFilter, setRoomFilter] = useState<string | null>(focusedRoomId ?? null);
   const [propertyFilter, setPropertyFilter] = useState<string>(ALL);
   const [periodFilter, setPeriodFilter] = useState<string>(ALL);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(ALL);
@@ -46,16 +51,34 @@ export function InvoicesTab({
   const { data, isPending, isError } = useInvoices(sellerId);
 
   const invoices = useMemo(() => data?.items ?? [], [data]);
-  const visible = useMemo(
+
+  /*
+   * Tập đã lọc **trừ trạng thái** — nguồn đếm cho các chip trạng thái.
+   *
+   * Đếm trên toàn bộ hóa đơn thì chip ghi "Tất cả 4" trong khi danh sách bên dưới chỉ có một
+   * dòng, và người đọc không có cách nào biết vì sao. Chip phải đếm trong đúng phạm vi mà
+   * người dùng đang đứng; riêng bộ lọc trạng thái thì không tự đếm chính nó, nếu không chọn
+   * một chip xong mọi chip khác sẽ về 0.
+   */
+  const inScope = useMemo(
     () =>
       invoices.filter(
         (item) =>
+          (roomFilter === null || item.roomId === roomFilter) &&
           (propertyFilter === ALL || item.propertyId === propertyFilter) &&
-          (periodFilter === ALL || item.period === periodFilter) &&
-          (statusFilter === ALL || item.status === statusFilter),
+          (periodFilter === ALL || item.period === periodFilter),
       ),
-    [invoices, propertyFilter, periodFilter, statusFilter],
+    [invoices, roomFilter, propertyFilter, periodFilter],
   );
+
+  const visible = useMemo(
+    () => inScope.filter((item) => statusFilter === ALL || item.status === statusFilter),
+    [inScope, statusFilter],
+  );
+
+  const focusedRoomCode = roomFilter
+    ? (invoices.find((item) => item.roomId === roomFilter)?.roomCode ?? null)
+    : null;
 
   // Tổng phải bám **tập đang lọc**. Dùng `data.totals` (tổng của mọi hóa đơn) là để hai vùng
   // trên cùng một màn nói về hai tập khác nhau mà không có gì báo cho người đọc biết.
@@ -104,6 +127,20 @@ export function InvoicesTab({
         </WriteGuardButton>
       </div>
 
+      {roomFilter !== null ? (
+        <p className="m-0 flex flex-wrap items-center gap-2 rounded-sm border border-line bg-cream px-3.5 py-2.5 text-[13px] text-ink">
+          Đang xem hóa đơn của phòng{' '}
+          <strong className="font-bold">{focusedRoomCode ?? 'đã chọn'}</strong>
+          <button
+            className="font-semibold text-primary underline transition-colors hover:text-primary-hover"
+            onClick={() => setRoomFilter(null)}
+            type="button"
+          >
+            Bỏ lọc
+          </button>
+        </p>
+      ) : null}
+
       <InvoiceSummary totals={totals} />
 
       <div className="flex flex-wrap gap-1.5">
@@ -111,8 +148,8 @@ export function InvoicesTab({
           const isSelected = statusFilter === chip.value;
           const count =
             chip.value === ALL
-              ? invoices.length
-              : invoices.filter((item) => item.status === chip.value).length;
+              ? inScope.length
+              : inScope.filter((item) => item.status === chip.value).length;
 
           return (
             <button
@@ -153,12 +190,12 @@ export function InvoicesTab({
             ) : undefined
           }
           description={
-            invoices.length === 0
+            inScope.length === 0
               ? 'Hóa đơn được dựng từ tiền thuê trên hợp đồng cộng với chỉ số điện nước đã ghi của kỳ đó.'
               : 'Không có hóa đơn nào khớp bộ lọc đang chọn.'
           }
           icon={<ReceiptText aria-hidden="true" className="size-9 text-ink-muted" />}
-          title={invoices.length === 0 ? 'Chưa có hóa đơn nào' : 'Không có hóa đơn phù hợp'}
+          title={inScope.length === 0 ? 'Chưa có hóa đơn nào' : 'Không có hóa đơn phù hợp'}
         />
       ) : (
         <ul className="m-0 grid list-none gap-3 p-0 xl:grid-cols-2">
