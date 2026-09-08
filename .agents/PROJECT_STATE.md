@@ -3,18 +3,14 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: sau khi dựng **B12 điện nước & hóa đơn** — đã commit trên
-`feat/workspace-billing`, **chưa push, chưa mở PR** về `feat/rebuild`. Nhánh này tách từ
-`chore/handoff-project-state` (không tách từ `feat/rebuild`, vì phần sửa PROJECT_STATE nằm
-chồng lên commit docs của nhánh đó) nên mang theo một commit docs nhỏ. Trước đó: merge
-**B11 hợp đồng** (PR #19), `feat/rebuild` ở `4ba10f7`.
+Cập nhật lần cuối: sau khi merge **B12 điện nước & hóa đơn** (PR #20). `feat/rebuild` đang ở
+`5cdb5a3`. Trước đó: **B11 hợp đồng** (PR #19).
 
 **Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 6 route chạy được:
 `/chu-tro/khu-tro` (B6) · `/chu-tro/khu-tro/{id}` (B7) · `/chu-tro/khu-tro/{id}/phong` (B8) ·
 `/chu-tro/phong/{id}/nguoi-o` (B10) · `/chu-tro/hop-dong` (B11) · `/chu-tro/hoa-don` (B12).
-Mục nav chưa dựng thì hiện
-nhãn "sắp có" chứ không dẫn tới 404 — dựng xong màn nào thì bật cờ `isReady` của màn đó
-trong `WorkspaceShell.tsx`.
+Mục nav chưa dựng thì hiện nhãn "sắp có" chứ không dẫn tới 404 — dựng xong màn nào thì bật cờ
+`isReady` của màn đó trong `WorkspaceShell.tsx`.
 
 **Ba file phải đọc trước khi làm màn Workspace tiếp theo:** `business/SURFACES_AND_MODES.md`
 (gating và ranh giới Surface), `business/BUSINESS_RULES.md` (mã BR liên quan), và mục
@@ -196,7 +192,7 @@ ngày — cần lâu hơn thì chia nhỏ.
         **giữ nguyên** trạng thái (chủ trọ có thể đang dọn/sửa), dialog nói rõ còn một bước nữa.
       - Upload scan hợp đồng (BR-008) **hoãn** — cần private bucket + signed URL từ backend.
 
-- [x] **B12 điện nước & hóa đơn** — `feat/workspace-billing`, route `/chu-tro/hoa-don`
+- [x] **B12 điện nước & hóa đơn** — `feat/workspace-billing` (PR #20), route `/chu-tro/hoa-don`
       - **Một màn hai tab** vì đây là một chuỗi liên tục: ghi chỉ số cuối kỳ rồi xuất hóa đơn
         ngay từ chính những số vừa ghi. Tách hai route sẽ bắt chủ trọ đi vòng cho một lần chốt sổ.
       - **Ghi chỉ số theo BẢNG cả khu**, không phải modal từng phòng như prototype — khu hai
@@ -221,9 +217,16 @@ ngày — cần lâu hơn thì chia nhỏ.
 - [ ] **Giai đoạn 4 — phần còn lại của Workspace.** Kế tiếp: B9 chi tiết phòng, rồi B3
       dashboard. **B3 để gần cuối** — 4/5 nhóm số của nó lấy từ Contract/Invoice/Payment,
       giờ đã có đủ nguồn.
+      **Làm B9 thì nối lại luôn** nút "Điện nước"/"Hóa đơn" trên thẻ phòng ở B8 — bỏ đi hồi
+      B12 chưa có để không tạo nút chết, giờ nối được nhưng cần lọc hóa đơn theo phòng nên
+      thuộc B9.
 - [ ] Nút **"Tạo tin từ phòng"** (điểm nối Room → RentalListing) — chưa làm: B5 chưa đọc
       `?roomId=` để prefill. Badge "Có tin đang chạy" thì đã có. Làm thành nhánh riêng chạm
       cả hai feature.
+- [ ] Dọn nhánh: `chore/handoff-project-state` trên origin **đã thừa** — nội dung của nó đi
+      theo PR #20 vào `feat/rebuild` rồi (PR merge kiểu squash nên mã commit không trùng, đừng
+      nhìn `--contains` mà tưởng chưa merge). Xóa được. Local còn 14 nhánh cũ đã merge, cũng
+      chỉ là rác.
 
 ### Tiếp theo
 

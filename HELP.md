@@ -1,5 +1,8 @@
 # Getting Started
 
+Dựng dự án trên máy mới: đọc [development setup](./docs/DEVELOPMENT_SETUP.md) — danh sách
+đúng những thứ cần cài, và những thứ **không** cần (không có `.env`, không cần backend).
+
 Đọc [README](./README.md) để cài đặt và chạy dự án, sau đó đọc
 [source code guidelines](./SOURCE_CODE_GUIDELINES.md) để hiểu cấu trúc workspace. Trước khi viết
 mã, đọc thêm [workspace guidelines](./.agents/AGENTS.md),
