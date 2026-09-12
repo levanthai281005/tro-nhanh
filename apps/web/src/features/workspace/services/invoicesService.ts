@@ -9,6 +9,7 @@ import {
   findRoom,
   findUtilityReading,
   listInvoicesByContract,
+  listInvoicesByRoom,
   listInvoicesBySeller,
   listPayments,
   saveInvoice,
@@ -106,6 +107,24 @@ export async function getInvoicesBySeller(sellerId: string | undefined): Promise
   );
 
   return { items, totals: toTotals(items), periods };
+}
+
+/**
+ * Hóa đơn của một phòng — nguồn cho màn chi tiết phòng (B9).
+ *
+ * Dùng lại `toListItem`, tức dùng lại `deriveInvoiceStatus`. Đây là điểm mấu chốt: nếu B9 tự
+ * suy trạng thái lần nữa thì cùng một hóa đơn có thể hiện `Quá hạn` ở màn hóa đơn và
+ * `Thu một phần` ở màn phòng — và đây là màn tiền, hai con số đá nhau là mất niềm tin vào cả
+ * hệ thống chứ không riêng một cái badge.
+ */
+// TODO: nối API thật khi packages/types sinh xong: GET /management/rooms/{id}/invoices.
+export async function getInvoicesByRoom(roomId: string): Promise<readonly InvoiceListItem[]> {
+  await waitForMockRequest();
+
+  const today = todayIso();
+  return listInvoicesByRoom(roomId)
+    .map((invoice) => toListItem(invoice, today))
+    .filter((item): item is InvoiceListItem => item !== null);
 }
 
 /**

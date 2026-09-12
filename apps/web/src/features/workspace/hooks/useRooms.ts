@@ -29,6 +29,10 @@ export function useRooms(propertyId: string) {
  * Mọi mutation về phòng đều phải làm mới **cả** danh sách khu: số "x phòng · y trống" trên
  * thẻ khu ở B6 lấy từ chính dữ liệu này. Quên bước đó thì thêm phòng xong quay lại B6 vẫn
  * thấy số cũ, và người dùng tưởng thao tác hỏng.
+ *
+ * Làm mới **cả nhánh** `ROOM_QUERY_KEYS.all`, không riêng `byProperty`: cùng một phòng còn
+ * được đọc qua `detail` và `overview` (B9). Truyền khóa hẹp là cái bẫy im lặng đã gặp ở B11 —
+ * sửa phòng ở màn chi tiết xong, màn đó vẫn hiện số cũ mà không có gì báo.
  */
 function useRoomMutation<TVariables, TResult>(
   propertyId: string,
@@ -40,7 +44,7 @@ function useRoomMutation<TVariables, TResult>(
   return useMutation({
     mutationFn,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ROOM_QUERY_KEYS.byProperty(propertyId) });
+      void queryClient.invalidateQueries({ queryKey: ROOM_QUERY_KEYS.all });
       void queryClient.invalidateQueries({ queryKey: PROPERTY_QUERY_KEYS.list(sellerId) });
     },
   });

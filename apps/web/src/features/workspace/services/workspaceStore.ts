@@ -228,6 +228,16 @@ export function listInvoicesBySeller(sellerId: string): Invoice[] {
     );
 }
 
+/** Hóa đơn của một phòng, kỳ mới nhất trước — nguồn cho màn chi tiết phòng (B9). */
+export function listInvoicesByRoom(roomId: string): Invoice[] {
+  return [...invoices.values()]
+    .filter((item) => item.roomId === roomId)
+    .sort(
+      (left, right) =>
+        right.period.localeCompare(left.period) || right.createdAt.localeCompare(left.createdAt),
+    );
+}
+
 /** Hóa đơn của một hợp đồng — nguồn kiểm unique (contractId, period). */
 export function listInvoicesByContract(contractId: string): Invoice[] {
   return [...invoices.values()].filter((item) => item.contractId === contractId);

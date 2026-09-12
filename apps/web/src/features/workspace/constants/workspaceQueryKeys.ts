@@ -10,6 +10,8 @@ export const ROOM_QUERY_KEYS = {
   all: ['workspace', 'rooms'] as const,
   byProperty: (propertyId: string) => [...ROOM_QUERY_KEYS.all, 'by-property', propertyId] as const,
   detail: (roomId: string) => [...ROOM_QUERY_KEYS.all, 'detail', roomId] as const,
+  /** B9 — khối dữ liệu gộp của màn chi tiết phòng. */
+  overview: (roomId: string) => [...ROOM_QUERY_KEYS.all, 'overview', roomId] as const,
 };
 
 export const OCCUPANCY_QUERY_KEYS = {

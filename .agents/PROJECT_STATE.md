@@ -3,12 +3,13 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: sau khi merge **B12 điện nước & hóa đơn** (PR #20). `feat/rebuild` đang ở
-`5cdb5a3`. Trước đó: **B11 hợp đồng** (PR #19).
+Cập nhật lần cuối: sau khi dựng **B9 chi tiết phòng**. Trước đó: **tiện ích cho phòng** (PR #22),
+**B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
 
-**Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 6 route chạy được:
+**Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 7 route chạy được:
 `/chu-tro/khu-tro` (B6) · `/chu-tro/khu-tro/{id}` (B7) · `/chu-tro/khu-tro/{id}/phong` (B8) ·
-`/chu-tro/phong/{id}/nguoi-o` (B10) · `/chu-tro/hop-dong` (B11) · `/chu-tro/hoa-don` (B12).
+`/chu-tro/phong/{id}` (B9) · `/chu-tro/phong/{id}/nguoi-o` (B10) · `/chu-tro/hop-dong` (B11) ·
+`/chu-tro/hoa-don` (B12).
 Mục nav chưa dựng thì hiện nhãn "sắp có" chứ không dẫn tới 404 — dựng xong màn nào thì bật cờ
 `isReady` của màn đó trong `WorkspaceShell.tsx`.
 
@@ -212,14 +213,37 @@ ngày — cần lâu hơn thì chia nhỏ.
         gửi + bản in qua `window.print()`. B18 duyệt chỉ số từ người ở (BR-033) và B13 route
         chi tiết riêng cũng để sau; chi tiết hóa đơn hiện là modal.
 
+- [x] **Tiện ích cho phòng** — `feat/room-amenities` (PR #22)
+      - `DATA_ENTITIES` đã có `Room n-n Amenity` nhưng repo mới chỉ dựng nửa phía tin đăng.
+      - Catalog 11 tiện ích **nâng** từ `features/marketplace/constants/` lên `src/constants/`
+        vì ESLint cấm import chéo feature. **Không chép sang workspace** — chính file đó ghi
+        lại bài học prototype có hai danh sách lệch nhau khiến icon rơi hết về Wifi.
+      - Lưới chọn tách thành `components/ui/AmenityPicker` cho B5 và B8 dùng chung.
+      - Mảng rỗng là dữ liệu **thật** (phòng thô), nên hiện hẳn câu giải thích thay vì để trống.
+
+- [x] **B9 chi tiết phòng** — `feat/port-room-detail-workspace`, route `/chu-tro/phong/{id}`
+      - **Trang tổng hợp, không nhân bản thao tác.** Người ở sửa ở B10, hợp đồng ở B11, hóa đơn
+        và chỉ số ở B12; B9 chỉ tóm tắt rồi dẫn sang. Ngoại lệ duy nhất: sửa thông tin phòng.
+        Prototype gộp hết vào drawer 4 tab **vì nó không có màn nào khác để đi** — repo này có.
+      - Prototype `RoomDetailTabs` vốn đã **chỉ đọc** (không có nút thao tác nào). Khác biệt
+        thật nằm ở nghiệp vụ: nó lấy **một** `activeOccupancy` rồi hiện "N người", còn ở đây
+        liệt kê **đủ từng người** kèm SĐT và `linkStatus` riêng (BR-029).
+      - **Đơn giá nói rõ nguồn**: "3.500 đ/kWh · theo giá khu" so với "3.700 đ/kWh · riêng
+        phòng"; `0` hiện thành "Miễn phí". Prototype hiển thị `null` thành "Chưa cấu hình" —
+        sai, vì `null` là quyết định thừa hưởng giá khu chứ không phải quên khai.
+      - **Không tính lại trạng thái hóa đơn.** `getInvoicesByRoom` dùng lại `toListItem` nên
+        `deriveInvoiceStatus` chỉ chạy một chỗ.
+      - Gắn cờ hợp đồng `Active` đã **qua `endDate`** — `daysRemaining` âm nên điều kiện "sắp
+        hết hạn" bỏ lọt đúng hợp đồng đáng lo nhất.
+      - Thêm lọc `?phong=` cho B12; nhân đó sửa luôn số trên chip trạng thái để đếm theo phạm
+        vi đang lọc (trước đó chip ghi "Tất cả 4" trong khi danh sách chỉ có 1 dòng).
+      - Drawer B8 **giữ nguyên** làm xem nhanh, thêm lối "Xem chi tiết" sang B9.
+
 ### Đang làm
 
-- [ ] **Giai đoạn 4 — phần còn lại của Workspace.** Kế tiếp: B9 chi tiết phòng, rồi B3
-      dashboard. **B3 để gần cuối** — 4/5 nhóm số của nó lấy từ Contract/Invoice/Payment,
-      giờ đã có đủ nguồn.
-      **Làm B9 thì nối lại luôn** nút "Điện nước"/"Hóa đơn" trên thẻ phòng ở B8 — bỏ đi hồi
-      B12 chưa có để không tạo nút chết, giờ nối được nhưng cần lọc hóa đơn theo phòng nên
-      thuộc B9.
+- [ ] **Giai đoạn 4 — phần còn lại của Workspace.** Kế tiếp: **B3 dashboard** — 4/5 nhóm số
+      lấy từ Contract/Invoice/Payment, giờ đã có đủ nguồn. Rồi B1/B2 onboarding, B14 thuế,
+      B15 gói dịch vụ, B16 đánh giá, B17 sự cố, B18 duyệt chỉ số.
 - [ ] Nút **"Tạo tin từ phòng"** (điểm nối Room → RentalListing) — chưa làm: B5 chưa đọc
       `?roomId=` để prefill. Badge "Có tin đang chạy" thì đã có. Làm thành nhánh riêng chạm
       cả hai feature.
@@ -319,6 +343,11 @@ hướng bằng **link trong app** (client-side), không `location.href`.
 để tính "đang ở" thì chủ trọ bấm "Kết thúc ở", chọn hôm nay, rồi thấy người đó vẫn nằm ở mục
 "Đang ở" — trông như thao tác không ăn. Dùng `>`. Người có `endDate` ở tương lai vẫn là đang ở
 nhưng phải hiển thị khác ("Sắp rời DD/MM"), vì báo trước một tháng là chuyện bình thường.
+
+**Bộ đếm trên chip lọc phải đếm theo phạm vi đang lọc.** Chip trạng thái ở B12 từng đếm trên
+toàn bộ hóa đơn, nên khi lọc theo phòng thì chip ghi "Tất cả 4" trong khi danh sách bên dưới
+chỉ có một dòng — người đọc không có cách nào biết vì sao. Đếm trên tập đã lọc **trừ chính bộ
+lọc đó**, nếu không chọn một chip xong mọi chip khác về 0.
 
 **Ghi cache sau mutation: cẩn thận khi một thao tác chạm NHIỀU bản ghi.** Đổi người đại diện
 hợp đồng sửa hai `Occupancy` (người cũ mất vai trò, người mới nhận). Ghi mỗi bản ghi mà

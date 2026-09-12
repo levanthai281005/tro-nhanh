@@ -1,7 +1,7 @@
 'use client';
 
 import { ALLOWED_ROOM_STATUS_TRANSITIONS, type RoomStatus } from '@tronhanh/schemas';
-import { FileSignature, Megaphone, Pencil, Trash2, Users, X } from 'lucide-react';
+import { ArrowRight, FileSignature, Megaphone, Pencil, Trash2, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { amenityIconByLabel } from '@/constants/amenities';
 import { Badge } from '@/components/ui/Badge';
@@ -228,6 +228,15 @@ export function RoomDetailDrawer({
           </WriteGuardButton>
 
           <div className="flex items-center gap-2">
+            {/* Drawer cố ý giữ ở mức xem nhanh trong lưới phòng. Ai cần đủ hợp đồng, hóa đơn
+                và chỉ số thì đi tiếp sang B9 — một trang thật, chia sẻ link được. */}
+            <Link
+              className="inline-flex items-center gap-1.5 rounded-sm px-3.5 py-1.5 text-[13px] font-semibold text-primary transition-colors hover:bg-cream"
+              href={`/chu-tro/phong/${room.id}`}
+            >
+              Xem chi tiết
+              <ArrowRight aria-hidden="true" className="size-3.5" />
+            </Link>
             <Button onClick={onClose} size="sm" variant="ghost">
               Đóng
             </Button>
