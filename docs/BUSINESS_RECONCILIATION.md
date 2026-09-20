@@ -404,13 +404,21 @@ sửa **12 chỗ** đang ghi Java/Spring, nếu không agent phiên sau sẽ tin
 | `docs/DEVELOPMENT_SETUP.md`                   | 57             | "repo Java riêng"                           |
 | `CLAUDE.md` (gốc)                             | Bối cảnh nhanh | "Java Spring Boot"                          |
 
+**Đã chốt kèm theo (21/09):** repo GitHub đổi tên `tro-nhanh-fe` → **`tro-nhanh`**, backend
+NestJS sẽ nằm **trong cùng repo**. Vậy mọi câu "backend là repo riêng" đều sai — thêm vào bảng
+trên: `CLAUDE.md` gốc ("Backend là repo riêng"), `ARCHITECTURE_AND_SHELLS` §54 ("**Hai repo**"),
+`PROJECT_STATE` dòng 30 ("repo riêng `tro-nhanh-api`"), AS-020 ("repo riêng tách khỏi client").
+
 Điểm cần chốt kèm theo khi đổi stack:
 
 - **Sinh OpenAPI bằng gì** — NestJS dùng `@nestjs/swagger` thay `springdoc`. Luồng
-  `pnpm api:gen` phía client không đổi, chỉ đổi nguồn file.
-- **Lý do tách repo** ở `ARCHITECTURE_AND_SHELLS` §54 là "Java và TypeScript là hai hệ build
-  khác nhau" — với NestJS lý do này **không còn đúng**. Cần lý do mới (pipeline deploy riêng,
-  đội riêng) hoặc cân nhắc đưa vào monorepo. Đây là quyết định kiến trúc, không phải sửa chữ.
+  `pnpm api:gen` phía client không đổi, chỉ đổi nguồn file — giờ còn gọn hơn vì cùng repo,
+  không phải copy `openapi.json` qua lại.
+- **Vị trí trong monorepo** — `apps/api` là chỗ tự nhiên (cạnh `apps/web`, `apps/mobile`).
+  `packages/schemas` (Zod) khi đó dùng chung được cho cả validation phía server — lợi ích thật
+  của việc cùng ngôn ngữ, nhưng cần quyết Zod schema hay `class-validator` là nguồn chân lý.
+- **Ranh giới import** — ESLint `boundaries` hiện chặn ba feature web với nhau; cần thêm luật
+  `apps/api` không import từ `apps/web` và ngược lại, chỉ đi qua `packages/*`.
 - `DATABASE_DESIGN` §10 các ràng buộc `EXCLUDE`, trigger, `AT TIME ZONE` vẫn nguyên — chúng là
   Postgres, không phụ thuộc ngôn ngữ backend.
 

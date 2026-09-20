@@ -28,8 +28,8 @@ build khác nhau mà không ai giải thích được.
 ## 2. Các bước dựng lại
 
 ```bash
-git clone https://github.com/levanthai281005/tro-nhanh-fe.git
-cd tro-nhanh-fe
+git clone https://github.com/levanthai281005/tro-nhanh.git
+cd tro-nhanh
 corepack enable
 corepack prepare pnpm@9.15.0 --activate
 pnpm install --frozen-lockfile
@@ -54,7 +54,8 @@ Nếu máy có `nvm`, chạy `nvm use` trong repo để nó tự đọc `.nvmrc`
 - **File `.env`.** Repo hiện không có file `.env` nào mà vẫn chạy. `packages/api` có tạo axios
   client đọc `NEXT_PUBLIC_API_URL`, nhưng `apiClient` **chưa được gọi ở bất kỳ đâu** — toàn bộ
   màn hình đang chạy mock data. Khi nối API thật mới cần.
-- **Backend.** `tro-nhanh-api` là repo Java riêng, chưa nối. Không cần chạy.
+- **Backend.** Chưa nối. Sẽ là NestJS đặt **trong cùng repo này** (repo đã đổi tên từ
+  `tro-nhanh-fe` sang `tro-nhanh` ngày 21/09/2026 để chứa cả hai). Chưa dựng nên chưa cần chạy.
 - **`pnpm api:gen`.** `packages/types/src/api.ts` còn là stub rỗng vì backend chưa sinh
   `openapi.json` thật.
 - **Docker.** Có sẵn `compose.yaml` nhưng chạy `pnpm dev:web` trực tiếp là đủ.
@@ -79,7 +80,7 @@ Phải đặt **đúng thư mục anh em**, vì tài liệu trong `.agents/` tha
 
 ```text
 rebuild_tronhanh-fe/
-├── tro-nhanh-fe/     ← repo này
+├── tro-nhanh/        ← repo này (thư mục máy cũ vẫn tên tro-nhanh-fe, không sao)
 └── prototype/        ← bản demo cũ, chạy được để đối chiếu
 ```
 
