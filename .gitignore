@@ -12,3 +12,7 @@ coverage/
 .env.*.local
 .DS_Store
 *.tsbuildinfo
+# Bản sao lưu nén (VD .agents.rar) — không bao giờ commit
+*.rar
+*.zip
+*.7z
