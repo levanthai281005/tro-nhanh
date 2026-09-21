@@ -39,9 +39,9 @@ Bảng này giải thích các từ dùng xuyên suốt tài liệu. Đọc trư
 |---|---|
 | **Khách chưa đăng nhập** | Chưa có phiên làm việc. Đây là một trạng thái, không phải vai trò. |
 | **người thuê** | Vai trò của bên thuê: người tìm phòng và người đang thuê. Mặc định sau khi đăng ký. |
-| **chủ trọ** | Vai trò của bên cho thuê. Kế thừa toàn bộ quyền của người thuê. |
+| **chủ trọ** | Vai trò của bên cho thuê. Có thêm quyền cho thuê và quản lý vận hành, **không kế thừa** vai trò nào. |
 | **nhân viên vận hành** | Nhân viên vận hành nền tảng: kiểm duyệt tin, xử lý báo cáo. |
-| **quản trị viên** | Quản trị hệ thống. Kế thừa toàn bộ quyền của nhân viên vận hành. |
+| **quản trị viên** | Quản trị hệ thống. Làm được các việc kiểm duyệt như nhân viên vận hành, cộng thêm quản lý tài khoản, danh mục và gói dịch vụ. |
 
 ### Các khái niệm khác
 
@@ -55,6 +55,7 @@ Bảng này giải thích các từ dùng xuyên suốt tài liệu. Đọc trư
 | **Báo cáo sự cố** | Người ở báo hỏng hóc kèm ảnh; chủ trọ tiếp nhận và xử lý theo các bước có sẵn. |
 | **Xóa mềm** | Đánh dấu đã xóa và ẩn khỏi danh sách, nhưng vẫn giữ trong cơ sở dữ liệu để khôi phục hoặc đối chiếu. |
 | **Danh mục** | Bảng dữ liệu do quản trị viên quản lý, thêm sửa được mà không phải đổi mã nguồn — loại hình cho thuê, tiện ích, gói đẩy tin, gói dịch vụ. |
+| **`residencyStatus`** | Tình trạng ở trọ của một tài khoản, **suy từ dữ liệu người ở**, không lưu thành cột riêng. Ba giá trị: `NONE` — chưa được liên kết vào phòng nào; `ACTIVE` — đang ở; `PAST` — đã rời đi, chỉ xem lại lịch sử và vẫn viết được đánh giá khu từng ở. |
 | **Mã hành chính** | Mã tỉnh và mã phường/xã dùng để lọc khi tìm kiếm; tên dùng để hiển thị. Theo mô hình hai cấp áp dụng từ 01/07/2025. |
 
 ### Thuật ngữ kỹ thuật (dành cho team phát triển)
@@ -245,10 +246,15 @@ các quyền mà nhiều bên cùng cần xuống tầng "đã đăng nhập"**:
 
 | Tầng | Điều kiện | Gồm những gì |
 |---|---|---|
-| **Đã đăng nhập** | Bất kỳ vai trò nào | Xem tin, tìm kiếm, lưu tin, nhắn tin, báo cáo vi phạm, đăng tin tìm phòng và tin ở ghép |
+| **Đã đăng nhập** | Vai trò `TENANT` hoặc `LANDLORD` | Xem tin, tìm kiếm, lưu tin, nhắn tin, báo cáo vi phạm, đăng tin tìm phòng và tin ở ghép |
 | **Chủ trọ** | Vai trò `LANDLORD` | Đăng tin cho thuê, đẩy tin nổi bật, quản lý khu trọ, phòng, người ở, hợp đồng, hóa đơn |
 | **Người đang ở** | **Suy từ dữ liệu** — có bản ghi người ở đã liên kết | Xem phòng đang thuê, hợp đồng và hóa đơn của mình, báo sự cố, gửi chỉ số, viết đánh giá khu |
 | **Nội bộ** | Vai trò `STAFF` hoặc `ADMIN` | Kiểm duyệt tin, xử lý báo cáo; quản trị viên thêm quyền quản lý tài khoản, danh mục, gói dịch vụ |
+
+**Tài khoản nội bộ không thuộc tầng "đã đăng nhập".** Nhân viên vận hành và quản trị viên
+không lưu tin, nhắn tin hay đăng tin trên chợ — họ là người kiểm duyệt hoạt động đó, để họ
+tham gia sẽ lẫn lộn giữa người chơi và trọng tài. Ai trong đội vận hành muốn đi thuê phòng thì
+dùng một tài khoản cá nhân riêng.
 
 Nhờ cách chia này, **không cần cơ chế kế thừa vai trò nào cả**. Chủ trọ vẫn lưu tin và nhắn
 tin được, vì đó là quyền của tầng "đã đăng nhập" chứ không phải quyền riêng của người thuê.
@@ -285,9 +291,24 @@ vai trò. Trộn hai tầng này là nguồn gốc của mọi mô hình phân q
 
 #### Nguồn thông tin cho giao diện
 
-Sau khi đăng nhập, giao diện hỏi hệ thống một lần để biết tài khoản này mang vai trò gì, gói
-dịch vụ đang ở trạng thái nào, và có đang ở trọ chỗ nào không — rồi dựa vào đó mà hiển thị
-menu. Không tự suy đoán từ dữ liệu lưu trong trình duyệt.
+Sau khi đăng nhập, giao diện gọi **`GET /me`** một lần để biết tài khoản này mang vai trò gì,
+gói dịch vụ đang ở trạng thái nào, và có đang ở trọ chỗ nào không — rồi dựa vào đó mà hiển
+thị menu. Không tự suy đoán từ dữ liệu lưu trong trình duyệt.
+
+`GET /me` trả về ba nhóm thông tin, tương ứng ba tầng độc lập:
+
+| Trường | Ý nghĩa | Giá trị |
+|---|---|---|
+| `role` | Vai trò của tài khoản — **một giá trị duy nhất** | `TENANT` / `LANDLORD` / `STAFF` / `ADMIN` |
+| `subscriptionStatus` | Trạng thái gói dịch vụ — chỉ có nghĩa với chủ trọ | `NONE` / `TRIAL` / `ACTIVE` / `READ_ONLY` |
+| `residencyStatus` | Tình trạng ở trọ — suy từ dữ liệu người ở | `NONE` / `ACTIVE` / `PAST` |
+
+Vai trò nằm trong phiên đăng nhập vì gần như không đổi. Hai trạng thái còn lại **không nằm
+trong phiên** mà luôn tính lại từ dữ liệu mỗi lần gọi — vì chúng thay đổi theo thời gian, nhét
+vào phiên sẽ có khoảng thời gian hệ thống mở hoặc khóa sai.
+
+Không có giá trị `PENDING` cho `residencyStatus`: liên kết người ở có hiệu lực ngay (BR-029),
+nên không tồn tại trạng thái chờ.
 
 **Khi giao diện chặn, hệ thống vẫn kiểm tra lại.** Việc ẩn nút hay chặn đường dẫn ở giao diện
 chỉ để trải nghiệm mượt; mọi yêu cầu gửi lên đều được kiểm tra quyền lại từ đầu.
@@ -325,7 +346,7 @@ người thuê còn xem được khu "Phòng của tôi": thông tin phòng đan
 tháng kèm mã thanh toán, gửi báo cáo sự cố, gửi chỉ số điện nước nếu chủ trọ bật tính năng,
 nhận thông báo, và viết đánh giá khu trọ đã ở.
 
-**chủ trọ — bên cho thuê.** Có toàn bộ quyền của người thuê, cộng thêm:
+**chủ trọ — bên cho thuê.** Làm được mọi việc của tầng "đã đăng nhập" (xem tin, lưu tin, nhắn tin), cộng thêm:
 
 Đăng và quản lý tin cho thuê, đẩy tin nổi bật. Phần này miễn phí.
 
@@ -341,7 +362,7 @@ vai trò môi giới.
 nhắn và đánh giá, hỗ trợ người dùng. Không quản lý tài khoản, không sửa danh mục, không đụng
 gói dịch vụ.
 
-**quản trị viên — quản trị hệ thống.** Có toàn bộ quyền của nhân viên vận hành, cộng thêm quản lý tài khoản
+**quản trị viên — quản trị hệ thống.** Làm được các việc kiểm duyệt như nhân viên vận hành, cộng thêm quản lý tài khoản
 người dùng, danh mục hệ thống (loại hình cho thuê, tiện ích, khu vực, khoảng giá), gói
 dịch vụ và phí đẩy tin, cùng bảng theo dõi toàn hệ thống.
 
@@ -951,8 +972,8 @@ hạn này thay vì hứa hẹn quá mức.
 **Mục đích:** cho người đang thuê theo dõi việc thuê của mình và phản hồi lại chủ trọ. Phục vụ
 cả giao diện web và ứng dụng di động dành riêng cho người ở.
 
-**Ai vào được:** tài khoản người thuê đã được chủ trọ liên kết với một phòng — đang ở hoặc đã
-từng ở. Người chưa được liên kết mở ra chỉ thấy màn hình hướng dẫn.
+**Ai vào được:** tài khoản có `residencyStatus` là `ACTIVE` (đang ở) hoặc `PAST` (đã từng ở). Tài
+khoản `NONE` mở ra chỉ thấy màn hình hướng dẫn "chủ trọ cần thêm bạn vào phòng".
 
 **Chức năng:**
 
@@ -999,24 +1020,26 @@ thấy chưa ổn. Mỗi lần chuyển trạng thái đều gửi thông báo c
 2. Kiểm tra: tin không Expired/Rented/Hidden; **không phải tin của chính mình** → tạo/mở hội thoại → gửi tin nhắn → Notification → polling → đã đọc. Ghi lượt liên hệ.
 3. Chặn/báo cáo tin nhắn.
 
-### 4.3 Landlord đăng tin cho thuê (gồm kích hoạt Landlord lần đầu)
-1. Từ header public "Đăng tin → Tin cho thuê" → `/dang-tin-cho-thue` (zone Tin đăng, miễn phí). User chưa có role Landlord vẫn vào được — chính hành động tạo listing đầu tiên sẽ kích hoạt Landlord.
-2. Form nhiều bước: (1) cơ bản → (2) tiện ích & mô tả → (3) ảnh ≥ 3 → (4) chi phí → (5) giờ giấc → (6) *[chỉ hiện khi Landlord có Property]* chọn khu trọ (tùy chọn, gắn `propertyId`).
-3. Lưu bản ghi đầu tiên (kể cả Draft) → backend gán role Landlord **cùng transaction** → FE gọi `POST /auth/refresh` → tiếp tục.
-4. Gửi → validate + lọc từ khóa cấm → `PendingApproval` → Staff duyệt → `Active` (đặt `expireAt = approvedAt + 60 ngày`) / `Rejected` (kèm lý do) → Notification.
-5. (Tùy chọn) boost → luồng 4.9 → `boostExpireAt = now + boostDays`.
-6. Sau khi gửi từ luồng "tạo tin từ phòng" → quay về B4 (Quản lý tin).
+### 4.3 Chủ trọ đăng tin cho thuê
+1. Từ header công khai "Đăng tin → Tin cho thuê" → `/dang-tin-cho-thue`. Màn này thuộc chợ tin đăng, **miễn phí, không cần gói dịch vụ**, nhưng **cần vai trò `LANDLORD`**.
+2. Người đang là `TENANT` bấm vào sẽ thấy màn mời **"Trở thành chủ trọ"** (giữ `?redirect=` để quay lại đúng chỗ). Đồng ý → vai trò đổi thành `LANDLORD`, một chiều → giao diện gọi `POST /auth/refresh` để lấy phiên mới mang vai trò mới → quay lại biểu mẫu đăng tin.
+3. Biểu mẫu nhiều bước: (1) cơ bản → (2) tiện ích và mô tả → (3) ảnh, tối thiểu 3 tấm → (4) chi phí → (5) tiện ích xung quanh → (6) giờ giấc → (7) *[chỉ hiện khi chủ trọ đã có khu trọ]* chọn khu, tùy chọn, gắn `propertyId`.
+4. Gửi → kiểm tra dữ liệu + lọc từ khóa cấm → `PendingApproval` → nhân viên vận hành duyệt → `Active` (đặt `expireAt = approvedAt + 60 ngày`) hoặc `Rejected` kèm lý do → thông báo.
+5. (Tùy chọn) đẩy tin nổi bật → luồng 4.9 → `boostExpireAt = now + durationDays` của gói đã chọn.
+6. Nếu đăng từ lối tắt "tạo tin từ phòng trống" → sau khi gửi quay về B4 (Quản lý tin).
+
+> **Không có cơ chế nâng cấp ngầm.** Tạo tin, mở khu quản lý hay bất kỳ thao tác nào khác đều **không** tự đổi vai trò. Chỉ thao tác "Trở thành chủ trọ" mới đổi — để người dùng luôn biết rõ vai trò của mình và không bị đổi vai trò mà không hay.
 
 ### 4.4 Chủ trọ mở Workspace lần đầu & dùng thử
-1. Bấm "Quản lý khu trọ"/"Dashboard chủ trọ" → kích hoạt Landlord (nếu chưa) → B1 với **2 lối**: "Đăng tin (miễn phí)" / "Dùng thử bộ quản lý".
+1. Chủ trọ (vai trò `LANDLORD`) bấm "Quản lý khu trọ" → B1 với **2 lối**: "Đăng tin (miễn phí)" / "Dùng thử bộ quản lý". Người thuê bấm vào đây sẽ được mời "Trở thành chủ trọ" trước (xem 4.3).
 2. Chọn dùng thử → tạo gói đã đăng ký (`Trial`, `expireDate = now + trialDays` của plan Trial) → wizard 3 bước → Dashboard.
 3. Muốn dùng tiếp → mua gói (4.9) → `ACTIVE`. Hết hạn → job chuyển `READ_ONLY`.
 - **Ngoại lệ:** đã dùng TRIAL → chỉ còn lối mua gói; chạm hạn mức → chặn tạo mới + gợi ý gói lớn hơn.
 
-### 4.5 Landlord quản lý người ở (Occupancy) — có xác nhận liên kết
+### 4.5 Chủ trọ quản lý người ở — liên kết có hiệu lực ngay
 1. Chi tiết Room → "+ Thêm người ở" → nhập SĐT → tra tài khoản:
  - **Có tài khoản:** hệ thống hiện tên để chủ trọ đối chiếu → bấm gắn → liên kết có hiệu lực ngay, mở "Phòng của tôi" và quyền viết đánh giá cho người thuê → gửi thông báo kèm nút "Không phải tôi"; nếu người thuê bấm nút đó thì gỡ liên kết, bản ghi người ở quay về dạng chỉ có tên và số điện thoại.
- - **Chưa có:** nhập tên + SĐT (fallback, `userId` null); khi người đó đăng ký, Landlord gắn sau — cũng qua xác nhận.
+ - **Chưa có:** nhập tên + SĐT (`userId` null); khi người đó đăng ký bằng đúng số điện thoại ấy, chủ trọ liên kết lại — cũng có hiệu lực ngay và gửi thông báo như trên.
 2. Bổ sung ngày bắt đầu, số người, ghi chú → Lưu. Một phòng có thể nhiều Occupancy Active (ở ghép).
 3. Rời đi → "Kết thúc ở" → set `endDate`, `isActive=false` → lịch sử; nếu Contract gắn Occupancy này kết thúc → gợi ý đổi RoomStatus.
 
@@ -1193,7 +1216,7 @@ Quyền phân theo bốn tầng, **không chồng lấn giữa các vai trò**:
 
 | Tầng | Điều kiện | Gồm những gì |
 |---|---|---|
-| Đã đăng nhập | Bất kỳ vai trò nào | Xem tin, tìm kiếm, lưu tin, nhắn tin, báo cáo vi phạm, đăng tin tìm phòng và ở ghép |
+| Đã đăng nhập | Vai trò `TENANT` hoặc `LANDLORD` | Xem tin, tìm kiếm, lưu tin, nhắn tin, báo cáo vi phạm, đăng tin tìm phòng và ở ghép |
 | Chủ trọ | Vai trò `LANDLORD` | Đăng tin cho thuê, đẩy tin, quản lý khu, phòng, người ở, hợp đồng, hóa đơn |
 | Người đang ở | **Suy từ dữ liệu**, không phụ thuộc vai trò | Xem phòng đang thuê, hóa đơn của mình, báo sự cố, gửi chỉ số, viết đánh giá |
 | Nội bộ | Vai trò `STAFF` hoặc `ADMIN` | Kiểm duyệt, xử lý báo cáo; quản trị viên thêm quyền quản lý tài khoản và danh mục |
@@ -1494,7 +1517,7 @@ Middleware **mount theo tiền tố**, nên không thể chặn nhầm route c�
 POST /auth/register POST /auth/verify-otp POST /auth/login
 POST /auth/refresh POST /auth/logout (thu hồi refresh token)
 POST /auth/forgot-password POST /auth/reset-password
-GET /me (thông tin tài khoản, vai trò, trạng thái gói, tình trạng ở trọ)
+GET /me (role, subscriptionStatus, residencyStatus, thông tin hồ sơ)
 PUT /me/password POST /me/delete-request
 GET /me/profile PUT /me/profile PUT /me/display-settings
 POST /me/device-tokens DELETE /me/device-tokens/{id} (push cho app mobile)
@@ -1563,7 +1586,7 @@ GET /management/dashboard
 ### 7.5 Residency — người ở (web shell + app mobile)
 ```
 GET /residency/me/occupancies (đợt ở hiện tại + lịch sử)
-PATCH /residency/me/occupancies/{id}/confirm PATCH …/reject PATCH …/unlink
+PATCH /residency/me/occupancies/{id}/unlink   (nút "Không phải tôi" — người thuê tự gỡ liên kết)
 GET /residency/me/room (tổng quan phòng đang ở)
 GET /residency/me/contracts GET /residency/me/contracts/{id}
 GET /residency/me/invoices GET /residency/me/invoices/{id} (kèm STK + VietQR)
@@ -1711,7 +1734,7 @@ GET /admin/dashboard
 | # | Màn hình | Route | Mô tả | Giai đoạn |
 |---|---|---|---|---|
 | C1 | Tổng quan phòng của tôi | `/nguoi-o` | Phòng đang ở, khu trọ, liên hệ chủ trọ, hợp đồng hiện tại | V1 |
-| C2 | Xác nhận liên kết phòng | `/nguoi-o/loi-moi` | Chấp nhận/Từ chối lời mời gắn vào phòng | V1 |
+| C2 | Thông báo được thêm vào phòng | `/nguoi-o/lien-ket` | Hiện phòng và khu vừa được chủ trọ thêm vào; nút "Không phải tôi" để tự gỡ nếu bị thêm nhầm | V1 |
 | C3 | Hóa đơn của tôi | `/nguoi-o/hoa-don` | Danh sách hóa đơn theo kỳ, trạng thái đã/chưa thu | V1 |
 | C4 | Chi tiết hóa đơn | `/nguoi-o/hoa-don/{id}` | Các dòng chi phí, **STK + VietQR để thanh toán**, lịch sử thu | V1 |
 | C5 | Hợp đồng của tôi | `/nguoi-o/hop-dong` | Xem/tải hợp đồng và bản scan của chính mình | V1 |
@@ -1747,7 +1770,7 @@ GET /admin/dashboard
 **Shared Kernel (5):**
 | Service | Trách nhiệm |
 |---|---|
-| `AuthModule` | Đăng ký/đăng nhập, OTP, token + RefreshToken, role (tự kích hoạt + Admin), RBAC middleware |
+| `AuthModule` | Đăng ký/đăng nhập, OTP, token + RefreshToken, vai trò (nâng cấp qua "Trở thành chủ trọ"; quản trị viên điều chỉnh), kiểm tra phân quyền |
 | `UserProfileModule` | Profile, display settings, xóa tài khoản |
 | `MediaModule` | Upload, signed URL, phân quyền file, job dọn media mồ côi |
 | `NotificationModule` | Thông báo trong ứng dụng và qua SMS; tác vụ định kỳ (Overdue, Contract Expired, tin Expired, nhắc gói, TRIAL, giao dịch treo) |
@@ -1835,7 +1858,7 @@ GET /admin/dashboard
 
 | Giai đoạn | Trọng tâm |
 |---|---|
-| **MVP** | Danh sách màn hình chuẩn (Mục 10), chạy mock để demo. **Nguyên tắc:** mock **dữ liệu và trạng thái** (dropdown giả lập gói/role), KHÔNG mock **cấu trúc luồng** — route, guard, 2 zone sidebar, context switcher đúng bản cuối ngay từ MVP; sang V1 chỉ thay nguồn dữ liệu bằng `GET /me` + API thật. Mục tiêu: kiểm chứng nhu cầu & mức sẵn lòng trả. |
+| **MVP** | Danh sách màn hình chuẩn (Mục 10), chạy mock để demo. **Nguyên tắc:** mock **dữ liệu và trạng thái** (dropdown giả lập vai trò và trạng thái gói), KHÔNG mock **cấu trúc luồng** — route, guard, 2 zone sidebar đúng bản cuối ngay từ MVP; sang V1 chỉ thay nguồn dữ liệu bằng `GET /me` + API thật. Mục tiêu: kiểm chứng nhu cầu & mức sẵn lòng trả. |
 | **V1** | Nghiệp vụ thật đầy đủ: Auth/RBAC/gating thật; khu trọ, phòng, người ở, hợp đồng, hóa đơn, ghi nhận thu tiền; giao dịch phí nền tảng + webhook; Messaging đầy đủ; Review verified; bản đồ; **Residency shell + app mobile người ở** (tổng quan phòng, hóa đơn, báo sự cố, gửi chỉ số có duyệt, push); Admin/Moderation. |
 | **V2** | Điểm uy tín chủ khu; chủ khu phản hồi review; versioning tin khi duyệt lại; block user toàn cục; đối soát ngân hàng; WebSocket realtime; nâng gói giữa kỳ. |
 
