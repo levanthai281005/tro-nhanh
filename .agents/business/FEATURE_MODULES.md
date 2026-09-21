@@ -1,6 +1,6 @@
 # Danh sách module chức năng
 
-Hai mươi module nghiệp vụ, mỗi module ghi rõ thuộc domain nào. Dùng để xác định code mới
+Mười chín module nghiệp vụ, mỗi module ghi rõ thuộc domain nào. Dùng để xác định code mới
 thuộc feature folder nào trong `apps/web/src/features`.
 
 ---
@@ -35,7 +35,7 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Chức năng con:**
   - Thêm người ở theo **SĐT**: SĐT đã có tài khoản Renter → gợi ý gắn (`userId`, `linkStatus=Pending`) → **Renter nhận Notification `OccupancyLinked` và Chấp nhận/Từ chối** (BR-029); chưa có tài khoản → thêm bằng tên + SĐT (*fallback*, `userId` null), gắn sau khi người đó đăng ký (cũng qua xác nhận).
   - Một Room có thể có **nhiều Occupancy Active đồng thời** (bạn cùng phòng); Contract gắn **một Occupancy đại diện**. Kết thúc ở → set `endDate`, `isActive=false` → vào lịch sử.
-  - Liên kết `Confirmed` làm `residencyStatus` của Renter chuyển `ACTIVE` → mở Residency shell/app (Module 20). Kết thúc ở → `PAST`, vẫn xem được lịch sử và viết đánh giá khu từng ở.
+  - Liên kết `Confirmed` làm `residencyStatus` của Renter chuyển `ACTIVE` → mở Residency shell/app (Module 19). Kết thúc ở → `PAST`, vẫn xem được lịch sử và viết đánh giá khu từng ở.
 - **Rule:** dữ liệu riêng tư của Seller (BR-007); `userId` nullable; liên kết cần xác nhận (BR-029).
 
 ## Module 8 — Contract Management `[SaaS]`
@@ -58,7 +58,7 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Rule:** chỉ trả tin Active; boost xếp trước (BR-005). **Lọc theo điểm đánh giá chỉ áp cho tin có review, kèm toggle "gồm tin chưa có đánh giá" (mặc định BẬT)**; sort theo điểm đẩy tin chưa có điểm xuống cuối thay vì loại bỏ.
 
 ## Module 13 — Admin Management `[MKT]/[SK]`
-- **Chức năng con:** quản lý user; hàng đợi duyệt tin (3 loại); hàng đợi kiểm duyệt đánh giá; danh mục (loại phòng, Amenity, khu vực, khoảng giá, `SubscriptionPlan` + plan Trial, `TaxSetting`, **danh sách từ khóa cấm `BannedKeyword`**, **cấu hình boost**); dashboard hệ thống.
+- **Chức năng con:** quản lý user; hàng đợi duyệt tin (3 loại); hàng đợi kiểm duyệt đánh giá; danh mục (loại phòng, Amenity, khu vực, khoảng giá, `SubscriptionPlan` + plan Trial, **danh sách từ khóa cấm `BannedKeyword`**, **cấu hình boost**); dashboard hệ thống.
 - **Rule:** mọi hành động duyệt/từ chối/khóa ghi lý do (audit).
 
 ## Module 14 — Report/Complaint Management `[MKT]`
@@ -80,17 +80,13 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Chức năng con:** hội thoại 1-1 gắn một tin (cho thuê hoặc nhu cầu); gửi/nhận text; đã đọc; danh sách hội thoại; chặn; báo cáo tin nhắn.
 - **Rule:** chỉ user đăng nhập (BR-019); không tạo hội thoại với tin Expired/Rented/Hidden; **không tạo hội thoại với tin của chính mình** (BR-030); chặn theo phạm vi **Conversation** (block user toàn cục = V2); mỗi cặp (người khởi tạo, tin) chỉ có một Conversation — mở lại hội thoại cũ.
 
-## Module 18 — Tax Support `[SaaS]`
-- **Chức năng con:** chọn kỳ; tổng hợp doanh thu — **căn cứ: tổng `Payment` đã ghi nhận trong năm (cash basis)**, MVP cho nhập tay; tính GTGT & TNCN ước tính theo `TaxSetting`; xuất template tờ khai (PDF, private); lưu `TaxDeclaration`.
-- **Rule:** chỉ tham khảo, luôn disclaimer; thuế suất/ngưỡng cấu hình, **cần kiểm chứng theo quy định thuế từ kỳ 2026** (BR-021).
-
-## Module 19 — Review/Đánh giá khu trọ `[MKT]`
+## Module 18 — Review/Đánh giá khu trọ `[MKT]`
 - **Mục đích:** người ở thật đánh giá **Property** để người thuê yên tâm trước khi cọc.
 - **Phạm vi:** V1 (phụ thuộc Occupancy linked Confirmed + Contract).
 - **Chức năng con:** viết đánh giá (sao 1–5 + nội dung ≤ 1.000 ký tự); mỗi đợt ở (`contractId`) một review, sửa trong **7 ngày**; hiển thị badge điểm trên tin của khu + trang khu public `/khu-tro/{slug}`; báo cáo/ẩn review (Module 14); Seller xem đánh giá khu mình (phản hồi = V2).
 - **Rule (BR-022/023/024 bản mới):** verified-only; **cấm chủ khu tự review khu mình**; điều kiện mở: Contract tồn tại ≥ 30 ngày HOẶC đã có ≥ 1 Payment; viết & lưu được bất kể khu bật public hay chưa — **chỉ hiển thị khi khu bật public**.
 
-## Module 20 — Residency (Trải nghiệm người ở) `[SaaS]`
+## Module 19 — Residency (Trải nghiệm người ở) `[SaaS]`
 - **Mục đích:** cho người ở đã xác nhận liên kết theo dõi việc thuê của mình và phản hồi lại chủ trọ — tăng tính thực dụng của bộ SaaS. Phục vụ **Residency shell (web) và app mobile người ở**.
 - **Actor:** Renter có `residencyStatus ∈ {ACTIVE, PAST}`; Seller (phía xử lý).
 - **Chức năng con:**
@@ -100,7 +96,7 @@ thuộc feature folder nào trong `apps/web/src/features`.
   - **Báo cáo sự cố:** tạo `Incident` (tiêu đề, mô tả, mức ưu tiên, **ảnh đính kèm**), theo dõi trạng thái, trao đổi qua `IncidentComment`; chủ trọ nhận và xử lý trong Workspace.
   - **Gửi chỉ số điện nước:** (chỉ khi khu bật `allowOccupantMeterSubmission`) gửi số + ảnh đồng hồ → chờ chủ trọ duyệt (Module 9).
   - **Thông báo:** nhận push (mobile) và in-app cho hóa đơn mới, nhắc hạn, cập nhật sự cố, lời mời liên kết.
-  - **Đánh giá khu đã ở:** lối vào Module 19 từ lịch sử ở trọ.
+  - **Đánh giá khu đã ở:** lối vào Module 18 từ lịch sử ở trọ.
 - **Vòng đời Incident:** `Open → Acknowledged → InProgress → Resolved → Closed`; chủ trọ chuyển trạng thái, người ở xác nhận đóng hoặc mở lại.
 - **Dữ liệu:** `Incident`, `IncidentComment`, `UtilityReadingSubmission`, `DeviceToken` (push mobile).
 - **Rule:** người ở chỉ thấy dữ liệu phòng của chính mình (BR-034); khi chủ trọ `READ_ONLY` thì người ở **vẫn xem được** dữ liệu đã phát hành nhưng **không tạo mới** sự cố/đề xuất chỉ số (BR-034); người ở **không bao giờ tự sinh** `UtilityReading` chính thức (BR-033).

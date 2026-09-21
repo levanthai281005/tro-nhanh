@@ -27,7 +27,7 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 - `GLOSSARY.md` — từ điển thuật ngữ, đọc trước tiên
 - `PRODUCT_OVERVIEW.md` — hai trụ cột, thanh toán, ranh giới hệ thống
 - `ARCHITECTURE_AND_SHELLS.md` — hai domain, ba shell, hai zone
-- `FEATURE_MODULES.md` — 20 module, ánh xạ sang thư mục feature
+- `FEATURE_MODULES.md` — 19 module, ánh xạ sang thư mục feature
 
 **Định danh và quyền**
 - `SURFACES_AND_MODES.md` — **ba Surface, Mode, Capability; bảng quyết định vào được đâu.**

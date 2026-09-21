@@ -29,10 +29,12 @@ Danh sách màn hình thuộc `app/(workspace)` — khu quản lý của chủ t
 | B11 | Hợp đồng | `/chu-tro/hop-dong`, `…/{id}` | Workspace | Tạo HĐ (chặn chồng lấn), upload scan, nhắc hết hạn, chấm dứt | V1 |
 | B12 | Điện nước & Hóa đơn | `/chu-tro/hoa-don` | Workspace | UtilityReading → Invoice → xuất kèm VietQR (amount + mã HĐ) → gửi → "Đã thu" | MVP (demo luồng) → V1 |
 | B13 | Chi tiết hóa đơn | `/chu-tro/hoa-don/{id}` | Workspace | Dòng hóa đơn, STK/QR, lịch sử thu | V1 |
-| B14 | Hỗ trợ thuế | `/chu-tro/thue` | Workspace | Tính GTGT/TNCN ước tính (cash basis), xuất template | V1 (cơ bản) |
 | B15 | Gói SaaS của tôi | `/chu-tro/goi-dich-vu` | Workspace* | Xem hạn, dùng thử, mua, gia hạn, trạng thái giao dịch | V1 |
 | B16 | Quản lý đánh giá khu | `/chu-tro/danh-gia` | Workspace* | Xem đánh giá khu của mình (phản hồi = V2) | V1 |
 | B17 | Hộp thư sự cố | `/chu-tro/su-co`, `…/{id}` | Workspace | Nhận & xử lý `Incident` từ người ở: đổi trạng thái, trao đổi, xem ảnh (BR-035) | V1 |
 | B18 | Duyệt chỉ số từ người ở | `/chu-tro/duyet-chi-so` | Workspace | Hàng đợi `UtilityReadingSubmission`: xem ảnh đồng hồ → xác nhận/sửa số/từ chối (BR-033) | V1 |
 
 \* B15/B16 là màn **đọc** — vẫn xem được ở `READ_ONLY` (B15 phải xem được để còn gia hạn).
+
+**Không có B14:** mã này thuộc màn "Hỗ trợ thuế" đã bỏ cùng tính năng thuế. Giữ nguyên mã
+B15–B18 để khớp đặc tả, không dồn số.

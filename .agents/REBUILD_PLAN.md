@@ -88,8 +88,8 @@ Mã màn hình tra ở `business/SCREENS_*.md`.
 | `admin/pages/*` | D1–D6 | `/admin/*` |
 
 **Phải viết mới, prototype không có:** C2–C9 (xác nhận liên kết, hóa đơn của tôi, hợp đồng,
-báo sự cố, gửi chỉ số, thông báo), B14 (thuế), B15 (gói SaaS), B17 (hộp thư sự cố), B18
-(duyệt chỉ số), toàn bộ app mobile.
+báo sự cố, gửi chỉ số, thông báo), B15 (gói SaaS), B17 (hộp thư sự cố), B18 (duyệt chỉ số),
+toàn bộ app mobile.
 
 ---
 

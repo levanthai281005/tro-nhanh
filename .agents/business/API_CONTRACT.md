@@ -88,8 +88,8 @@ PATCH /management/invoices/{id}/send           POST /management/invoices/{id}/pa
 ## Sự cố (phía chủ trọ xử lý)
 GET  /management/incidents                     GET /management/incidents/{id}
 PATCH /management/incidents/{id}/status        POST /management/incidents/{id}/comments
-## Dashboard & Tax
-GET  /management/dashboard    GET /management/tax/declarations   POST /management/tax/calculate
+## Dashboard
+GET  /management/dashboard
 ```
 
 ## Residency — người ở (web shell + app mobile)
@@ -112,7 +112,7 @@ GET  /admin/users             PATCH /admin/users/{id}/lock   PATCH /admin/users/
 GET  /admin/moderation/listings       PATCH /admin/listings/{id}/approve|reject
 GET  /admin/reports           PATCH /admin/reports/{id}/resolve
 GET  /admin/moderation/reviews        PATCH /admin/conversations/{id}/block
-GET/POST/PUT /admin/plans     GET/POST/PUT /admin/amenities  /admin/tax-settings
+GET/POST/PUT /admin/plans     GET/POST/PUT /admin/amenities
 GET/POST/PUT /admin/banned-keywords   PUT /admin/boost-config   (boostPrice, boostDays)
 GET  /admin/subscriptions     PATCH /admin/subscriptions/{id}/cancel
 GET  /admin/dashboard

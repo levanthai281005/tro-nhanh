@@ -10,7 +10,7 @@ Dùng để biết một tính năng có thuộc phạm vi hiện tại hay khô
 | Giai đoạn | Trọng tâm |
 |---|---|
 | **MVP** | Danh sách màn hình chuẩn (Mục 10), chạy mock để demo. **Nguyên tắc:** mock **dữ liệu và trạng thái** (dropdown giả lập gói/role), KHÔNG mock **cấu trúc luồng** — route, guard, 2 zone sidebar, context switcher đúng bản cuối ngay từ MVP; sang V1 chỉ thay nguồn dữ liệu bằng `GET /me` + API thật. Mục tiêu: kiểm chứng nhu cầu & mức sẵn lòng trả. |
-| **V1** | Nghiệp vụ thật đầy đủ: Auth/RBAC/gating thật; Property/Room/Occupancy (consent)/Contract/Invoice/Payment; `PlatformTransaction` + webhook; Messaging đầy đủ; Review verified (BR-022 mới); bản đồ; **Residency shell + app mobile người ở** (tổng quan phòng, hóa đơn, báo sự cố, gửi chỉ số có duyệt, push); Admin/Moderation; Tax cơ bản. |
+| **V1** | Nghiệp vụ thật đầy đủ: Auth/RBAC/gating thật; Property/Room/Occupancy (consent)/Contract/Invoice/Payment; `PlatformTransaction` + webhook; Messaging đầy đủ; Review verified (BR-022 mới); bản đồ; **Residency shell + app mobile người ở** (tổng quan phòng, hóa đơn, báo sự cố, gửi chỉ số có duyệt, push); Admin/Moderation. |
 | **V2** | Điểm uy tín chủ khu; chủ khu phản hồi review; versioning tin khi duyệt lại (BR-003); block user toàn cục; đối soát ngân hàng; WebSocket realtime; nâng gói giữa kỳ. |
 
 ## Defense — vì sao Review chọn verified-only (chuẩn bị phản biện)

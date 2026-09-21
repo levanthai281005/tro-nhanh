@@ -242,7 +242,7 @@ ngày — cần lâu hơn thì chia nhỏ.
 ### Đang làm
 
 - [ ] **Giai đoạn 4 — phần còn lại của Workspace.** Kế tiếp: **B3 dashboard** — 4/5 nhóm số
-      lấy từ Contract/Invoice/Payment, giờ đã có đủ nguồn. Rồi B1/B2 onboarding, B14 thuế,
+      lấy từ Contract/Invoice/Payment, giờ đã có đủ nguồn. Rồi B1/B2 onboarding,
       B15 gói dịch vụ, B16 đánh giá, B17 sự cố, B18 duyệt chỉ số.
 - [ ] Nút **"Tạo tin từ phòng"** (điểm nối Room → RentalListing) — chưa làm: B5 chưa đọc
       `?roomId=` để prefill. Badge "Có tin đang chạy" thì đã có. Làm thành nhánh riêng chạm

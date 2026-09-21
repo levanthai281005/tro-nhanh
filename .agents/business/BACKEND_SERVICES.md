@@ -33,7 +33,7 @@ Mười bảy service của backend, mỗi service sở hữu phần dữ liệu
 | `OccupancyContractService` | Occupancy (link/consent BR-029, endDate), Contract (BR-006/031), scan (BR-008) |
 | `BillingService` | UtilityReading, Invoice/Item (unique mới), Payment, VietQR (amount + mã HĐ), job Overdue |
 | `SubscriptionService` | Plans (+ plan Trial), UserSubscription, **gating guard 4 trạng thái**, hạn mức/over-limit, `PlatformTransaction` + webhook + idempotency |
-| `AnalyticsTaxService` | Dashboard Seller (BR-012) & Admin, ContactEvent, tính thuế (cash basis) + TaxDeclaration |
+| `AnalyticsService` | Dashboard Seller (BR-012) & Admin, ContactEvent |
 | `ResidencyService` | Trải nghiệm người ở: read-view phòng/hợp đồng/hóa đơn của chính mình (BR-034), `Incident` + `IncidentComment` (BR-035), `UtilityReadingSubmission` (BR-033), `DeviceToken` cho push |
 
 > `SubscriptionService` cung cấp **gating guard/middleware** mà mọi service SaaS gọi trước khi cho ghi. *(Middleware = lớp trung gian chạy trước handler, ở đây để chặn thao tác ghi khi `READ_ONLY`.)*

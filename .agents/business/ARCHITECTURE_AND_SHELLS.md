@@ -11,9 +11,9 @@ ba shell và hai zone. Quyết định đặt code ở đâu phải dựa trên 
 
 > **Lý do không tách hẳn 2 service + 2 DB:** nhiều flow đi xuyên 2 domain trong một thao tác (vd tạo `Contract` → đổi `RoomStatus` → sinh `Notification`). Nếu 2 DB riêng, các thao tác này mất tính `transaction` (đảm bảo "thành công hết hoặc rollback hết"), phải xử lý bằng saga/event — phức tạp gấp nhiều lần, quá sức cho team nhỏ. Tách logic giữ được transaction đơn giản mà vẫn có ranh giới sạch để **sẵn sàng tách service sau này**.
 
-**Domain A — Marketplace** (hướng người thuê, public): tin cho thuê + tin nhu cầu (Module 3, 4); tìm kiếm & lọc (12); yêu thích (11); đánh giá khu trọ (19); kiểm duyệt & báo cáo (13 phần tin, 14).
+**Domain A — Marketplace** (hướng người thuê, public): tin cho thuê + tin nhu cầu (Module 3, 4); tìm kiếm & lọc (12); yêu thích (11); đánh giá khu trọ (18); kiểm duyệt & báo cáo (13 phần tin, 14).
 
-**Domain B — Property Management / SaaS** (hướng chủ trọ, có gating): khu & phòng (5, 6); người ở & hợp đồng (7, 8); hóa đơn/điện nước/thu tiền (9); gói SaaS (15); dashboard vận hành (16); hỗ trợ thuế (18); **Residency — trải nghiệm phía người ở (20)**.
+**Domain B — Property Management / SaaS** (hướng chủ trọ, có gating): khu & phòng (5, 6); người ở & hợp đồng (7, 8); hóa đơn/điện nước/thu tiền (9); gói SaaS (15); dashboard vận hành (16); **Residency — trải nghiệm phía người ở (19)**.
 
 **Shared Kernel** (dùng chung): Auth & User (1); Profile (2); Notification & Reminder (10); Messaging (17); Media (xuyên suốt).
 

@@ -18,7 +18,7 @@ yêu cầu mâu thuẫn với giả định nào, dừng lại và hỏi thay v�
 | AS-009 | Người ở gửi chỉ số điện nước cho chủ qua kênh ngoài (thủ công, không tích hợp); ngoài ra có kênh trong app tùy chọn — chủ trọ bật `allowOccupantMeterSubmission` và **phải duyệt** trước khi thành chỉ số chính thức (BR-033) |
 | AS-010 | Hồ sơ khu public là opt-in; review viết được trước, hiển thị khi bật (BR-024) |
 | AS-011 | Chat: UI từ MVP, nghiệp vụ đầy đủ V1; realtime polling → WebSocket/SSE sau |
-| AS-012 | Tax Support tham khảo; căn cứ cash basis (ΣPayment/năm); mặc định ngưỡng 500 triệu/năm, GTGT 5%, TNCN 5% — **cần kiểm chứng theo quy định thuế từ kỳ 2026** |
+| AS-012 | *(không dùng — bỏ cùng tính năng hỗ trợ thuế)* |
 | AS-013 | Thông tin nhận tiền (STK/QR) đặt theo từng Property |
 | AS-014 | MVP demo = danh sách màn hình chuẩn ở Mục 10 (A1–A3, A7, A11-UI, A14, B3, B4, B5, B6, B8, B12), chạy mock data, chưa xây BE/DB chi tiết |
 | AS-015 | Kiểm duyệt = lọc từ khóa (`BannedKeyword`) + Moderator duyệt tay; chưa AI moderation |
