@@ -137,7 +137,7 @@ Hệ thống **không tích hợp Zalo**; ai muốn dùng Zalo thì tự lấy s
 
 > **Lý do không tách hẳn 2 service + 2 DB:** nhiều flow đi xuyên 2 domain trong một thao tác (vd tạo hợp đồng → đổi trạng thái phòng → sinh thông báo). Nếu 2 DB riêng, các thao tác này mất tính `transaction` (đảm bảo "thành công hết hoặc rollback hết"), phải xử lý bằng saga/event — phức tạp gấp nhiều lần, quá sức cho team nhỏ. Tách logic giữ được transaction đơn giản mà vẫn có ranh giới sạch để **sẵn sàng tách service sau này**.
 
-**Domain A — Marketplace** (hướng người thuê, public): tin cho thuê + tin nhu cầu (Module 3, 4); tìm kiếm & lọc (12); yêu thích (11); đánh giá khu trọ (19); kiểm duyệt & báo cáo (13 phần tin, 14).
+**Domain A — Marketplace** (hướng người thuê, public): tin cho thuê + tin nhu cầu (Module 3, 4); tìm kiếm & lọc (12); yêu thích (11); đánh giá khu trọ (18); kiểm duyệt & báo cáo (13 phần tin, 14).
 
 **Domain B — Property Management / SaaS** (hướng chủ trọ, có gating): khu & phòng (5, 6); người ở & hợp đồng (7, 8); hóa đơn/điện nước/thu tiền (9); gói SaaS (15); báo cáo kinh doanh (16); **khu dành cho người ở (19)**.
 
@@ -302,6 +302,7 @@ thị menu. Không tự suy đoán từ dữ liệu lưu trong trình duyệt.
 | `role` | Vai trò của tài khoản — **một giá trị duy nhất** | `TENANT` / `LANDLORD` / `STAFF` / `ADMIN` |
 | `subscriptionStatus` | Trạng thái gói dịch vụ — chỉ có nghĩa với chủ trọ | `NONE` / `TRIAL` / `ACTIVE` / `READ_ONLY` |
 | `residencyStatus` | Tình trạng ở trọ — suy từ dữ liệu người ở | `NONE` / `ACTIVE` / `PAST` |
+| `limits` | Hạn mức của gói đang dùng — số khu, số phòng tối đa | Để giao diện khóa nút tạo mới khi chạm hạn mức |
 
 Vai trò nằm trong phiên đăng nhập vì gần như không đổi. Hai trạng thái còn lại **không nằm
 trong phiên** mà luôn tính lại từ dữ liệu mỗi lần gọi — vì chúng thay đổi theo thời gian, nhét
@@ -725,7 +726,9 @@ tiền, không phải gõ tay.
 mỗi lần gọi dịch vụ ngoài là một lần gửi số tài khoản và số tiền của chủ trọ sang bên thứ ba.
 
 **Nội dung chuyển khoản tối đa 25 ký tự** theo giới hạn của hệ thống chuyển tiền trong nước.
-Mã hóa đơn có dạng *mã phòng - năm tháng*, ví dụ `P203-202603`. Khi phải rút gọn cho vừa 25 ký
+Mã hóa đơn được **lưu cố định** trên hóa đơn, sinh một lần lúc tạo và không bao giờ đổi — kể cả khi chủ trọ đổi mã phòng về sau. Lý do: mã này nằm trong nội dung chuyển khoản của người ở, tức là một tham chiếu ra ngoài hệ thống, nên suy ra lại từ mã phòng sẽ làm hỏng việc đối chiếu.
+
+Mã có dạng *mã phòng - năm tháng*, ví dụ `P203-202603`. Nếu một phòng có hai hóa đơn trong cùng tháng (đổi người ở giữa kỳ), hóa đơn thứ hai thêm hậu tố số thứ tự sau phần kỳ: `P203-202603-2`. Khi phải rút gọn cho vừa 25 ký
 tự thì rút phần mã phòng trước và **không bao giờ cắt phần kỳ** — cắt kỳ sẽ tạo ra một kỳ khác
 có thật, khiến chủ trọ đối chiếu nhầm tháng.
 
@@ -1022,7 +1025,7 @@ thấy chưa ổn. Mỗi lần chuyển trạng thái đều gửi thông báo c
 
 ### 4.3 Chủ trọ đăng tin cho thuê
 1. Từ header công khai "Đăng tin → Tin cho thuê" → `/dang-tin-cho-thue`. Màn này thuộc chợ tin đăng, **miễn phí, không cần gói dịch vụ**, nhưng **cần vai trò `LANDLORD`**.
-2. Người đang là `TENANT` bấm vào sẽ thấy màn mời **"Trở thành chủ trọ"** (giữ `?redirect=` để quay lại đúng chỗ). Đồng ý → vai trò đổi thành `LANDLORD`, một chiều → giao diện gọi `POST /auth/refresh` để lấy phiên mới mang vai trò mới → quay lại biểu mẫu đăng tin.
+2. Người đang là `TENANT` bấm vào sẽ thấy màn mời **"Trở thành chủ trọ"** (giữ `?redirect=` để quay lại đúng chỗ). Đồng ý → giao diện gọi `POST /me/become-landlord`, vai trò đổi thành `LANDLORD`, một chiều → gọi tiếp `POST /auth/refresh` để lấy phiên mới mang vai trò mới → quay lại biểu mẫu đăng tin.
 3. Biểu mẫu nhiều bước: (1) cơ bản → (2) tiện ích và mô tả → (3) ảnh, tối thiểu 3 tấm → (4) chi phí → (5) tiện ích xung quanh → (6) giờ giấc → (7) *[chỉ hiện khi chủ trọ đã có khu trọ]* chọn khu, tùy chọn, gắn `propertyId`.
 4. Gửi → kiểm tra dữ liệu + lọc từ khóa cấm → `PendingApproval` → nhân viên vận hành duyệt → `Active` (đặt `expireAt = approvedAt + 60 ngày`) hoặc `Rejected` kèm lý do → thông báo.
 5. (Tùy chọn) đẩy tin nổi bật → luồng 4.9 → `boostExpireAt = now + durationDays` của gói đã chọn.
@@ -1047,12 +1050,12 @@ thấy chưa ổn. Mỗi lần chuyển trạng thái đều gửi thông báo c
 1. Người ở gửi chỉ số qua kênh ngoài (thủ công).
 2. Nhập chỉ số điện nước cho từng Room có Contract Active (chặn trùng theo unique roomId+type+period; chỉ số mới ≥ cũ).
 3. Tạo hóa đơn (unique theo contractId+period) + dòng hóa đơn; reading dùng cho hóa đơn được đánh dấu `invoiceId`.
-4. Xuất PDF/ảnh kèm STK + **VietQR nhúng amount + mã hóa đơn** → gửi in-app (linked Confirmed) hoặc tải về gửi ngoài.
+4. Xuất PDF/ảnh kèm STK + **VietQR nhúng amount + mã hóa đơn** → gửi trong ứng dụng nếu người ở đã liên kết tài khoản, hoặc tải về gửi qua kênh ngoài.
 5. Nhận tiền ngoài nền tảng → bấm "Đã thu" (đủ/một phần) → ghi khoản thu → **status Invoice suy tự động** từ ΣPayment: đủ → `Paid`; một phần trước hạn → `PartiallyPaid`; qua `dueDate` chưa đủ → job set `Overdue` (thu tiếp một phần vẫn `Overdue`, thu đủ → `Paid`).
 
 ### 4.7 Tenant viết đánh giá khu trọ (V1)
 1. Entry: "Phòng của tôi" (đang ở) **hoặc tab "Lịch sử ở trọ"** (từng ở) → mục "Đánh giá khu".
-2. Điều kiện: liên kết `Confirmed`; có Contract tại Property; **không phải chủ khu**; Contract ≥ 30 ngày tuổi hoặc có ≥ 1 Payment; đợt ở này chưa review.
+2. Điều kiện: tài khoản đã được liên kết vào phòng thuộc khu đó; có Contract tại Property; **không phải chủ khu**; Contract ≥ 30 ngày tuổi hoặc có ≥ 1 Payment; đợt ở này chưa review.
 3. Chọn sao + nội dung → lưu đánh giá đang hiển thị (`Visible`) → cập nhật `avgRating`, `reviewCount` của Property.
 4. Hiển thị: trang khu public + badge trên tin gắn `propertyId` — **chỉ khi khu đang bật public**. Khu chưa bật → review vẫn lưu, chờ chủ bật.
 - **Ngoại lệ:** đã review đợt này → chặn; sửa được trong 7 ngày.
@@ -1430,14 +1433,14 @@ trống.
 
 ### BR-038 — Mã hóa đơn và nội dung chuyển khoản
 
-Mã hóa đơn có dạng *mã phòng - năm tháng*, ví dụ `P203-202603`.
+**Mã hóa đơn lưu cố định**, sinh một lần lúc tạo, không bao giờ đổi. Dạng mặc định *mã phòng - năm tháng*, ví dụ `P203-202603`; nếu cùng phòng có hai hóa đơn trong một tháng thì thêm hậu tố số thứ tự sau phần kỳ: `P203-202603-2`.
 
 Nội dung chuyển khoản **tối đa 25 ký tự** theo giới hạn của hệ thống chuyển tiền trong nước.
 Khi phải rút gọn thì rút phần mã phòng trước, **không bao giờ cắt phần kỳ**.
 
 Mã QR được sinh tại máy người dùng, không gọi dịch vụ tạo ảnh QR bên ngoài.
 
-**Lý do:** cắt phần kỳ tạo ra một kỳ khác có thật, khiến chủ trọ đối chiếu nhầm tháng. Gọi
+**Lý do:** mã lưu cố định vì nó là tham chiếu ra ngoài hệ thống — đã nằm trong nội dung chuyển khoản thì không được đổi. Cắt phần kỳ tạo ra một kỳ khác có thật, khiến chủ trọ đối chiếu nhầm tháng. Gọi
 dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của chủ trọ sang bên thứ ba.
 
 ---
@@ -1465,7 +1468,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **Room** | Phòng | `propertyId`, `roomCode` (unique trong property), `floor`, `area`, `price`, `status`, `accessPolicy`, `accessOpenTime/CloseTime`, `note`, **`electricityPrice`, `waterPrice`, `servicePrice`** (nullable — để trống thì dùng giá của khu; `0` nghĩa là miễn phí)  | n-1 Property; n-n Amenity; 1-n Occupancy/Contract/Invoice/UtilityReading; 0-n RentalListing |
 | **Occupancy** | Người ở thực tế | `roomId`, `userId` (null khi chưa liên kết tài khoản), `fullName`, `phoneNumber`, `startDate`, `endDate` (null; **ngày đầu tiên không còn ở**), `occupantCount` (số nhân khẩu của bản ghi này), `isPrimary` (người đại diện đứng hợp đồng), `note` | n-1 Room; n-1 User (null) |
 | **Contract** | Hợp đồng | `roomId`, `occupancyId` (đại diện), `startDate`, `endDate`, `rentPrice`, `deposit`, `status`, `terminateReason` | n-1 Room/Occupancy; 1-n Media (scan); tối đa 1 Review |
-| **Invoice** | Hóa đơn kỳ | `roomId`, `contractId`, `period` (YYYY-MM), `dueDate`, `totalAmount`, `status`; **unique (contractId, period)** | n-1 Room/Contract; 1-n InvoiceItem/Payment/Media |
+| **Invoice** | Hóa đơn kỳ | `roomId`, `contractId`, `invoiceCode` (**unique, sinh một lần lúc tạo, không bao giờ đổi** — BR-038), `period` (YYYY-MM), `dueDate`, `totalAmount`, `status`; **unique (contractId, period)** | n-1 Room/Contract; 1-n InvoiceItem/Payment/Media |
 | **InvoiceItem** | Dòng hóa đơn | `invoiceId`, `type` (Rent/Electricity/Water/Service/Deposit/Other), `description`, `quantity`, `unitPrice`, `amount` | n-1 Invoice |
 | **UtilityReading** | Chỉ số điện nước | `roomId`, `type` (Electricity/Water), `period`, `previousReading`, `currentReading`, `unitPrice`, **`invoiceId` (null — đánh dấu đã lên hóa đơn)**; **unique (roomId, type, period)** | n-1 Room; n-1 Invoice (null) |
 | **Payment** | Ghi nhận thu **tiền thuê** (tay) | `invoiceId` (bắt buộc), `amount`, `method` (Cash/BankTransfer), `paidAt`, `note` | n-1 Invoice |
@@ -1484,14 +1487,13 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **Amenity** | Tiện ích (danh mục) | `name`, `icon`, `type` (Room/Surrounding) | n-n RentalListing/Room |
 | **BannedKeyword** | Từ khóa cấm | `keyword`, `isActive` | (danh mục Admin) |
 | **Media** | File/ảnh | `ownerType` (RentalListing/RoommateWantedPost/Contract/Profile/Invoice/Incident/UtilityReadingSubmission), `ownerId` (null khi mới upload), `url`, `mimeType`, `sizeBytes`, `isPrivate`, `displayOrder` (thứ tự hiển thị; ảnh đầu tiên là ảnh đại diện của tin) | đa hình; media chưa gắn owner sau 24h bị job dọn |
-| **Review** | Đánh giá khu trọ | `propertyId`, `authorUserId`, `contractId` (bằng chứng, unique), `rating` (1–5), `content` (≤1.000), `status` (Visible/Hidden/Reported), `chủ trọReply` (null, V2) | n-1 Property/User/Contract |
-
+| **Review** | Đánh giá khu trọ | `propertyId`, `authorUserId`, `contractId` (bằng chứng, unique), `rating` (1–5), `content` (≤1.000), `status` (Visible/Hidden/Reported), `landlordReply` (null, V2) | n-1 Property/User/Contract |
 | **UtilityReadingSubmission** | Đề xuất chỉ số từ người ở | `roomId`, `occupancyId`, `submittedByUserId`, `type` (Electricity/Water), `period`, `submittedValue`, `photoMediaId` (bắt buộc), `status` (Pending/Approved/Rejected), `reviewedByUserId` (null), `approvedValue` (null), `rejectReason` (null) | n-1 Room/Occupancy/User |
 | **Incident** | Báo cáo sự cố của người ở | `roomId`, `occupancyId`, `reportedByUserId`, `title`, `description`, `priority` (Low/Normal/High/Urgent), `status` (Open/Acknowledged/InProgress/Resolved/Closed), `resolvedAt` (null) | n-1 Room/Occupancy/User; 1-n IncidentComment/Media |
 | **IncidentComment** | Trao đổi trong một sự cố | `incidentId`, `authorUserId`, `content`, `isFromLandlord` | n-1 Incident/User |
 | **DeviceToken** | Token push cho app mobile | `userId`, `token` (unique), `platform` (iOS/Android), `lastActiveAt` | n-1 User |
 
-**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(renterId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
+**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
 
 ---
 
@@ -1517,7 +1519,8 @@ Middleware **mount theo tiền tố**, nên không thể chặn nhầm route c�
 POST /auth/register POST /auth/verify-otp POST /auth/login
 POST /auth/refresh POST /auth/logout (thu hồi refresh token)
 POST /auth/forgot-password POST /auth/reset-password
-GET /me (role, subscriptionStatus, residencyStatus, thông tin hồ sơ)
+GET /me (role, subscriptionStatus, residencyStatus, limits — hạn mức của gói, thông tin hồ sơ)
+POST /me/become-landlord (nút "Trở thành chủ trọ": đổi vai trò TENANT → LANDLORD, một chiều; sau đó gọi POST /auth/refresh để lấy phiên mang vai trò mới)
 PUT /me/password POST /me/delete-request
 GET /me/profile PUT /me/profile PUT /me/display-settings
 POST /me/device-tokens DELETE /me/device-tokens/{id} (push cho app mobile)
@@ -1537,7 +1540,7 @@ GET /public/khu-tro/{slug} (trang khu public + review)
 GET /public/properties/{id}/reviews
 GET /public/room-wanted-posts GET /public/roommate-wanted-posts
 # Cần đăng nhập
-POST /marketplace/listings (tạo đầu tiên → gán role Landlord cùng transaction)
+POST /marketplace/listings (cần vai trò LANDLORD; tạo tin không tự đổi vai trò)
 PUT /marketplace/listings/{id} PATCH /marketplace/listings/{id}/status
 DELETE /marketplace/listings/{id} (xóa mềm)
 PATCH /marketplace/listings/{id}/renew (gia hạn +60d)
@@ -1650,10 +1653,10 @@ GET /admin/dashboard
 - **Người ở:** ngày kết thúc không sớm hơn ngày bắt đầu; số điện thoại bắt buộc; tên bắt buộc khi chưa liên kết tài khoản.
 - **Contract:** `endDate > startDate`; chặn Contract Active thứ hai và chồng lấn thời gian trên cùng Room (409).
 - **UtilityReading:** `currentReading ≥ previousReading`; `unitPrice ≥ 0`; unique (roomId, type, period).
-- **Invoice:** `period` đúng `YYYY-MM`; tổng = Σ InvoiceItem; unique (contractId, period). VietQR sinh kèm amount + addInfo = mã hóa đơn.
+- **Invoice:** `period` đúng `YYYY-MM`; tổng = Σ InvoiceItem; unique (contractId, period); `invoiceCode` unique, không sửa được sau khi tạo. VietQR sinh kèm amount + addInfo = `invoiceCode`, tối đa 25 ký tự — rút phần mã phòng trước, không cắt phần kỳ và không cắt hậu tố.
 - **Payment:** `amount > 0`; Σ Payment không vượt `totalAmount`.
 - **PlatformTransaction:** `idempotencyKey` unique; webhook verify chữ ký gateway; xử lý webhook idempotent (nhận trùng không kích hoạt trùng).
-- **Review:** `rating ∈ [1,5]`; `content ≤ 1.000`; `contractId` hợp lệ, thuộc `authorUserId` qua Occupancy Confirmed; không phải chủ khu; đạt điều kiện mở; chặn trùng theo `contractId`.
+- **Review:** `rating ∈ [1,5]`; `content ≤ 1.000`; `contractId` hợp lệ, thuộc `authorUserId` qua bản ghi người ở đã liên kết; không phải chủ khu; đạt điều kiện mở; chặn trùng theo `contractId`.
 - **Conversation:** người khởi tạo ≠ người đăng tin; tin ở trạng thái cho phép.
 - **Subscription:** không TRIAL lần 2; `purchase/renew` kiểm `planId` Active.
 
@@ -1754,7 +1757,7 @@ GET /admin/dashboard
 | D2 | Kiểm duyệt tin | `/admin/duyet-tin` | Hàng đợi 3 loại tin, duyệt/từ chối (lý do) | V1 |
 | D3 | Xử lý báo cáo | `/admin/bao-cao` | Report tin / tin nhắn / đánh giá; khóa hội thoại | V1 |
 | D4 | Kiểm duyệt đánh giá | `/admin/danh-gia` | Hàng đợi review bị báo cáo | V1 |
-| D5 | Quản lý người dùng | `/admin/nguoi-dung` | Khóa/mở (khóa → ẩn tin), gán role | V1 |
+| D5 | Quản lý người dùng | `/admin/nguoi-dung` | Khóa/mở (khóa → ẩn tin), điều chỉnh vai trò | V1 |
 | D6 | Danh mục & cấu hình | `/admin/danh-muc` | Tiện ích, khu vực, khoảng giá, gói dịch vụ và thời gian dùng thử, phí và thời hạn đẩy tin, từ khóa cấm | V1 |
 
 ---
@@ -1765,7 +1768,7 @@ GET /admin/dashboard
 > ranh giới domain ở mục 1.6. Hai domain nghiệp vụ **không gọi chéo trực tiếp** vào tầng dữ
 > liệu của nhau; mọi trao đổi đi qua service công khai của module.
 
-> Một codebase, một database; mỗi service là một module có ranh giới; giao tiếp qua interface nội bộ. **Danh sách này là chuẩn duy nhất** — tài liệu Kiến trúc và cấu trúc thư mục code theo đây. Không dùng từ "Tenant/Tenancy" trong bất kỳ định danh nào.
+> Một codebase, một database; mỗi service là một module có ranh giới; giao tiếp qua interface nội bộ. **Danh sách này là chuẩn duy nhất** — tài liệu Kiến trúc và cấu trúc thư mục code theo đây. `TENANT` **chỉ** dùng làm giá trị vai trò; **không** dùng `Tenant`/`Tenancy` để đặt tên module, bảng hay khái niệm kỹ thuật, vì dễ nhầm với khái niệm multi-tenant trong ngành phần mềm. Module quản lý người ở và hợp đồng tên là `OccupancyContractModule`.
 
 **Shared Kernel (5):**
 | Service | Trách nhiệm |
@@ -1811,7 +1814,7 @@ GET /admin/dashboard
 - **Hiệu năng:** tìm kiếm < 1.5s giai đoạn đầu; phân trang server-side; index theo Mục 6.
 - **Bảo mật:** bcrypt/argon2; JWT access ngắn + refresh (lưu DB, thu hồi khi logout); file riêng tư qua signed URL; cô lập theo `landlordId`; rate limit login/OTP/đăng tin/nhắn tin.
 - **Riêng tư:** trang khu công khai không lộ dữ liệu vận hành; các chỉ số nhạy cảm trên báo cáo mặc định ẩn; mã QR sinh tại máy người dùng, không gửi số tài khoản sang bên thứ ba.
-- **Độ tin cậy:** thao tác đa bước bọc **transaction** (tạo Contract → RoomStatus → Notification; tạo listing đầu → gán role; Room Rented → listing Rented; Invoice từ nhiều Item); webhook idempotent.
+- **Độ tin cậy:** thao tác đa bước bọc **transaction** (tạo Contract → RoomStatus → Notification; Room Rented → listing Rented; Invoice từ nhiều Item); webhook idempotent.
 - **Khả mở rộng:** ranh giới domain rõ; storage tách khỏi DB; stateless API.
 - **Bảo trì:** chuẩn REST 7.5; soft delete; audit Admin.
 
@@ -1824,15 +1827,16 @@ GET /admin/dashboard
 | AS-001 | Liên hệ qua 2 kênh: nhắn tin in-app + gọi điện; không tích hợp Zalo; không đặt lịch xem phòng |
 | AS-002 | Nền tảng KHÔNG cầm/thu hộ tiền thuê; hóa đơn kèm STK/VietQR của khu; chủ trọ tự ghi nhận thu; gateway chỉ thu phí nền tảng qua giao dịch phí nền tảng; đối soát ngân hàng tự động = tương lai |
 | AS-003 | Gói SaaS bán đứt 36 tháng ~600.000đ (tham khảo); gia hạn ưu đãi 150.000–180.000đ/năm; nhắc 6/2/1 tháng; Workspace 4 trạng thái; TRIAL theo plan Trial (mặc định 1 tháng, 1 Property, 5 Room); hết hạn → read-only, giữ dữ liệu |
-| AS-004 | Một tài khoản kiêm Tenant & Landlord; role cộng dồn theo hành vi (mục 1.8) |
+| AS-004 | Mỗi tài khoản mang đúng một vai trò (`TENANT`, `LANDLORD`, `STAFF`, `ADMIN`), không kế thừa; người thuê nâng cấp thành chủ trọ qua thao tác "Trở thành chủ trọ", một chiều (mục 1.8, BR-013) |
 | AS-005 | Landlord là chủ BĐS hoặc người được ủy quyền (cò trọ); nền tảng không môi giới, không phân biệt người đăng |
-| AS-006 | Occupancy `userId` nullable; liên kết tài khoản cần Tenant xác nhận; hệ thống single-sided — chủ trọ nhập điện nước |
+| AS-006 | Occupancy `userId` nullable; chủ trọ liên kết tài khoản bằng số điện thoại, có hiệu lực ngay, người được liên kết có nút "Không phải tôi" để tự gỡ (BR-029); hệ thống single-sided — chủ trọ nhập điện nước |
 | AS-007 | Review verified-only; chủ không dùng SaaS → khu không có review (có chủ đích, tạo động lực dùng SaaS) |
 | AS-008 | "Phòng của tôi" V1 chỉ xem; người ở tự nhập điện nước + báo sự cố = V2 |
 | AS-009 | Người ở gửi chỉ số điện nước cho chủ qua kênh ngoài (thủ công, không tích hợp); ngoài ra có kênh trong app tùy chọn — chủ trọ bật `allowOccupantMeterSubmission` và **phải duyệt** trước khi thành chỉ số chính thức |
 | AS-010 | Hồ sơ khu public là opt-in; review viết được trước, hiển thị khi bật |
 | AS-011 | Chat: UI từ MVP, nghiệp vụ đầy đủ V1; realtime polling → WebSocket/SSE sau |
 
+| AS-012 | *(không dùng — bỏ cùng tính năng hỗ trợ thuế)* |
 | AS-013 | Thông tin nhận tiền (STK/QR) đặt theo từng Property |
 | AS-014 | MVP demo = danh sách màn hình chuẩn ở Mục 10 (A1–A3, A7, A11-UI, A14, B3, B4, B5, B6, B8, B12), chạy mock data, chưa xây BE/DB chi tiết |
 | AS-015 | Kiểm duyệt = lọc từ khóa (từ khóa cấm) + Staff duyệt tay; chưa AI moderation |
@@ -1870,7 +1874,11 @@ Bốn trụ đỡ: (1) **Chiến lược** — verified là USP; (2) **Kinh doan
 
 **"Chủ không dùng SaaS thì khu không có review" không phải bug mà là thiết kế có chủ đích** — tương tự "shop không bán trên Shopee thì không có review Shopee". Tin của chủ chưa dùng SaaS vẫn hiển thị đầy đủ & đã kiểm duyệt; review là lớp tin cậy thêm, đồng thời là động lực dùng SaaS.
 
-**Rủi ro gian lận & 4 lớp chặn (đã nâng từ "giảm thiểu" thành rule chốt):** (1) cấm chủ khu tự review; (2) liên kết Occupancy cần Tenant xác nhận — không gắn được tài khoản chim mồi âm thầm; (3) điều kiện mở review: Contract ≥ 30 ngày hoặc có Payment — tạo Contract khống chưa đủ; (4) report + tự ẩn ≥ 3 report + kiểm duyệt. Không hệ thống nào chống giả 100%, nhưng chi phí gian lận ở đây cao hơn hẳn review tự do.
+**Rủi ro gian lận và ba lớp chặn:** (1) cấm chủ khu tự đánh giá khu của mình; (2) điều kiện mở quyền đánh giá — hợp đồng tồn tại ít nhất 30 ngày **hoặc** đã có ít nhất một lần ghi nhận thu tiền, nên tạo hợp đồng khống thôi chưa đủ; (3) báo cáo từ **cả hai phía** — người dùng và chủ trọ — kèm tự ẩn khi có từ 3 báo cáo trở lên và kiểm duyệt bởi nhân viên vận hành.
+
+**Vì sao bỏ bước xác nhận liên kết mà không làm yếu đi khả năng chống giả:** bước xác nhận từng được liệt kê như một lớp chặn — "không gắn được tài khoản chim mồi âm thầm". Nhưng thực tế nó **chưa bao giờ chặn được**: tài khoản chim mồi do chính chủ trọ tạo và kiểm soát, nên chủ trọ tự bấm xác nhận cho nó. Bỏ bước này không mất lớp bảo vệ thật nào; ba lớp còn lại mới là lớp chặn thực sự.
+
+Không hệ thống nào chống giả được 100%. Một chủ trọ quyết tâm vẫn có thể tạo tài khoản bằng số điện thoại mình kiểm soát, lập hợp đồng và ghi nhận thu tiền khống để đủ điều kiện. Nhưng chi phí gian lận ở đây cao hơn hẳn đánh giá tự do, và tài liệu chọn nói rõ giới hạn này thay vì hứa quá.
 
 ---
 

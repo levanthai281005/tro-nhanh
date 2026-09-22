@@ -105,7 +105,7 @@ Các module (khớp Mục 11 tài liệu Đặc tả Kỹ thuật) chia theo 2 d
 | Service | Trách nhiệm | Module |
 |---|---|---|
 | PropertyRoomModule | Property (+ thông tin nhận tiền của khu, cờ hồ sơ khu public), Room (+ giờ giấc), trạng thái phòng (BR-002, BR-011), tạo listing từ room | 5,6 |
-| TenancyModule | Occupancy (gắn tài khoản/fallback), Contract (BR-006, bằng chứng cho review), upload/truy cập scan (BR-008) | 7,8 |
+| OccupancyContractModule | Occupancy (gắn tài khoản/fallback), Contract (BR-006, bằng chứng cho review), upload/truy cập scan (BR-008) | 7,8 |
 | BillingModule | Chủ trọ nhập UtilityReading (người ở gửi chỉ số qua kênh ngoài), Invoice/InvoiceItem (BR-004), xuất hóa đơn kèm QR/STK, ghi nhận Payment (Cash/BankTransfer); job Overdue | 9 |
 | SubscriptionModule | SubscriptionPlan, UserSubscription, **gating 4 trạng thái NONE/TRIAL/ACTIVE/READ_ONLY** và hạn mức (BR-013, BR-015), thu phí nền tảng | 15 |
 | AnalyticsModule | KPI dashboard Landlord (BR-012) & Admin; ghi nhận contactEvent | 16 |
@@ -325,7 +325,7 @@ External: SMS/Email gateway, Payment gateway, Map service
 
 **Luồng đăng tin – kiểm duyệt (Landlord):** Landlord gửi tin → ListingModule validate và lưu (PendingApproval) → MediaModule lưu ảnh lên object storage → tin vào hàng đợi ModerationModule → Staff duyệt → tin Active, NotificationModule báo Landlord → SearchModule phục vụ tin trong kết quả.
 
-**Luồng quản lý vận hành (Landlord, SaaS):** Landlord tạo Property/Room (PropertyRoomModule) → thêm Occupancy (gắn tài khoản Tenant nếu có, hoặc fallback tên+SĐT) và tạo Contract (TenancyModule), Room chuyển Rented → hằng kỳ ghi UtilityReading và tạo Invoice (BillingModule) → **xuất hóa đơn kèm STK + QR của khu** để người ở chuyển khoản thẳng cho chủ trọ hoặc trả tiền mặt → chủ trọ bấm "Đã thu" ghi Payment (Cash/BankTransfer) → job đánh dấu Overdue và NotificationModule nhắc hạn → AnalyticsModule tổng hợp KPI. Nền tảng KHÔNG cầm tiền (AS-002).
+**Luồng quản lý vận hành (Landlord, SaaS):** Landlord tạo Property/Room (PropertyRoomModule) → thêm Occupancy (gắn tài khoản Tenant nếu có, hoặc fallback tên+SĐT) và tạo Contract (OccupancyContractModule), Room chuyển Rented → hằng kỳ ghi UtilityReading và tạo Invoice (BillingModule) → **xuất hóa đơn kèm STK + QR của khu** để người ở chuyển khoản thẳng cho chủ trọ hoặc trả tiền mặt → chủ trọ bấm "Đã thu" ghi Payment (Cash/BankTransfer) → job đánh dấu Overdue và NotificationModule nhắc hạn → AnalyticsModule tổng hợp KPI. Nền tảng KHÔNG cầm tiền (AS-002).
 
 **Luồng đánh giá khu trọ (verified):** Tenant đã/đang có Contract ở Property mở "Phòng của tôi" → viết đánh giá (sao + nội dung) → ReviewModule xác minh `contractId` thuộc người viết (BR-022), chặn trùng theo đợt ở (BR-023) → lưu Review, cập nhật `avgRating` của Property → hiển thị ở badge trên tin đăng của khu và trang khu public (`/khu-tro/{slug}`). Người ở fallback (không tài khoản) không đánh giá được.
 
@@ -349,12 +349,12 @@ Quan hệ gọi chính giữa các service:
 - **ListingModule** gọi **MediaModule** (lưu ảnh), **ModerationModule** (đẩy duyệt), **NotificationModule** (báo kết quả); đọc Profile để prefill liên hệ.
 - **MessagingModule** đọc tin (refType/refId) và người tham gia; gọi **NotificationModule** (báo tin mới) và **ModerationModule** (chặn/báo cáo).
 - **PropertyRoomModule** gọi **SubscriptionModule** (kiểm hạn mức/feature gating) khi tạo Property/Room; phối hợp **ListingModule** khi "Tạo tin từ phòng".
-- **TenancyModule** cập nhật RoomStatus qua **PropertyRoomModule**; gọi **MediaModule** (scan hợp đồng); gọi **NotificationModule** (nhắc hết hạn).
-- **BillingModule** đọc Contract/Room từ **TenancyModule/PropertyRoomModule**; xuất hóa đơn kèm thông tin nhận tiền của Property; gọi **NotificationModule** (nhắc/Overdue); cung cấp dữ liệu doanh thu cho **AnalyticsModule**.
+- **OccupancyContractModule** cập nhật RoomStatus qua **PropertyRoomModule**; gọi **MediaModule** (scan hợp đồng); gọi **NotificationModule** (nhắc hết hạn).
+- **BillingModule** đọc Contract/Room từ **OccupancyContractModule/PropertyRoomModule**; xuất hóa đơn kèm thông tin nhận tiền của Property; gọi **NotificationModule** (nhắc/Overdue); cung cấp dữ liệu doanh thu cho **AnalyticsModule**.
 - **SubscriptionModule** gọi **Payment gateway**; cung cấp trạng thái gói cho các SaaS service (gating).
 - **AnalyticsModule** đọc dữ liệu tổng hợp từ Room/Contract/Invoice/Payment; nhận contactEvent từ luồng liên hệ.
 - **ModerationModule** cập nhật trạng thái tin của **ListingModule** và hội thoại của **MessagingModule**; xử lý Report (tin/tin nhắn/đánh giá); ghi audit.
-- **ReviewModule** đọc Contract từ **TenancyModule** để xác minh quyền đánh giá; cập nhật `avgRating` của Property qua **PropertyRoomModule**; cung cấp badge/điểm cho **SearchModule** và trang khu public.
+- **ReviewModule** đọc Contract từ **OccupancyContractModule** để xác minh quyền đánh giá; cập nhật `avgRating` của Property qua **PropertyRoomModule**; cung cấp badge/điểm cho **SearchModule** và trang khu public.
 - **NotificationModule** được nhiều service gọi và chạy scheduled jobs độc lập.
 
 Nguyên tắc: phụ thuộc một chiều theo nhóm (Marketplace/SaaS gọi xuống Shared), tránh vòng lặp phụ thuộc để dễ tách service sau này.
@@ -613,7 +613,7 @@ Từ tạo hợp đồng đến ghi điện nước, tạo invoice và nhắc h�
 sequenceDiagram
     actor Landlord
     participant API as API Layer
-    participant TS as TenancyModule
+    participant TS as OccupancyContractModule
     participant PRS as PropertyRoomModule
     participant BS as BillingModule
     participant JOB as Job Scheduler
