@@ -42,7 +42,7 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 - `ASSUMPTIONS.md` — AS-001 → AS-028
 
 **Dữ liệu**
-- `DATA_ENTITIES.md` — 34 entity, field chính và quan hệ
+- `DATA_ENTITIES.md` — 37 entity, field chính và quan hệ
 - `STATUS_ENUMS.md` — toàn bộ enum trạng thái
 - `VALIDATION_RULES.md` — ràng buộc nhập liệu
 

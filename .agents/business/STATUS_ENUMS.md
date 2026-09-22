@@ -22,6 +22,10 @@ dịch, không tự thêm giá trị mới.
 
 Tin nhu cầu thuê (`RoomWantedPost`, `RoommateWantedPost`) dùng chung tập giá trị này.
 
+Đẩy tin **không có enum trạng thái riêng**: tin đang được đẩy ⇔ `boostExpireAt > now` — suy ra từ cột này, không lưu cờ.
+
+**`Conversation.status`**: `Active` · `Archived` · `Blocked`.
+
 **`Review.status`** (BR-023)
 
 | Giá trị | Ý nghĩa |
@@ -120,7 +124,15 @@ Không có giá trị chờ: liên kết người ở **có hiệu lực ngay** 
 
 ## Enum dữ liệu khác
 
-- **`RentalListing.propertyType`**: `BoardingRoom` · `ServicedApartment` · `Apartment`.
+- **`RentalListing.typeId` / `RoomWantedPost.typeId`**: khóa ngoại tới danh mục `ListingType`
+  (`code` unique) do quản trị viên quản lý — **không phải enum cố định trong code**; giá trị
+  tra từ API danh mục, không hard-code `BoardingRoom/ServicedApartment/Apartment`.
+- **`AuthMethod.provider`**: `Password` — hiện chỉ dùng giá trị này (BR-016); đăng nhập bên
+  thứ ba là dự phòng, chưa hỗ trợ.
+- **`Amenity.type`**: `Room` · `Surrounding`.
+- **`Notification.type`**: `ListingApproved` · `Rejected` · `NewMessage` · `ContractExpiring` ·
+  `InvoiceDue` · `InvoiceOverdue` · `InvoiceReceived` · `SubscriptionRenewal` · `TrialEnding` ·
+  `ReviewModerated` · `OccupancyLinked` · `ListingAutoRented` · `FavoriteChanged` · `System`.
 - **`accessPolicy`** (giờ giấc ra vào — BR-025): `Free` · `Restricted`.
 - **`InvoiceItem.type`**: `Rent` · `Electricity` · `Water` · `Service` · `Deposit` · `Other`.
 - **`UtilityReading.type`**: `Electricity` · `Water`.

@@ -3,8 +3,8 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: **đợt cập nhật tài liệu theo đặc tả mới** (22/09/2026 — nhóm 3: liên kết
-người ở có hiệu lực ngay, xem mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
+Cập nhật lần cuối: **đợt cập nhật tài liệu theo đặc tả mới** (22/09/2026 — nhóm 5: dữ liệu
+37 bảng, xem mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
 **B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
 
 **Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 7 route chạy được:
@@ -268,8 +268,23 @@ ngày — cần lâu hơn thì chia nhỏ.
         (thêm `role` đơn, `subscriptionStatus`, bỏ `TaxDeclaration`), `API_CONTRACT`,
         `ASSUMPTIONS` AS-006, `NON_FUNCTIONAL`, `REBUILD_PLAN`, `FEATURE_MODULES`,
         `ROADMAP_AND_RATIONALE`; quét sạch Renter/Seller/Moderator trong các file đó.
-      - **Còn nhóm 5, 6** (`DATA_ENTITIES`, `VALIDATION_RULES`, `BUSINESS_RULES` — trong đó
-        BR-029 và BR-034 còn viết theo mô hình xác nhận cũ).
+      - 22/09/2026 — **nhóm 5 (dữ liệu 37 bảng)** xong: `DATA_ENTITIES` chép lại theo Mục 6 —
+        thêm `AuthMethod`, `ListingType`, `ListingCost`, `ListingNearbyPlace`, `BoostPackage`;
+        xóa hẳn `TaxSetting`/`TaxDeclaration`; `User` chỉ còn `phoneNumber` (bỏ `email`,
+        `passwordHash`) + `roleId` (bỏ bảng nối n-n); xóa mềm `isDeleted` + `createdBy/updatedBy`
+        (bỏ `deletedAt`); địa chỉ `provinceCode + wardCode` (lọc) / `wardName + addressDetail`
+        (hiển thị); đẩy tin chỉ giữ `boostExpireAt`; đơn giá ba tầng khu → phòng → chép vào
+        `UtilityReading` (BR-036); `Occupancy` nhiều bản ghi mỗi phòng, `isPrimary`, `endDate` =
+        ngày đầu không còn ở (BR-037); **`Invoice.invoiceCode` unique, sinh một lần, không đổi**
+        (quyết định riêng — Module 9 cho phép hai hóa đơn cùng phòng cùng kỳ khi đổi người ở, và
+        đổi `roomCode` không được làm đổi mã đã nằm trong nội dung chuyển khoản; spec Mục 6 cần
+        bổ sung cột này); `VALIDATION_RULES` theo Mục 9 + BR-036..038; `STATUS_ENUMS` bỏ enum
+        `propertyType` (nay là FK `ListingType`), thêm `AuthMethod.provider`,
+        `Conversation.status`, `Amenity.type`, `Notification.type`. Đã dùng `landlordReply`,
+        `initiatorId` (spec Mục 6 có lỗi find-replace `chủ trọReply` và index `renterId` — chủ
+        dự án sửa spec riêng).
+      - **Còn nhóm 6** (`BUSINESS_RULES` — BR-029 và BR-034 còn viết theo mô hình xác nhận cũ;
+        BR-007/BR-021/BR-022 còn `sellerId`, `TaxSetting`).
 
 ### Đang làm
 
@@ -309,7 +324,14 @@ ngày — cần lâu hơn thì chia nhỏ.
       vẫn mô hình Pending/Confirmed/Rejected; tài liệu nay chỉ còn `userId` null/khác null. Đồng
       bộ khi làm lát Occupancy của `apps/api` (badge "đã liên kết"/"chưa liên kết", bỏ nhánh
       chờ xác nhận).
-- [ ] Tài liệu nhóm 5, 6 (xem mục "Tài liệu theo đặc tả mới" ở trên).
+- [ ] **Code marketplace còn mô hình dữ liệu cũ** — 26 file (`packages/schemas/src/rentalListing.ts`,
+      `property.ts` và 24 file `apps/web/src/features/marketplace/*` + 2 file `components/style-guide`)
+      vẫn dùng enum `propertyType` (`BoardingRoom/ServicedApartment/Apartment`), `district`
+      chuỗi, chi phí cố định `electricityPrice/waterPrice/servicePrice/deposit` trên tin; tài liệu
+      nay là FK `typeId` → danh mục `ListingType`, `provinceCode + wardCode` + `wardName +
+      addressDetail`, bảng `ListingCost` riêng. Đồng bộ khi làm lát Listing của `apps/api`
+      (`catalog.ts` đổi sang tra danh mục từ API; schema tách `ListingCost`).
+- [ ] Tài liệu nhóm 6 (xem mục "Tài liệu theo đặc tả mới" ở trên).
 
 ### Tiếp theo
 
