@@ -98,7 +98,7 @@ GET  /management/dashboard
 ## Residency — người ở (web shell + app mobile)
 ```
 GET  /residency/me/occupancies              (đợt ở hiện tại + lịch sử)
-PATCH /residency/me/occupancies/{id}/confirm    PATCH …/reject    PATCH …/unlink  (BR-029)
+PATCH /residency/me/occupancies/{id}/unlink (nút "Không phải tôi" — người thuê tự gỡ liên kết, BR-029)
 GET  /residency/me/room                     (tổng quan phòng đang ở)
 GET  /residency/me/contracts                GET /residency/me/contracts/{id}
 GET  /residency/me/invoices                 GET /residency/me/invoices/{id}  (kèm STK + VietQR)

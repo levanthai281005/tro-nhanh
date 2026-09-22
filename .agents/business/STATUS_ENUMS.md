@@ -28,7 +28,7 @@ Tin nhu cầu thuê (`RoomWantedPost`, `RoommateWantedPost`) dùng chung tập g
 |---|---|
 | `Visible` | Đang hiển thị |
 | `Reported` | Bị báo cáo, chờ kiểm duyệt |
-| `Hidden` | Đã ẩn bởi Moderator |
+| `Hidden` | Đã ẩn bởi Staff |
 
 **`Report.status`**: `Pending` · `Resolved` · `Dismissed`.
 
@@ -72,9 +72,9 @@ Client **không tự tính** trạng thái này; luôn dùng giá trị backend 
 | Giá trị | Ai chuyển được |
 |---|---|
 | `Open` | Người ở tạo |
-| `Acknowledged` | Seller sở hữu khu |
-| `InProgress` | Seller sở hữu khu |
-| `Resolved` | Seller sở hữu khu |
+| `Acknowledged` | Landlord sở hữu khu |
+| `InProgress` | Landlord sở hữu khu |
+| `Resolved` | Landlord sở hữu khu |
 | `Closed` | Người ở xác nhận (hoặc mở lại về `InProgress`) |
 
 **`Incident.priority`**: `Low` · `Normal` · `High` · `Urgent`.
@@ -91,9 +91,9 @@ Client **không tự tính** trạng thái này; luôn dùng giá trị backend 
 | `Active` | Bình thường |
 | `Locked` | Không đăng nhập được; tin đăng tự ẩn (BR-028) |
 
-**`roles[]`** trong JWT — cộng dồn, không loại trừ: `Renter` · `Seller` · `Admin` · `Moderator`.
+**`role`** trong JWT — **một giá trị duy nhất** (BR-013, mục 1.8): `TENANT` · `LANDLORD` · `STAFF` · `ADMIN`. `TENANT` đổi thành `LANDLORD` qua "Trở thành chủ trọ" (`POST /me/become-landlord`, một chiều).
 
-**`workspaceStatus`** — quyền trong Workspace SaaS (BR-013, BR-015)
+**`subscriptionStatus`** — quyền trong Workspace SaaS (BR-013, BR-015)
 
 | Giá trị | Quyền |
 |---|---|
@@ -106,12 +106,11 @@ Client **không tự tính** trạng thái này; luôn dùng giá trị backend 
 
 | Giá trị | Quyền vào Residency shell |
 |---|---|
-| `NONE` | Không vào được, hiện màn hướng dẫn |
-| `PENDING` | Chỉ vào màn xác nhận liên kết, chưa xem được hóa đơn |
+| `NONE` | Không vào được, hiện màn hướng dẫn "chủ trọ cần thêm bạn vào phòng" |
 | `ACTIVE` | Đầy đủ |
 | `PAST` | Chỉ đọc lịch sử, vẫn viết được đánh giá |
 
-**`Occupancy.linkStatus`** (BR-029): `Pending` · `Confirmed` · `Rejected`.
+Không có giá trị chờ: liên kết người ở **có hiệu lực ngay** khi chủ trọ gắn (BR-029) — `Occupancy` chỉ có `userId` null hay không null, không có trạng thái liên kết riêng. Người được gắn nhầm tự gỡ bằng nút "Không phải tôi".
 
 **`UserSubscription.status`**: `Trial` · `Active` · `Expired` · `Cancelled`.
 
@@ -130,4 +129,4 @@ Client **không tự tính** trạng thái này; luôn dùng giá trị backend 
 - **`Report.targetType`**: `RentalListing` · `RoomWantedPost` · `RoommateWantedPost` ·
   `Conversation` · `Message` · `Review`.
 - **`Media.ownerType`**: `RentalListing` · `RoommateWantedPost` · `Contract` · `Profile` ·
-  `Invoice` · `TaxDeclaration` · `Incident` · `UtilityReadingSubmission`.
+  `Invoice` · `Incident` · `UtilityReadingSubmission`.

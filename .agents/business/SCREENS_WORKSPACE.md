@@ -11,14 +11,14 @@ Danh sách màn hình thuộc `app/(workspace)` — khu quản lý của chủ t
 
 ## MANAGEMENT WORKSPACE SHELL — route gốc `/chu-tro`
 
-> Entry `/chu-tro` mở cho mọi user đã đăng nhập — là điểm kích hoạt năng lực Seller. Toàn bộ
+> Entry `/chu-tro` mở cho mọi user đã đăng nhập — là điểm kích hoạt năng lực Landlord. Toàn bộ
 > màn SaaS chịu gating BR-015; `READ_ONLY` ẩn/khóa nút ghi, lỗi `WORKSPACE_READ_ONLY`.
 
 | # | Màn hình | Route | Surface | Mô tả | Giai đoạn |
 |---|---|---|---|---|---|
 | B1 | Entry / Onboarding | `/chu-tro` | Workspace | **2 lối:** "Đăng tin (miễn phí)" → B5; "Dùng thử bộ quản lý" → TRIAL → B2 | V1 |
 | B2 | Onboarding wizard 3 bước | `/chu-tro/bat-dau` | Workspace | Property + nhận tiền (VietQR) → Room → (tùy chọn) Occupancy/Contract | V1 |
-| B3 | Dashboard Seller | `/chu-tro/tong-quan` | Workspace | Phòng trống (luôn hiện); lấp đầy, doanh thu/tổng phòng/số khách (toggle, mặc định TẮT — BR-012); sắp hết hạn HĐ; chưa thu | MVP (mock) → V1 |
+| B3 | Dashboard Landlord | `/chu-tro/tong-quan` | Workspace | Phòng trống (luôn hiện); lấp đầy, doanh thu/tổng phòng/số khách (toggle, mặc định TẮT — BR-012); sắp hết hạn HĐ; chưa thu | MVP (mock) → V1 |
 | B4 | Quản lý tin cho thuê | `/tai-khoan/tin-cho-thue` | **Marketplace** | Tin của tôi; tạo/sửa/boost/gia hạn/xóa | MVP ✅ |
 | B5 | Đăng tin cho thuê | `/dang-tin-cho-thue` | **Marketplace** | Form nhiều bước + bước chọn khu (nếu có Property) | MVP ✅ |
 | B6 | Danh sách khu trọ | `/chu-tro/khu-tro` | Workspace | Danh sách khu + tổng phòng/trống; thêm khu | MVP (mock) → V1 |

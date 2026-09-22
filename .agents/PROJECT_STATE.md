@@ -3,8 +3,8 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: **đợt cập nhật tài liệu theo đặc tả mới** (22/09/2026 — nhóm 4: stack
-NestJS, xem mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
+Cập nhật lần cuối: **đợt cập nhật tài liệu theo đặc tả mới** (22/09/2026 — nhóm 3: liên kết
+người ở có hiệu lực ngay, xem mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
 **B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
 
 **Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 7 route chạy được:
@@ -259,9 +259,17 @@ ngày — cần lâu hơn thì chia nhỏ.
         phiên/revalidate). `BACKEND_PROPOSALS.md` đổi khung thành "khoảng trống chờ chốt vào
         đặc tả". Hai file `docs/DATABASE_DESIGN.md`, `docs/BUSINESS_RECONCILIATION.md` chỉ gắn
         ghi chú lịch sử, không viết lại. `docs/DEVELOPMENT_SETUP.md` để lúc dựng `apps/api`.
-      - **Còn nhóm 3, 5, 6** (`USER_FLOWS`, `SCREENS_RESIDENCY` C2, `BUSINESS_RULES`,
-        `DATA_ENTITIES`, `STATUS_ENUMS`, `VALIDATION_RULES`, phần confirm/reject trong
-        `API_CONTRACT`).
+      - 22/09/2026 — **nhóm 3 (liên kết người ở)** xong: liên kết **có hiệu lực ngay** khi chủ
+        trọ gắn, không còn bước Tenant chấp nhận/từ chối; bỏ `Occupancy.linkStatus`
+        (Pending/Confirmed/Rejected) và `residencyStatus = PENDING`; C2 đổi thành "Thông báo
+        được thêm vào phòng" (`/nguoi-o/lien-ket`, nút "Không phải tôi"); API chỉ còn
+        `PATCH /residency/me/occupancies/{id}/unlink`. Sửa `USER_FLOWS` (kèm 4.3 theo
+        `POST /me/become-landlord`, 7 bước form, PayOS), `SCREENS_RESIDENCY`, `STATUS_ENUMS`
+        (thêm `role` đơn, `subscriptionStatus`, bỏ `TaxDeclaration`), `API_CONTRACT`,
+        `ASSUMPTIONS` AS-006, `NON_FUNCTIONAL`, `REBUILD_PLAN`, `FEATURE_MODULES`,
+        `ROADMAP_AND_RATIONALE`; quét sạch Renter/Seller/Moderator trong các file đó.
+      - **Còn nhóm 5, 6** (`DATA_ENTITIES`, `VALIDATION_RULES`, `BUSINESS_RULES` — trong đó
+        BR-029 và BR-034 còn viết theo mô hình xác nhận cũ).
 
 ### Đang làm
 
@@ -294,7 +302,14 @@ ngày — cần lâu hơn thì chia nhỏ.
 - [ ] **Dấu vết cầu nối OpenAPI cũ trong code** — gỡ khi dựng `apps/api`: tên package
       `tro-nhanh-fe` trong `package.json` gốc; script `api:gen`; devDependency
       `openapi-typescript`; file `openapi.json`; `packages/types/src/api.ts` (stub rỗng).
-- [ ] Tài liệu nhóm 3, 5, 6 (xem mục "Tài liệu theo đặc tả mới" ở trên).
+- [ ] **Code B9/B10 còn `linkStatus`** — 7 file trong `apps/web/src/features/workspace`
+      (`types/occupancy.ts`, `constants/mockOccupancies.ts`, `services/occupanciesService.ts`,
+      `components/occupancy/OccupancyCard.tsx`, `components/occupancy/OccupantLinkBadge.tsx`,
+      `components/room-detail/RoomOccupantsSection.tsx`, `components/rooms/RoomDetailDrawer.tsx`)
+      vẫn mô hình Pending/Confirmed/Rejected; tài liệu nay chỉ còn `userId` null/khác null. Đồng
+      bộ khi làm lát Occupancy của `apps/api` (badge "đã liên kết"/"chưa liên kết", bỏ nhánh
+      chờ xác nhận).
+- [ ] Tài liệu nhóm 5, 6 (xem mục "Tài liệu theo đặc tả mới" ở trên).
 
 ### Tiếp theo
 
@@ -338,7 +353,8 @@ Dùng theo thói quen sẽ lệch mà rất khó thấy bằng mắt.
 sẽ sinh lỗi kiểu "máy tôi chạy được".
 
 **Prototype dựng trước khi chốt nghiệp vụ mới.** Không port nguyên hành vi cũ ở: gating
-Workspace, đánh giá verified, consent liên kết người ở, báo cáo vi phạm bắt buộc đăng nhập.
+Workspace, đánh giá verified, liên kết người ở có hiệu lực ngay (BR-029), báo cáo vi phạm bắt
+buộc đăng nhập.
 
 **GitHub hay tự nhớ base branch của lần tạo PR gần nhất, không phải nhánh mình vừa mở compare
 tới.** Từng khiến một PR merge nhầm thẳng vào `dev` thay vì `feat/rebuild`. Luôn nhìn kỹ dòng

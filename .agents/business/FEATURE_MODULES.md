@@ -9,15 +9,15 @@ thuộc feature folder nào trong `apps/web/src/features`.
 
 ## Module 1 — Authentication & User Management `[SK]`
 - **Mục đích:** đăng ký, đăng nhập, quản lý phiên và vai trò.
-- **Chức năng con:** đăng ký bằng **SĐT** + OTP (email chỉ thêm tùy chọn ở Profile, không dùng để đăng ký); đăng nhập/đăng xuất (đăng xuất **thu hồi refresh token**); refresh token; quên mật khẩu (OTP); **đổi mật khẩu khi đã đăng nhập**; **yêu cầu xóa tài khoản** (right to erasure — soft delete User, ẩn tin, gỡ `userId` khỏi Occupancy nhưng giữ dữ liệu vận hành của Seller khác); khóa/mở khóa (Admin); tự kích hoạt role Seller (1.8) + Admin gán/gỡ thủ công; `GET /me`.
+- **Chức năng con:** đăng ký bằng **SĐT** + OTP (email chỉ thêm tùy chọn ở Profile, không dùng để đăng ký); đăng nhập/đăng xuất (đăng xuất **thu hồi refresh token**); refresh token; quên mật khẩu (OTP); **đổi mật khẩu khi đã đăng nhập**; **yêu cầu xóa tài khoản** (right to erasure — soft delete User, ẩn tin, gỡ `userId` khỏi Occupancy nhưng giữ dữ liệu vận hành của Landlord khác); khóa/mở khóa (Admin); nâng cấp vai trò `TENANT` → `LANDLORD` qua "Trở thành chủ trọ" (`POST /me/become-landlord`, một chiều — 1.8, BR-013) + Admin gán/gỡ thủ công; `GET /me`.
 - **Rule:** SĐT duy nhất (BR-016); tài khoản Locked không đăng nhập được, **mọi tin Active của user Locked tự chuyển Hidden** (BR-028); dữ liệu SaaS giữ nguyên.
 
 ## Module 2 — Profile Management `[SK]`
 - **Chức năng con:** cập nhật tên, avatar, SĐT liên hệ, email (tùy chọn); cài đặt hiển thị dashboard (BR-012). Thông tin nhận tiền đặt theo Property (Module 5), không ở Profile. `contactPhone` chưa đặt → prefill bằng `phoneNumber` tài khoản.
 
 ## Module 3 — Rental Listing Management `[MKT]`
-- **Chức năng con:** tạo tin nhiều bước (cơ bản; tiện ích & mô tả; ảnh ≥ 3; chi phí; giờ giấc; **[nếu Seller có Property] bước tùy chọn "Tin này thuộc khu trọ nào?"** — gắn `propertyId` để tin nhận badge đánh giá khu); lưu Draft; gửi duyệt; sửa/ẩn/xóa (xóa mềm); **gia hạn** (BR-026); boost (BR-005, cấu hình boost do Admin đặt: `boostPrice`, `boostDays`; chỉ boost tin Active); tạo tin từ Room trống (prefill, gắn sẵn `roomId` + `propertyId`); xem tin của tôi.
-- **Rule:** vòng đời BR-001; thời hạn hiển thị & gia hạn BR-026; sửa trường quan trọng phải duyệt lại — **tin ẩn tạm trong lúc chờ duyệt lại, UI cảnh báo trước khi lưu** (BR-003); đồng bộ với Room (BR-027); validation `propertyId`/`roomId` phải thuộc chính `sellerId`.
+- **Chức năng con:** tạo tin nhiều bước (cơ bản; tiện ích & mô tả; ảnh ≥ 3; chi phí; tiện ích xung quanh; giờ giấc; **[nếu Landlord có Property] bước tùy chọn "Tin này thuộc khu trọ nào?"** — gắn `propertyId` để tin nhận badge đánh giá khu); lưu Draft; gửi duyệt; sửa/ẩn/xóa (xóa mềm); **gia hạn** (BR-026); boost (BR-005, cấu hình boost do Admin đặt: `boostPrice`, `boostDays`; chỉ boost tin Active); tạo tin từ Room trống (prefill, gắn sẵn `roomId` + `propertyId`); xem tin của tôi.
+- **Rule:** vòng đời BR-001; thời hạn hiển thị & gia hạn BR-026; sửa trường quan trọng phải duyệt lại — **tin ẩn tạm trong lúc chờ duyệt lại, UI cảnh báo trước khi lưu** (BR-003); đồng bộ với Room (BR-027); validation `propertyId`/`roomId` phải thuộc chính `landlordId`.
 
 ## Module 4 — Demand Posts — Tin của người tìm thuê `[MKT]`
 - **Chức năng con:** tạo/sửa/ẩn/xóa, gia hạn; tin tìm phòng (khu vực, giá, loại hình, diện tích tối thiểu, tiện ích, thời điểm dọn vào); tin ở ghép (vị trí, giá chia sẻ, số người, yêu cầu, ảnh); **báo cáo tin nhu cầu** (qua Module 14).
@@ -33,17 +33,17 @@ thuộc feature folder nào trong `apps/web/src/features`.
 
 ## Module 7 — Occupancy Management (Quản lý người ở) `[SaaS]`
 - **Chức năng con:**
-  - Thêm người ở theo **SĐT**: SĐT đã có tài khoản Renter → gợi ý gắn (`userId`, `linkStatus=Pending`) → **Renter nhận Notification `OccupancyLinked` và Chấp nhận/Từ chối** (BR-029); chưa có tài khoản → thêm bằng tên + SĐT (*fallback*, `userId` null), gắn sau khi người đó đăng ký (cũng qua xác nhận).
+  - Thêm người ở theo **SĐT**: SĐT đã có tài khoản → hệ thống hiện tên để chủ trọ đối chiếu → gắn `userId`, liên kết **có hiệu lực ngay** → **Tenant nhận Notification `OccupancyLinked` kèm nút "Không phải tôi"** để tự gỡ nếu bị thêm nhầm (gỡ → `userId` về null, dữ liệu quản lý của chủ trọ không mất — BR-029); chưa có tài khoản → thêm bằng tên + SĐT (*fallback*, `userId` null), liên kết lại khi người đó đăng ký bằng đúng SĐT — cũng có hiệu lực ngay.
   - Một Room có thể có **nhiều Occupancy Active đồng thời** (bạn cùng phòng); Contract gắn **một Occupancy đại diện**. Kết thúc ở → set `endDate`, `isActive=false` → vào lịch sử.
-  - Liên kết `Confirmed` làm `residencyStatus` của Renter chuyển `ACTIVE` → mở Residency shell/app (Module 19). Kết thúc ở → `PAST`, vẫn xem được lịch sử và viết đánh giá khu từng ở.
-- **Rule:** dữ liệu riêng tư của Seller (BR-007); `userId` nullable; liên kết cần xác nhận (BR-029).
+  - Gắn `userId` làm `residencyStatus` của Tenant chuyển `ACTIVE` ngay → mở Residency shell/app (Module 19). Kết thúc ở → `PAST`, vẫn xem được lịch sử và viết đánh giá khu từng ở.
+- **Rule:** dữ liệu riêng tư của Landlord (BR-007); `userId` nullable; liên kết có hiệu lực ngay, không có bước xác nhận — người được liên kết tự gỡ bằng "Không phải tôi" (BR-029).
 
 ## Module 8 — Contract Management `[SaaS]`
 - **Chức năng con:** tạo Contract (phòng, Occupancy đại diện, ngày, tiền thuê, cọc); upload scan (tự nguyện); xem/tải (signed URL); nhắc sắp hết hạn (BR-022 nhắc tại `max(startDate, endDate − 30 ngày)`); chấm dứt sớm; yêu cầu xóa scan.
 - **Rule:** trạng thái BR-006 (gồm: **mỗi Room ≤ 1 Contract Active; chặn chồng lấn thời gian; job tự chuyển Expired khi qua `endDate`**); KHÔNG ký điện tử; scan phân quyền (BR-008); đồng bộ RoomStatus (BR-031). Contract là bằng chứng mở quyền đánh giá (BR-022 mới).
 
 ## Module 9 — Payment/Invoice/Utility Tracking `[SaaS]`
-- **Luồng chuẩn:** người ở gửi chỉ số qua kênh ngoài (thủ công — AS-009) → chủ trọ nhập `UtilityReading` → hệ thống tính tiền (điện = (mới − cũ) × đơn giá) → `Invoice` + `InvoiceItem` → xuất (ảnh/PDF) kèm STK + **VietQR nhúng số tiền + mã hóa đơn** → gửi (in-app nếu người ở linked Confirmed + Notification `InvoiceReceived`; hoặc tải về gửi ngoài) → chủ trọ bấm "Đã thu" → ghi `Payment`.
+- **Luồng chuẩn:** người ở gửi chỉ số qua kênh ngoài (thủ công — AS-009) → chủ trọ nhập `UtilityReading` → hệ thống tính tiền (điện = (mới − cũ) × đơn giá) → `Invoice` + `InvoiceItem` → xuất (ảnh/PDF) kèm STK + **VietQR nhúng số tiền + mã hóa đơn** → gửi (in-app nếu Occupancy đã liên kết tài khoản + Notification `InvoiceReceived`; hoặc tải về gửi ngoài) → chủ trọ bấm "Đã thu" → ghi `Payment`.
 - **Luồng tùy chọn — người ở gửi chỉ số trong app:** nếu khu bật `Property.allowOccupantMeterSubmission` (mặc định **tắt**), người ở gửi số kèm **ảnh đồng hồ** → tạo `UtilityReadingSubmission` (trạng thái `Pending`) → chủ trọ xem ảnh rồi **xác nhận hoặc sửa số** → chỉ khi xác nhận mới sinh `UtilityReading` chính thức và luồng hóa đơn chạy tiếp như trên. Số người ở gửi được lưu lại kể cả khi chủ sửa, để đối chiếu khi tranh chấp (BR-033).
 - **Rule:** trạng thái Invoice BR-004 (trạng thái **suy tự động từ Σ Payment so với `totalAmount`**; đường ra khỏi Overdue: thu đủ → `Paid`, thu một phần → vẫn `Overdue`); unique **`Invoice(contractId, period)`** — cho phép 2 hóa đơn cùng phòng cùng tháng khi đổi người giữa kỳ; unique **`UtilityReading(roomId, type, period)`** + field `invoiceId` đánh dấu đã lên hóa đơn nào; quá hạn → job Overdue + Notification. **Tiền cọc** (`Contract.deposit`) ghi nhận như một `InvoiceItem` `type=Deposit` trong hóa đơn kỳ đầu — nền tảng chỉ ghi nhận, không giữ tiền (AS-002). Nền tảng không xử lý dòng tiền (AS-002).
 
@@ -54,7 +54,7 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Chức năng con:** lưu/bỏ lưu `RentalListing`; danh sách đã lưu; báo khi tin đã lưu đổi trạng thái (qua Module 10).
 
 ## Module 12 — Search & Filter `[MKT]`
-- **Chức năng con:** tìm theo từ khóa/khu vực; lọc giá, loại hình, diện tích, tiện ích, giờ giấc; sắp xếp; phân trang; gợi ý phòng theo nhu cầu Renter; lọc/sắp xếp theo điểm đánh giá khu.
+- **Chức năng con:** tìm theo từ khóa/khu vực; lọc giá, loại hình, diện tích, tiện ích, giờ giấc; sắp xếp; phân trang; gợi ý phòng theo nhu cầu Tenant; lọc/sắp xếp theo điểm đánh giá khu.
 - **Rule:** chỉ trả tin Active; boost xếp trước (BR-005). **Lọc theo điểm đánh giá chỉ áp cho tin có review, kèm toggle "gồm tin chưa có đánh giá" (mặc định BẬT)**; sort theo điểm đẩy tin chưa có điểm xuống cuối thay vì loại bỏ.
 
 ## Module 13 — Admin Management `[MKT]/[SK]`
@@ -66,14 +66,14 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Rule:** tin ≥ 3 report chưa xử lý tự chuyển PendingApproval và tạm ẩn (BR-018).
 
 ## Module 15 — SaaS Subscription Management `[SaaS]`
-- **Chức năng con:** xem bảng gói; kích hoạt TRIAL (1 lần/Seller); mua gói (~600.000đ/3 năm — tham khảo); gia hạn ưu đãi (**đổi gói khi gia hạn được; V1 không nâng gói giữa kỳ**); xem hạn; nhắc hạn; Admin CRUD `SubscriptionPlan`, xem/hủy (`Cancelled` — chỉ Admin thao tác khi xử lý khiếu nại/hoàn tiền) `UserSubscription`.
+- **Chức năng con:** xem bảng gói; kích hoạt TRIAL (1 lần/Landlord); mua gói (~600.000đ/3 năm — tham khảo); gia hạn ưu đãi (**đổi gói khi gia hạn được; V1 không nâng gói giữa kỳ**); xem hạn; nhắc hạn; Admin CRUD `SubscriptionPlan`, xem/hủy (`Cancelled` — chỉ Admin thao tác khi xử lý khiếu nại/hoàn tiền) `UserSubscription`.
 - **Rule:** BR-015 (gồm over-limit ở 1.7); thanh toán qua `PlatformTransaction` + webhook (4.9).
 
 ## Module 16 — Dashboard & Analytics `[SaaS]`
-- **Chức năng con (Seller):** số phòng trống (luôn hiện); tỷ lệ lấp đầy; **doanh thu thu được theo kỳ, tổng số phòng, số khách đang ở — cả ba theo toggle, mặc định TẮT** (BR-012); phòng sắp hết hạn HĐ; phòng chưa thanh toán.
+- **Chức năng con (Landlord):** số phòng trống (luôn hiện); tỷ lệ lấp đầy; **doanh thu thu được theo kỳ, tổng số phòng, số khách đang ở — cả ba theo toggle, mặc định TẮT** (BR-012); phòng sắp hết hạn HĐ; phòng chưa thanh toán.
 - **Chức năng con (Admin):** tổng user/tin/doanh thu phí nền tảng theo thời gian.
 - **Chức năng con (hệ thống):** ghi `ContactEvent` (nhắn tin/gọi) phục vụ thống kê tương tác tin.
-- **Rule:** dashboard Seller riêng tư tuyệt đối (BR-007).
+- **Rule:** dashboard Landlord riêng tư tuyệt đối (BR-007).
 
 ## Module 17 — Messaging/Chat (in-app) `[SK]`
 - **Phạm vi:** UI từ MVP; nghiệp vụ đầy đủ V1; realtime polling → WebSocket (AS-011).
@@ -82,20 +82,20 @@ thuộc feature folder nào trong `apps/web/src/features`.
 
 ## Module 18 — Review/Đánh giá khu trọ `[MKT]`
 - **Mục đích:** người ở thật đánh giá **Property** để người thuê yên tâm trước khi cọc.
-- **Phạm vi:** V1 (phụ thuộc Occupancy linked Confirmed + Contract).
-- **Chức năng con:** viết đánh giá (sao 1–5 + nội dung ≤ 1.000 ký tự); mỗi đợt ở (`contractId`) một review, sửa trong **7 ngày**; hiển thị badge điểm trên tin của khu + trang khu public `/khu-tro/{slug}`; báo cáo/ẩn review (Module 14); Seller xem đánh giá khu mình (phản hồi = V2).
+- **Phạm vi:** V1 (phụ thuộc Occupancy đã liên kết tài khoản + Contract).
+- **Chức năng con:** viết đánh giá (sao 1–5 + nội dung ≤ 1.000 ký tự); mỗi đợt ở (`contractId`) một review, sửa trong **7 ngày**; hiển thị badge điểm trên tin của khu + trang khu public `/khu-tro/{slug}`; báo cáo/ẩn review (Module 14); Landlord xem đánh giá khu mình (phản hồi = V2).
 - **Rule (BR-022/023/024 bản mới):** verified-only; **cấm chủ khu tự review khu mình**; điều kiện mở: Contract tồn tại ≥ 30 ngày HOẶC đã có ≥ 1 Payment; viết & lưu được bất kể khu bật public hay chưa — **chỉ hiển thị khi khu bật public**.
 
 ## Module 19 — Residency (Trải nghiệm người ở) `[SaaS]`
-- **Mục đích:** cho người ở đã xác nhận liên kết theo dõi việc thuê của mình và phản hồi lại chủ trọ — tăng tính thực dụng của bộ SaaS. Phục vụ **Residency shell (web) và app mobile người ở**.
-- **Actor:** Renter có `residencyStatus ∈ {ACTIVE, PAST}`; Seller (phía xử lý).
+- **Mục đích:** cho người ở đã được liên kết vào phòng theo dõi việc thuê của mình và phản hồi lại chủ trọ — tăng tính thực dụng của bộ SaaS. Phục vụ **Residency shell (web) và app mobile người ở**.
+- **Actor:** Tenant có `residencyStatus ∈ {ACTIVE, PAST}`; Landlord (phía xử lý).
 - **Chức năng con:**
   - **Tổng quan phòng:** thông tin phòng đang ở, khu trọ, chủ trọ liên hệ, hợp đồng hiện tại (ngày bắt đầu/kết thúc, tiền thuê, cọc), lịch sử ở trọ.
   - **Hóa đơn của tôi:** danh sách + chi tiết hóa đơn, các dòng chi phí, **STK + VietQR để thanh toán**, trạng thái đã/chưa thu, lịch sử thanh toán.
-  - **Xác nhận liên kết phòng:** Chấp nhận/Từ chối lời mời gắn vào phòng (BR-029).
+  - **Thông báo được thêm vào phòng + gỡ liên kết:** hiện phòng và khu vừa được chủ trọ thêm vào; bấm "Không phải tôi" để tự gỡ tài khoản khỏi phòng nếu bị thêm nhầm (BR-029).
   - **Báo cáo sự cố:** tạo `Incident` (tiêu đề, mô tả, mức ưu tiên, **ảnh đính kèm**), theo dõi trạng thái, trao đổi qua `IncidentComment`; chủ trọ nhận và xử lý trong Workspace.
   - **Gửi chỉ số điện nước:** (chỉ khi khu bật `allowOccupantMeterSubmission`) gửi số + ảnh đồng hồ → chờ chủ trọ duyệt (Module 9).
-  - **Thông báo:** nhận push (mobile) và in-app cho hóa đơn mới, nhắc hạn, cập nhật sự cố, lời mời liên kết.
+  - **Thông báo:** nhận push (mobile) và in-app cho hóa đơn mới, nhắc hạn, cập nhật sự cố, thông báo được thêm vào phòng.
   - **Đánh giá khu đã ở:** lối vào Module 18 từ lịch sử ở trọ.
 - **Vòng đời Incident:** `Open → Acknowledged → InProgress → Resolved → Closed`; chủ trọ chuyển trạng thái, người ở xác nhận đóng hoặc mở lại.
 - **Dữ liệu:** `Incident`, `IncidentComment`, `UtilityReadingSubmission`, `DeviceToken` (push mobile).

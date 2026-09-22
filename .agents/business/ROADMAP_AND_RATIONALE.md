@@ -10,7 +10,7 @@ Dùng để biết một tính năng có thuộc phạm vi hiện tại hay khô
 | Giai đoạn | Trọng tâm |
 |---|---|
 | **MVP** | Danh sách màn hình chuẩn (Mục 10), chạy mock để demo. **Nguyên tắc:** mock **dữ liệu và trạng thái** (dropdown giả lập gói/role), KHÔNG mock **cấu trúc luồng** — route, guard, 2 zone sidebar, context switcher đúng bản cuối ngay từ MVP; sang V1 chỉ thay nguồn dữ liệu bằng `GET /me` + API thật. Mục tiêu: kiểm chứng nhu cầu & mức sẵn lòng trả. |
-| **V1** | Nghiệp vụ thật đầy đủ: Auth/RBAC/gating thật; Property/Room/Occupancy (consent)/Contract/Invoice/Payment; `PlatformTransaction` + webhook; Messaging đầy đủ; Review verified (BR-022 mới); bản đồ; **Residency shell + app mobile người ở** (tổng quan phòng, hóa đơn, báo sự cố, gửi chỉ số có duyệt, push); Admin/Moderation. |
+| **V1** | Nghiệp vụ thật đầy đủ: Auth/RBAC/gating thật; Property/Room/Occupancy (liên kết có hiệu lực ngay + "Không phải tôi")/Contract/Invoice/Payment; `PlatformTransaction` + webhook; Messaging đầy đủ; Review verified (BR-022 mới); bản đồ; **Residency shell + app mobile người ở** (tổng quan phòng, hóa đơn, báo sự cố, gửi chỉ số có duyệt, push); Admin/Moderation. |
 | **V2** | Điểm uy tín chủ khu; chủ khu phản hồi review; versioning tin khi duyệt lại (BR-003); block user toàn cục; đối soát ngân hàng; WebSocket realtime; nâng gói giữa kỳ. |
 
 ## Defense — vì sao Review chọn verified-only (chuẩn bị phản biện)
@@ -21,7 +21,7 @@ Bốn trụ đỡ: (1) **Chiến lược** — verified là USP; (2) **Kinh doan
 
 **"Chủ không dùng SaaS thì khu không có review" không phải bug mà là thiết kế có chủ đích** — tương tự "shop không bán trên Shopee thì không có review Shopee". Tin của chủ chưa dùng SaaS vẫn hiển thị đầy đủ & đã kiểm duyệt; review là lớp tin cậy thêm, đồng thời là động lực dùng SaaS.
 
-**Rủi ro gian lận & 4 lớp chặn (đã nâng từ "giảm thiểu" thành rule chốt):** (1) cấm chủ khu tự review (BR-022); (2) liên kết Occupancy cần Renter xác nhận — không gắn được tài khoản chim mồi âm thầm (BR-029); (3) điều kiện mở review: Contract ≥ 30 ngày hoặc có Payment — tạo Contract khống chưa đủ (BR-022); (4) report + tự ẩn ≥ 3 report + kiểm duyệt (BR-023). Không hệ thống nào chống giả 100%, nhưng chi phí gian lận ở đây cao hơn hẳn review tự do.
+**Rủi ro gian lận & 4 lớp chặn (đã nâng từ "giảm thiểu" thành rule chốt):** (1) cấm chủ khu tự review (BR-022); (2) người được liên kết vào Occupancy luôn nhận thông báo và có nút "Không phải tôi" — không gắn được tài khoản người khác một cách âm thầm (BR-029); (3) điều kiện mở review: Contract ≥ 30 ngày hoặc có Payment — tạo Contract khống chưa đủ (BR-022); (4) report + tự ẩn ≥ 3 report + kiểm duyệt (BR-023). Không hệ thống nào chống giả 100%, nhưng chi phí gian lận ở đây cao hơn hẳn review tự do.
 
 ---
 

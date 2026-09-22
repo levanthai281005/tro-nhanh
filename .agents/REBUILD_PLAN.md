@@ -93,7 +93,7 @@ Mã màn hình tra ở `business/SCREENS_*.md`.
 | `MyStaysPage` | C1, C10 | `/nguoi-o`, `/nguoi-o/lich-su` |
 | `admin/pages/*` | D1–D6 | `/admin/*` |
 
-**Phải viết mới, prototype không có:** C2–C9 (xác nhận liên kết, hóa đơn của tôi, hợp đồng,
+**Phải viết mới, prototype không có:** C2–C9 (thông báo được thêm vào phòng, hóa đơn của tôi, hợp đồng,
 báo sự cố, gửi chỉ số, thông báo), B15 (gói SaaS), B17 (hộp thư sự cố), B18 (duyệt chỉ số),
 toàn bộ app mobile.
 
@@ -127,7 +127,7 @@ chưa tới lượt, dùng dữ liệu mẫu khớp đúng schema trong `package
 khi endpoint thật xong chỉ đổi nguồn.
 
 **Port nguyên nghiệp vụ lỗi thời.** Prototype dựng trước khi chốt gating 4 trạng thái, đánh
-giá verified, consent liên kết người ở. Khi port phải đối chiếu mã BR trong
+giá verified, liên kết người ở có hiệu lực ngay (BR-029). Khi port phải đối chiếu mã BR trong
 `business/BUSINESS_RULES.md`.
 
 **Port cả thứ đã bỏ khỏi phạm vi.** Trước khi port một trang, kiểm tra nó có trong danh sách

@@ -1,4 +1,4 @@
-# Màn hình khu Admin và Moderator
+# Màn hình khu Admin và Staff
 
 Danh sách màn hình quản trị hệ thống và kiểm duyệt nội dung.
 

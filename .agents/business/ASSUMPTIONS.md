@@ -13,7 +13,7 @@ Mục 13 của đặc tả để dễ đối chiếu.
 | AS-003 | Gói SaaS bán đứt 36 tháng ~600.000đ (tham khảo); gia hạn ưu đãi 150.000–180.000đ/năm; nhắc 6/2/1 tháng; Workspace 4 trạng thái; TRIAL theo plan Trial (mặc định 1 tháng, 1 Property, 5 Room); hết hạn → read-only, giữ dữ liệu |
 | AS-004 | Mỗi tài khoản mang **đúng một vai trò**; `TENANT` nâng cấp thành `LANDLORD` qua "Trở thành chủ trọ" (một chiều, không quay lại); quyền chung của cả hai nằm ở tầng "đã đăng nhập" (BR-013, mục 1.8) |
 | AS-005 | Landlord là chủ BĐS hoặc người được ủy quyền (cò trọ); nền tảng không môi giới, không phân biệt người đăng |
-| AS-006 | Occupancy `userId` nullable; liên kết tài khoản cần Tenant xác nhận (BR-029); hệ thống single-sided — chủ trọ nhập điện nước |
+| AS-006 | Occupancy `userId` nullable; chủ trọ liên kết tài khoản bằng SĐT, **có hiệu lực ngay**, người được liên kết nhận thông báo và có nút "Không phải tôi" để tự gỡ (BR-029); hệ thống single-sided — chủ trọ nhập điện nước |
 | AS-007 | Review verified-only (BR-022); chủ không dùng SaaS → khu không có review (có chủ đích, tạo động lực dùng SaaS) |
 | AS-008 | "Phòng của tôi" V1 chỉ xem; người ở tự nhập điện nước + báo sự cố = V2 |
 | AS-009 | Người ở gửi chỉ số điện nước cho chủ qua kênh ngoài (thủ công, không tích hợp); ngoài ra có kênh trong app tùy chọn — chủ trọ bật `allowOccupantMeterSubmission` và **phải duyệt** trước khi thành chỉ số chính thức (BR-033) |

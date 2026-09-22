@@ -12,7 +12,7 @@ là tính năng mới, prototype chưa có nên không có mẫu để port.
 | # | Màn hình | Route | Mô tả | Giai đoạn |
 |---|---|---|---|---|
 | C1 | Tổng quan phòng của tôi | `/nguoi-o` | Phòng đang ở, khu trọ, liên hệ chủ trọ, hợp đồng hiện tại | V1 |
-| C2 | Xác nhận liên kết phòng | `/nguoi-o/loi-moi` | Chấp nhận/Từ chối lời mời gắn vào phòng (BR-029) | V1 |
+| C2 | Thông báo được thêm vào phòng | `/nguoi-o/lien-ket` | Hiện phòng và khu vừa được chủ trọ thêm vào; nút "Không phải tôi" để tự gỡ nếu bị thêm nhầm (BR-029) | V1 |
 | C3 | Hóa đơn của tôi | `/nguoi-o/hoa-don` | Danh sách hóa đơn theo kỳ, trạng thái đã/chưa thu | V1 |
 | C4 | Chi tiết hóa đơn | `/nguoi-o/hoa-don/{id}` | Các dòng chi phí, **STK + VietQR để thanh toán**, lịch sử thu | V1 |
 | C5 | Hợp đồng của tôi | `/nguoi-o/hop-dong` | Xem/tải hợp đồng và bản scan của chính mình | V1 |
