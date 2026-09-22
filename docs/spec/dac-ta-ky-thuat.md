@@ -535,8 +535,10 @@ riêng đè lên (xem Module 6).
 hệ thống sinh mã QR để in lên hóa đơn. Đặt theo khu chứ không đặt chung một chỗ, vì chủ trọ
 nhiều khu thường muốn tách dòng tiền để dễ đối chiếu.
 
-**Trang khu công khai:** chủ trọ chủ động bật thì khu mới xuất hiện công khai và mới nhận được
-đánh giá. Tắt đi thì trang khu và điểm đánh giá ẩn khỏi trang công khai, nhưng **đánh giá vẫn
+**Trang khu công khai:** chủ trọ chủ động bật thì khu mới xuất hiện công khai và **đánh giá mới
+được hiển thị**. Việc bật tắt chỉ quyết định hiển thị — người ở **vẫn viết được đánh giá bất kể
+khu đang bật hay tắt**, đánh giá được lưu và tích lũy dần. Tắt đi thì trang khu và điểm đánh
+giá ẩn khỏi trang công khai, nhưng đánh giá vẫn giữ nguyên — bật lại thì hiện lại như cũ.
 được giữ lại** — bật lại thì hiện lại như cũ.
 
 **Chức năng bật tắt cho từng khu:** cho phép người ở gửi chỉ số điện nước kèm ảnh đồng hồ hay
@@ -729,7 +731,7 @@ mỗi lần gọi dịch vụ ngoài là một lần gửi số tài khoản và
 Mã hóa đơn được **lưu cố định** trên hóa đơn, sinh một lần lúc tạo và không bao giờ đổi — kể cả khi chủ trọ đổi mã phòng về sau. Lý do: mã này nằm trong nội dung chuyển khoản của người ở, tức là một tham chiếu ra ngoài hệ thống, nên suy ra lại từ mã phòng sẽ làm hỏng việc đối chiếu.
 
 Mã có dạng *mã phòng - năm tháng*, ví dụ `P203-202603`. Nếu một phòng có hai hóa đơn trong cùng tháng (đổi người ở giữa kỳ), hóa đơn thứ hai thêm hậu tố số thứ tự sau phần kỳ: `P203-202603-2`. Khi phải rút gọn cho vừa 25 ký
-tự thì rút phần mã phòng trước và **không bao giờ cắt phần kỳ** — cắt kỳ sẽ tạo ra một kỳ khác
+tự thì rút phần mã phòng trước, **không bao giờ cắt phần kỳ và không cắt hậu tố** — cắt kỳ sẽ tạo ra một kỳ khác
 có thật, khiến chủ trọ đối chiếu nhầm tháng.
 
 Hai cách gửi: nếu người ở đã liên kết tài khoản thì hóa đơn hiện ngay trong ứng dụng kèm
@@ -1312,8 +1314,14 @@ viên vận hành.
 toàn bộ danh sách trên trang khu công khai.
 
 Trang khu công khai **chỉ** hiện tên khu, khu vực và đánh giá — **không lộ** số phòng, doanh
-thu hay thông tin người đang ở. Chủ trọ phải chủ động bật trang khu công khai thì khu mới xuất
-hiện và mới nhận được đánh giá; tắt đi thì ẩn nhưng đánh giá vẫn được giữ.
+thu hay thông tin người đang ở. Người ở **viết được đánh giá bất kể khu đang bật hay tắt trang công khai** — đánh giá luôn được
+lưu. Việc bật trang khu công khai **chỉ quyết định hiển thị**: bật thì khu và đánh giá xuất hiện
+công khai; tắt thì ẩn, nhưng đánh giá vẫn giữ nguyên để bật lại là hiện như cũ.
+
+**Lý do không để việc bật công khai quyết định có nhận được đánh giá hay không:** nếu vậy, chủ trọ
+cứ để khu ở chế độ riêng tư thì không ai đánh giá được, rồi bật lên khi muốn với lý lịch sạch.
+Cách làm đúng là để đánh giá tích lũy, chủ trọ chỉ kiểm soát hiển thị — và muốn điểm đánh giá hiện
+trên tin đăng thì phải bật công khai, khi đó đánh giá xấu hiện cùng đánh giá tốt.
 
 ### BR-025 — Giờ giấc ra vào và thời điểm tin
 
@@ -1410,10 +1418,15 @@ chụp hợp đồng.
 
 ### BR-036 — Đơn giá điện nước ba tầng
 
-Đơn giá lấy theo thứ tự: giá riêng của phòng, nếu để trống thì lấy giá mặc định của khu.
+Ba tầng, tầng dưới đè tầng trên:
 
-Khi ghi chỉ số, hệ thống **chép đơn giá đang áp dụng vào chính bản ghi chỉ số** và không bao
-giờ đọc ngược lên. Sửa giá về sau chỉ ảnh hưởng các kỳ ghi sau.
+| Tầng | Nơi đặt | Vai trò |
+|---|---|---|
+| 1 | Khu trọ | Giá mặc định cho mọi phòng trong khu |
+| 2 | Phòng | Giá riêng của phòng; để trống thì dùng giá của khu |
+| 3 | Bản ghi chỉ số | **Chốt cứng lúc ghi** — chép đơn giá đang áp dụng vào chính bản ghi, không bao giờ đọc ngược lên hai tầng trên |
+
+Sửa giá ở tầng 1 hay 2 về sau chỉ ảnh hưởng các kỳ ghi sau.
 
 Ở cấp phòng, **để trống nghĩa là dùng giá của khu; số 0 nghĩa là miễn phí**. Giao diện không
 được hiển thị ô trống thành "chưa cấu hình".
@@ -1436,11 +1449,11 @@ trống.
 **Mã hóa đơn lưu cố định**, sinh một lần lúc tạo, không bao giờ đổi. Dạng mặc định *mã phòng - năm tháng*, ví dụ `P203-202603`; nếu cùng phòng có hai hóa đơn trong một tháng thì thêm hậu tố số thứ tự sau phần kỳ: `P203-202603-2`.
 
 Nội dung chuyển khoản **tối đa 25 ký tự** theo giới hạn của hệ thống chuyển tiền trong nước.
-Khi phải rút gọn thì rút phần mã phòng trước, **không bao giờ cắt phần kỳ**.
+Khi phải rút gọn thì rút phần mã phòng trước, **không bao giờ cắt phần kỳ, không cắt hậu tố**.
 
 Mã QR được sinh tại máy người dùng, không gọi dịch vụ tạo ảnh QR bên ngoài.
 
-**Lý do:** mã lưu cố định vì nó là tham chiếu ra ngoài hệ thống — đã nằm trong nội dung chuyển khoản thì không được đổi. Cắt phần kỳ tạo ra một kỳ khác có thật, khiến chủ trọ đối chiếu nhầm tháng. Gọi
+**Lý do:** mã lưu cố định vì nó là tham chiếu ra ngoài hệ thống — đã nằm trong nội dung chuyển khoản thì không được đổi. Cắt hậu tố thì `P203-202603-2` thành `P203-202603`, trùng đúng mã hóa đơn thứ nhất. Cắt phần kỳ tạo ra một kỳ khác có thật, khiến chủ trọ đối chiếu nhầm tháng. Gọi
 dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của chủ trọ sang bên thứ ba.
 
 ---
