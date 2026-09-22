@@ -9,3 +9,4 @@ dist
 pnpm-lock.yaml
 .agents/
 memory.md
+docs/spec/
