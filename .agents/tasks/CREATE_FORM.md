@@ -7,8 +7,10 @@ form bằng `useState`.
 
 ## Bước 1 — Viết schema trước
 
-Schema đặt trong `packages/schemas` nếu web và mobile dùng chung, hoặc trong thư mục feature
-nếu chỉ một nơi dùng. Ràng buộc lấy từ `../business/VALIDATION_RULES.md`.
+Ràng buộc của **thực thể hay endpoint** (backend `apps/api` cũng dùng để kiểm tra đầu vào)
+đặt trong `packages/schemas`. Ràng buộc **chỉ thuộc về form** — bắt buộc phải khai, chuỗi rỗng
+khác số 0, bước nhập nhiều trang — đặt trong thư mục feature. Ràng buộc lấy từ
+`../business/VALIDATION_RULES.md`.
 
 Schema là nguồn chân lý: kiểu dữ liệu của form suy ra từ schema (`z.infer`), không khai báo
 type riêng rồi để lệch nhau.
@@ -29,8 +31,8 @@ Backend trả `{ error: { code, message, details } }`. Với lỗi validation (H
 `details` về đúng field trong form thay vì hiện một thông báo chung. Xem
 `../business/API_RESPONSE_STANDARD.md`.
 
-Client validate để trải nghiệm tốt; backend vẫn luôn kiểm tra lại — **không bao giờ tin
-client**.
+Client validate để trải nghiệm tốt; backend kiểm tra lại bằng **cùng schema** trong
+`packages/schemas` — **không bao giờ tin client**.
 
 ## Bước 5 — Trạng thái gửi
 

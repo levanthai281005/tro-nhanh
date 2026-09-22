@@ -1,5 +1,12 @@
 # Trọ Nhanh — Phân tích nghiệp vụ & Thiết kế cơ sở dữ liệu
 
+> **Ghi chú lịch sử (22/09/2026):** File này viết theo phiên bản đặc tả cũ — backend Java Spring
+> Boot ở repo riêng, hợp đồng API qua `openapi.json`, vai trò Renter/Seller/Moderator cộng dồn,
+> `workspaceStatus`, còn tính năng thuế. Nội dung **không cập nhật lại**, giữ làm bản ghi quá trình
+> phân tích. Nguồn hiện hành là `docs/spec/dac-ta-ky-thuat.md` (NestJS tại `apps/api`, Prisma với
+> migration đánh số, Zod ở `packages/schemas`, vai trò đơn `TENANT/LANDLORD/STAFF/ADMIN`,
+> `subscriptionStatus`, 37 entity ở Mục 6). Khi hai bên lệch nhau, đặc tả thắng.
+
 **Đối tượng đọc:** team Backend (Java Spring Boot) dựng schema, và BA/PO rà nghiệp vụ.
 **Trạng thái:** bản thiết kế để bàn và chốt — **chưa phải DDL cuối cùng**. Team BE sở hữu
 schema thật; file này là đầu vào, không phải mệnh lệnh.

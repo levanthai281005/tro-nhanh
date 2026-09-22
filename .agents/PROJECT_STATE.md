@@ -3,7 +3,8 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: sau khi dựng **B9 chi tiết phòng**. Trước đó: **tiện ích cho phòng** (PR #22),
+Cập nhật lần cuối: **đợt cập nhật tài liệu theo đặc tả mới** (22/09/2026 — nhóm 4: stack
+NestJS, xem mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
 **B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
 
 **Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 7 route chạy được:
@@ -21,13 +22,13 @@ Mục nav chưa dựng thì hiện nhãn "sắp có" chứ không dẫn tới 40
 
 ## Bố cục thư mục trên máy
 
-```
+```text
 rebuild_tronhanh-fe/
-├── tro-nhanh-fe/     ← repo này (frontend monorepo)
+├── tro-nhanh/        ← repo này (monorepo web + mobile + api)
 └── prototype/        ← bản demo cũ, CHỈ ĐỌC, chạy được để đối chiếu
 ```
 
-Backend nằm ở repo riêng `tro-nhanh-api` (Java Spring Boot 4.1, Java 21, Maven).
+Backend NestJS nằm ngay trong repo tại `apps/api` — **chưa dựng**, là việc kế tiếp.
 
 ## Stack đã chốt
 
@@ -35,8 +36,11 @@ Backend nằm ở repo riêng `tro-nhanh-api` (Java Spring Boot 4.1, Java 21, Ma
 |---|---|
 | Web | Next.js App Router, TypeScript, Tailwind **v3** (bắt buộc), shadcn/ui, Lucide |
 | Mobile | Expo + React Native, Expo Router, NativeWind (chưa dựng) |
+| Backend | NestJS · TypeScript · Node 22 LTS · Prisma — migration có đánh số là nguồn chân lý về cấu trúc dữ liệu (chưa dựng) |
 | Dùng chung | pnpm workspace, Turborepo, Zod, TanStack Query, Zustand, React Hook Form, Axios |
-| Contract | OpenAPI — backend sinh `openapi.json`, client codegen ra `packages/types` |
+| Định nghĩa dữ liệu | Zod schema ở `packages/schemas`, kiểu suy ra bằng `z.infer` — backend validate, web/mobile dựng form; **không codegen** từ OpenAPI |
+| Thanh toán | PayOS — chỉ thu phí nền tảng (đẩy tin, gói SaaS); webhook là nơi duy nhất kích hoạt quyền lợi |
+| Thông báo | In-app + push; SMS **chỉ** cho mã xác thực, nhắc hạn không qua SMS |
 
 ## Chiến lược nhánh
 
@@ -81,7 +85,7 @@ ngày — cần lâu hơn thì chia nhỏ.
         types,constants}/` — **mọi trang sau làm theo đúng cấu trúc này**
       - Quy ước đã chốt ở đây, áp dụng tiếp cho các trang sau: query-key registry cục bộ
         theo feature; mock data local + `// TODO: nối API thật khi packages/types sinh xong`
-        (vì `packages/types/src/api.ts` vẫn là stub rỗng, backend chưa sinh OpenAPI); auth
+        (cơ chế OpenAPI nay đã bỏ — nối theo schema `packages/schemas` khi `apps/api` có); auth
         chưa có `AuthContext` → dùng `MOCK_RENTER_ID` + `// TODO: nối AuthContext khi có`;
         responsive dùng Tailwind `md:` thuần, **không** port `useBreakpoint()` của prototype
         (JS đọc `window.innerWidth`, gây lệch SSR/hydration — đi ngược lý do chọn Next.js)
@@ -133,10 +137,10 @@ ngày — cần lâu hơn thì chia nhỏ.
         mobile "chọn vai trò" là chọn Mode sau khi đăng nhập, không đẻ role mới.
       - `packages/access` — luật truy cập viết **một lần**, dùng chung web + mobile, 26 test
         encode nguyên bảng quyết định. UI không bao giờ được viết `status === 'READ_ONLY'`
-        hay `roles.includes('Seller')`; hỏi qua `canWriteInSurface()`/`getSurfaceDenial()`.
+        hay `role === 'LANDLORD'`; hỏi qua `canWriteInSurface()`/`getSurfaceDenial()`.
       - `features/session` (Shared Kernel, cả ba Surface dùng được) — `SessionContextProvider`,
         `useSurfaceAccess()`, `WriteGuardButton`, `SurfaceGate`. Nguồn: `GET /me/context`
-        (mock, đã thêm vào `API_CONTRACT.md`).
+        (mock; nay đặc tả gộp vào `GET /me` — xem mục Tồn đọng).
       - **B4/B5 chốt thuộc Marketplace**, không phải Workspace — sidebar Workspace bỏ nhóm
         "Tin đăng — miễn phí", thay bằng cụm cross-surface có nhãn rõ. Đã sửa
         `SCREENS_WORKSPACE.md` theo.
@@ -239,8 +243,37 @@ ngày — cần lâu hơn thì chia nhỏ.
         vi đang lọc (trước đó chip ghi "Tất cả 4" trong khi danh sách chỉ có 1 dòng).
       - Drawer B8 **giữ nguyên** làm xem nhanh, thêm lối "Xem chi tiết" sang B9.
 
+- [x] **Tài liệu theo đặc tả mới** — `docs/spec/dac-ta-ky-thuat.md` là nguồn chân lý; `.agents/`
+      viết theo bản cũ, đang cập nhật theo 6 nhóm (1 vai trò · 2 thuế · 3 liên kết người ở ·
+      4 stack NestJS · 5 dữ liệu 37 bảng · 6 BR-036..038). Không sửa file spec; mâu thuẫn nội
+      tại của spec lấy 1.8 + BR-013 + Mục 8 làm chuẩn, chủ dự án sửa spec riêng cuối đợt.
+      - 21/09/2026 — **nhóm 1, 1b, 2** xong: `role` một giá trị `TENANT|LANDLORD|STAFF|ADMIN`
+        (bỏ `roles[]` cộng dồn, Renter/Seller/Moderator); `workspaceStatus` →
+        `subscriptionStatus`; bỏ tính năng thuế (B14, AS-012, `AnalyticsTaxService`).
+      - 22/09/2026 — **nhóm 4 (stack)** xong: gom guidance tự nạp về `AGENTS.md` gốc (Claude
+        Code đọc qua `CLAUDE.md` = `@AGENTS.md`; Codex đọc thẳng) — một nguồn, có git. Toàn bộ
+        `.agents/*`, `README`, `HELP`, `SOURCE_CODE_GUIDELINES` đổi sang: backend **NestJS tại
+        `apps/api`** cùng monorepo, **Prisma + migration đánh số**, **Zod ở `packages/schemas`**
+        thay `openapi.json`, **PayOS**, SMS chỉ OTP; `*Service` → `*Module`; endpoint
+        `POST /me/become-landlord`; mutation web đi qua API (Server Actions chỉ cho cookie
+        phiên/revalidate). `BACKEND_PROPOSALS.md` đổi khung thành "khoảng trống chờ chốt vào
+        đặc tả". Hai file `docs/DATABASE_DESIGN.md`, `docs/BUSINESS_RECONCILIATION.md` chỉ gắn
+        ghi chú lịch sử, không viết lại. `docs/DEVELOPMENT_SETUP.md` để lúc dựng `apps/api`.
+      - **Còn nhóm 3, 5, 6** (`USER_FLOWS`, `SCREENS_RESIDENCY` C2, `BUSINESS_RULES`,
+        `DATA_ENTITIES`, `STATUS_ENUMS`, `VALIDATION_RULES`, phần confirm/reject trong
+        `API_CONTRACT`).
+
 ### Đang làm
 
+- [ ] **Dựng backend NestJS theo lát cắt dọc** — mỗi lát: Zod schema → module NestJS (Prisma,
+      migration) → nối ngay với frontend thay mock. **Lát 1 = xác thực:** `AuthModule`
+      (`/auth/register`, `/verify-otp`, `/login`, `/refresh`, `/logout`, `GET /me`,
+      `POST /me/become-landlord`) + migration đầu tiên (`User`, `AuthMethod`, `RefreshToken`,
+      `Profile`), rồi `AuthContext` phía web thay `MOCK_SELLER_ID`/`MOCK_RENTER_ID` (mọi trang
+      đã ghi sẵn `// TODO: nối AuthContext khi có`). **Thay quyết định cũ "A7 để cuối cùng"** —
+      chủ dự án đảo lại ngày 22/09/2026 vì backend nay cùng repo, xác thực là nền cho mọi lát
+      sau. Lập kế hoạch riêng cho lát này (cấu trúc thư mục `apps/api`, DB, cách chạy local)
+      trước khi viết code.
 - [ ] **Giai đoạn 4 — phần còn lại của Workspace.** Kế tiếp: **B3 dashboard** — 4/5 nhóm số
       lấy từ Contract/Invoice/Payment, giờ đã có đủ nguồn. Rồi B1/B2 onboarding,
       B15 gói dịch vụ, B16 đánh giá, B17 sự cố, B18 duyệt chỉ số.
@@ -252,19 +285,24 @@ ngày — cần lâu hơn thì chia nhỏ.
       nhìn `--contains` mà tưởng chưa merge). Xóa được. Local còn 14 nhánh cũ đã merge, cũng
       chỉ là rác.
 
+### Tồn đọng
+
+- [ ] **`packages/access` lệch tài liệu** — còn `roles[]` cộng dồn, `workspaceStatus`, gọi
+      `GET /me/context`; tài liệu nay là `role` đơn, `subscriptionStatus`, `GET /me`. Đồng bộ
+      khi làm lát xác thực (là lúc `features/session` nhận dữ liệu thật); 26 test phải viết lại
+      theo bảng quyết định mới.
+- [ ] **Dấu vết cầu nối OpenAPI cũ trong code** — gỡ khi dựng `apps/api`: tên package
+      `tro-nhanh-fe` trong `package.json` gốc; script `api:gen`; devDependency
+      `openapi-typescript`; file `openapi.json`; `packages/types/src/api.ts` (stub rỗng).
+- [ ] Tài liệu nhóm 3, 5, 6 (xem mục "Tài liệu theo đặc tả mới" ở trên).
+
 ### Tiếp theo
 
 - [ ] Phần công khai còn thiếu: A11 hộp thư, A5/A9/A10 tin nhu cầu, A4 trang khu trọ public,
       A12–A14
-- [ ] **A7 đăng nhập/đăng ký/OTP — để CUỐI CÙNG** (quyết định của chủ dự án). Tới lúc đó mới
-      thay `MOCK_SELLER_ID`/`MOCK_RENTER_ID` bằng phiên thật; mọi trang đang ghi sẵn
-      `// TODO: nối AuthContext khi có` ở đúng chỗ cần sửa.
+- [ ] Dashboard chủ trọ và phần SaaS còn lại
 - [ ] Khu Admin (D1–D6)
 - [ ] Khu người ở `/nguoi-o/*` (C1–C10) — phần lớn **viết mới**, prototype chưa có
-- [ ] App mobile Expo
-- [ ] Dashboard chủ trọ và phần SaaS còn lại
-- [ ] Khu Admin
-- [ ] Khu người ở `/nguoi-o/*` — **viết mới**, prototype chưa có
 - [ ] App mobile Expo
 
 ---
@@ -276,10 +314,14 @@ ngày — cần lâu hơn thì chia nhỏ.
 | Tailwind **v3**, không phải v4 | NativeWind bản ổn định cần v3; dùng v4 thì web và mobile không chung được preset |
 | Next.js cho web | SSR để Google index trang tin đăng — SEO là kênh thu hút người thuê |
 | Expo React Native cho mobile | Cùng React/TypeScript với web, dùng chung type và API client |
-| Backend tách repo riêng | Java và TypeScript là hai hệ build khác nhau; nối qua OpenAPI |
+| Backend NestJS trong cùng monorepo (`apps/api`) | Cùng ngôn ngữ nên dùng chung Zod schema — đổi một trường là cả ba app báo lỗi biên dịch; không cần OpenAPI làm cầu nối |
+| Prisma + migration có đánh số là nguồn chân lý | Không sửa tay DB; lịch sử cấu trúc nằm trong git, ai clone cũng dựng lại được đúng schema |
+| Mọi thao tác ghi đi qua `apps/api` | Server Actions ghi thẳng DB thì quy tắc nghiệp vụ và kiểm tra quyền phải viết hai lần; Server Actions chỉ cho việc thuần server của web (cookie phiên, revalidate) |
+| Cổng thanh toán PayOS | Không đòi giấy phép kinh doanh; mô hình tạo link ở máy chủ + webhook khớp luồng đã thiết kế |
+| SMS chỉ cho mã xác thực | Nhắc hạn đi qua thông báo trong ứng dụng — rẻ hơn và không phụ thuộc nhà mạng |
 | Hai bounded context + Shared Kernel | Giữ transaction đơn giản, vẫn có ranh giới sạch để tách service sau |
 | Residency là module trong SaaS | Tách thành context thứ ba sẽ tạo phụ thuộc vòng |
-| Không có role "Resident" | Người ở vẫn là Renter, chỉ khác ở `residencyStatus` suy từ dữ liệu |
+| Không có role "Resident" | Người ở vẫn là Tenant, chỉ khác ở `residencyStatus` suy từ dữ liệu |
 | App người ở là lớp cộng thêm | Nghiệp vụ chủ trọ phải chạy đủ kể cả khi không ai cài app |
 | Đánh giá verified-only | Cần Contract làm bằng chứng; đây là USP so với review tự do |
 
@@ -412,7 +454,7 @@ tuyệt đối.
 - **Tạo PR bằng `gh` CLI**: `"C:\Program Files\GitHub CLI\gh.exe" pr create --base feat/rebuild
   --head <nhánh> --title ... --body-file ...` (gh chưa vào PATH của shell nên gọi đường dẫn đầy
   đủ). Base **luôn** là `feat/rebuild`, không phải `dev`.
-- Quality gate trước khi bàn giao: `pnpm lint`, `pnpm typecheck`, `pnpm build`,
+- Quality gate trước khi bàn giao: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test`,
   `pnpm format:check`.
 
 ## Cách cập nhật file này

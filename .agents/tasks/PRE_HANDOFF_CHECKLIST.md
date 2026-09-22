@@ -10,6 +10,7 @@ Chạy hết checklist này trước khi báo hoàn thành hoặc mở PR.
 - [ ] `pnpm typecheck` sạch
 - [ ] `pnpm build` chạy qua
 - [ ] `pnpm format:check` sạch (hoặc đã chạy format)
+- [ ] `pnpm test` xanh
 
 ## Styling
 
@@ -22,7 +23,8 @@ Chạy hết checklist này trước khi báo hoàn thành hoặc mở PR.
 - [ ] Không file nào vượt 300 dòng
 - [ ] Không import chéo giữa `marketplace`, `workspace`, `residency`
 - [ ] `'use client'` chỉ ở nơi thật sự cần, không đặt trong `page.tsx`
-- [ ] Không sửa tay `packages/types/src/api.ts`
+- [ ] Không khai lại type/DTO đã có trong `packages/schemas` — kiểu suy ra bằng `z.infer`
+- [ ] Thay đổi cấu trúc dữ liệu có migration Prisma kèm theo, không sửa tay DB
 - [ ] Không dùng explicit `any`
 
 ## Nghiệp vụ
@@ -31,6 +33,7 @@ Chạy hết checklist này trước khi báo hoàn thành hoặc mở PR.
 - [ ] Giá trị enum khớp đúng `../business/STATUS_ENUMS.md`, không tự dịch
 - [ ] Xử lý lỗi theo `error.code`, không dựa vào chuỗi message
 - [ ] Dữ liệu SaaS và Residency lọc đúng theo chủ sở hữu
+- [ ] Endpoint mới đã vào `../business/API_CONTRACT.md`, đặt đúng module trong `../business/BACKEND_SERVICES.md`
 
 ## Trải nghiệm
 

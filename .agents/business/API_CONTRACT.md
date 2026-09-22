@@ -16,16 +16,17 @@ Middleware **mount theo tiền tố**, nên không thể chặn nhầm route c�
 | `/api/v1/auth/*`, `/me/*`, `/notifications/*`, `/conversations/*`, `/media/*` | Shared Kernel | auth (trừ `/auth/*` công khai) |
 | `/api/v1/public/*` | Marketplace — không cần đăng nhập | không |
 | `/api/v1/marketplace/*` | Marketplace — cần đăng nhập | auth |
-| `/api/v1/management/*` | SaaS — chủ trọ | auth + role Seller + **gating guard** |
-| `/api/v1/residency/*` | Người ở | auth + **residency guard** (`residencyStatus`) |
-| `/api/v1/admin/*` | Admin / Moderator | auth + role nội bộ |
+| `/api/v1/management/*` | SaaS — chủ trọ | auth + role Landlord + **gating guard** |
+| `/api/v1/residency/*` | Người ở | auth + **residency guard** (đã liên kết với phòng) |
+| `/api/v1/admin/*` | Admin / Staff | auth + role nội bộ |
 
 ## Shared Kernel
 ```
 POST /auth/register           POST /auth/verify-otp         POST /auth/login
 POST /auth/refresh            POST /auth/logout             (thu hồi refresh token)
 POST /auth/forgot-password    POST /auth/reset-password
-GET  /me                      (user, profile, roles[], workspaceStatus, residencyStatus)
+GET  /me                      (user, profile, role, subscriptionStatus, residencyStatus, limits)
+POST /me/become-landlord      (TENANT → LANDLORD, một chiều; FE gọi POST /auth/refresh ngay sau — BR-013)
 PUT  /me/password             POST /me/delete-request
 GET  /me/profile              PUT /me/profile               PUT /me/display-settings
 POST /me/device-tokens        DELETE /me/device-tokens/{id} (push cho app mobile)
@@ -36,6 +37,9 @@ PATCH /conversations/{id}/read       POST /conversations/{id}/block   POST /conv
 POST /media/upload            DELETE /media/{id}
 ```
 
+> `GET /me/context` (cũ) đã gộp vào `GET /me`. `packages/access` còn gọi tên cũ và còn mô hình
+> `roles[]`/`workspaceStatus` — xem mục Tồn đọng trong `../PROJECT_STATE.md`.
+
 ## Marketplace
 ```
 ## Công khai — không cần đăng nhập
@@ -45,8 +49,7 @@ GET  /public/khu-tro/{slug}           (trang khu public + review)
 GET  /public/properties/{id}/reviews
 GET  /public/room-wanted-posts        GET /public/roommate-wanted-posts
 ## Cần đăng nhập
-GET  /me/context                      (Capability của phiên: roles[], workspaceStatus, residencyStatus, limits — SURFACES_AND_MODES.md §7)
-POST /marketplace/listings            (tạo đầu tiên → gán role Seller cùng transaction)
+POST /marketplace/listings            (cần role LANDLORD; không tự gán vai trò — BR-013)
 PUT  /marketplace/listings/{id}       PATCH /marketplace/listings/{id}/status
 DELETE /marketplace/listings/{id}     (xóa mềm)
 PATCH /marketplace/listings/{id}/renew    (gia hạn +60d, BR-026)
@@ -68,7 +71,7 @@ GET  /management/subscription/plans        GET  /management/me/subscription
 POST /management/me/subscription/trial     POST /management/me/subscription/purchase
 POST /management/me/subscription/renew
 GET  /management/platform-transactions/{id}
-POST /payments/webhook/vnpay               (server-to-server, KHÔNG qua auth guard — xác thực bằng chữ ký)
+POST /payments/webhook                     (PayOS gọi máy chủ, KHÔNG qua auth guard — xác thực bằng chữ ký; idempotent — AS-026)
 ## Property & Room (chặn ghi nếu READ_ONLY, lỗi mã WORKSPACE_READ_ONLY)
 GET/POST /management/properties            GET/PUT/DELETE /management/properties/{id}
 PATCH /management/properties/{id}/public
@@ -88,7 +91,7 @@ PATCH /management/invoices/{id}/send           POST /management/invoices/{id}/pa
 ## Sự cố (phía chủ trọ xử lý)
 GET  /management/incidents                     GET /management/incidents/{id}
 PATCH /management/incidents/{id}/status        POST /management/incidents/{id}/comments
-## Dashboard
+## Báo cáo kinh doanh
 GET  /management/dashboard
 ```
 

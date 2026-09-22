@@ -20,8 +20,9 @@ lần `style={{...}}` so với 7 lần `className=`. Nhiệm vụ là giữ nguy
 cho màu như `bg-[#8A4A20]`. Tra `references/TOKEN_MAP.md`. Cần màu chưa có thì **dừng lại và
 hỏi**, không tự thêm vào preset.
 
-**Luật 3 — Không sửa code sinh tự động.** `packages/types/src/api.ts` sinh từ
-`openapi.json`; sửa tay sẽ bị ghi đè.
+**Luật 3 — Không khai lại kiểu dữ liệu.** Kiểu của thực thể suy từ Zod schema ở
+`packages/schemas` (`z.infer`); không viết type song song trong feature rồi để lệch với
+backend. Prototype có `shared/types/database.types.ts` sinh từ Supabase — **bỏ**, không port.
 
 ## Bảng tra
 
@@ -44,9 +45,9 @@ nên gặp thuộc tính này thì **xóa hẳn**, không thêm class thay thế
 
 ## Tầng dữ liệu
 
-Bỏ mọi lời gọi Supabase. Dữ liệu đi qua service của feature, service gọi `@tronhanh/api`.
-Backend chưa có endpoint thì dùng dữ liệu mẫu khớp đúng type đã sinh, đánh dấu
-`// TODO: nối API thật`.
+Bỏ mọi lời gọi Supabase. Dữ liệu đi qua service của feature, service gọi `@tronhanh/api`
+tới `apps/api`. Endpoint chưa có thì dùng dữ liệu mẫu khớp đúng schema trong
+`packages/schemas`, đánh dấu `// TODO: nối API thật`.
 
 ## Kiểm chứng
 

@@ -29,6 +29,6 @@ Component riêng rồi import vào page.
 
 | Khu | Thư mục | Người dùng |
 |---|---|---|
-| Marketplace | `app/(public)/` | Guest, Renter |
-| Chủ trọ | `app/(workspace)/chu-tro/` | Seller |
-| Người ở | `app/(residency)/nguoi-o/` | Renter có `residencyStatus` phù hợp |
+| Marketplace | `app/(public)/` | Guest, Tenant |
+| Chủ trọ | `app/(workspace)/chu-tro/` | Landlord |
+| Người ở | `app/(residency)/nguoi-o/` | Tài khoản đã liên kết với phòng (`residencyStatus` ACTIVE/PAST) |

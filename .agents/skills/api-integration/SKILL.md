@@ -1,39 +1,42 @@
 ---
 name: api-integration
-description: Nối endpoint backend tới giao diện — sinh type từ openapi.json, viết service, dùng TanStack Query, xử lý lỗi theo mã. Dùng khi cần lấy hoặc gửi dữ liệu tới backend.
+description: Nối endpoint của apps/api tới giao diện — khai Zod schema dùng chung, viết service, dùng TanStack Query, xử lý lỗi theo mã. Dùng khi cần lấy hoặc gửi dữ liệu tới backend.
 ---
 
 # Nối API từ backend tới giao diện
 
-Backend là repo riêng viết bằng Java Spring Boot. Hai repo là **hai hệ kiểu độc lập**, nên
-cầu nối duy nhất là `openapi.json`.
+Backend là NestJS nằm cùng monorepo tại `apps/api`. Cầu nối giữa backend và giao diện là
+**Zod schema ở `packages/schemas`**: backend dùng để kiểm tra đầu vào, web và mobile dùng cho
+biểu mẫu, kiểu dữ liệu suy ra từ chính schema (`z.infer`). Không có bước sinh mã.
 
 ## Luồng dữ liệu
 
-```
-openapi.json  →  packages/types  →  packages/api  →  services/  →  TanStack Query  →  UI
+```text
+packages/schemas ─┬─► apps/api (validate + trả về đúng shape)
+                  └─► packages/api (HTTP client) → services/ → TanStack Query → UI
 ```
 
 Mỗi mắt xích có một trách nhiệm; không nhảy cóc, ví dụ không gọi thẳng axios trong component.
 
-## Bước 1 — Sinh type
+## Bước 1 — Schema trước
 
-Cập nhật `openapi.json` từ repo backend rồi chạy lệnh sinh. **Không sửa tay**
-`packages/types/src/api.ts` — lần sinh sau ghi đè, sai lệch quay lại âm thầm.
+Endpoint cần kiểu dữ liệu nào thì khai request/response bằng Zod ở `packages/schemas` và
+**dùng cùng schema đó ở cả hai đầu**. Client không viết type tay cho dữ liệu backend trả về.
 
-Nếu type sinh ra khác với hình dạng dữ liệu bạn cần, vấn đề nằm ở backend hoặc ở spec, không
-được "chữa" bằng cách ép kiểu ở client.
+Nếu dữ liệu backend trả về khác với hình dạng giao diện cần, vấn đề nằm ở schema hoặc ở
+backend — không được "chữa" bằng cách ép kiểu ở client. Ràng buộc chỉ thuộc về form (bắt buộc
+khai, chuỗi rỗng khác số 0) đặt trong feature, không đưa vào schema thực thể.
 
 ## Bước 2 — Chọn đúng namespace
 
-Namespace quyết định middleware nào áp dụng — tra `../../business/API_CONTRACT.md`:
+Namespace quyết định guard nào áp dụng — tra `../../business/API_CONTRACT.md`:
 
 | Tiền tố | Guard |
 |---|---|
 | `/public/*` | không cần đăng nhập |
 | `/marketplace/*` | cần đăng nhập |
-| `/management/*` | đăng nhập + role Seller + gating workspace |
-| `/residency/*` | đăng nhập + residency guard |
+| `/management/*` | đăng nhập + role Landlord + gating theo `subscriptionStatus` |
+| `/residency/*` | đăng nhập + residency guard (đã liên kết với phòng) |
 | `/admin/*` | đăng nhập + role nội bộ |
 
 ## Bước 3 — Viết service
@@ -48,7 +51,8 @@ gốc từ server. Đặt query key nhất quán theo feature và tài nguyên; 
 invalidate đúng key liên quan.
 
 Ở web, ưu tiên lấy dữ liệu trực tiếp trong Server Component khi không cần tương tác; dùng
-TanStack Query cho phần client cần cache và refetch.
+TanStack Query cho phần client cần cache và refetch. **Mọi thao tác ghi đi qua `apps/api`**;
+Server Actions chỉ dành cho việc thuần server của web (cookie phiên, revalidate).
 
 ## Bước 5 — Xử lý lỗi theo mã, không theo message
 
@@ -71,7 +75,9 @@ HTTP 422 là lỗi validation ngữ nghĩa — map `details` về đúng field t
 Mọi request phải có **loading, empty và error** phù hợp với trải nghiệm nền tảng. Empty state
 nói rõ người dùng làm gì tiếp theo, không chỉ hiện "Không có dữ liệu".
 
-## Khi backend chưa sẵn sàng
+## Khi endpoint chưa có ở `apps/api`
 
-Dùng dữ liệu mẫu khớp đúng type đã sinh, đánh dấu `// TODO: nối API thật`. Khi endpoint thật
-xong chỉ đổi nguồn, không phải viết lại giao diện.
+Backend cùng repo nên ưu tiên dựng endpoint luôn theo lát cắt dọc (xem
+`../../tasks/INTEGRATE_API_ENDPOINT.md`). Nếu lát đó chưa tới lượt, dùng dữ liệu mẫu khớp
+đúng schema trong `packages/schemas`, đánh dấu `// TODO: nối API thật`. Khi endpoint thật xong
+chỉ đổi nguồn, không phải viết lại giao diện.

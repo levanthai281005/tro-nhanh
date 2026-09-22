@@ -1,21 +1,23 @@
-# Trọ Nhanh Frontend
+# Trọ Nhanh
 
-Frontend monorepo cho nền tảng Trọ Nhanh, gồm website công khai, workspace chủ trọ,
-trải nghiệm người ở và ứng dụng mobile.
+Monorepo cho nền tảng Trọ Nhanh: website (khu công khai, workspace chủ trọ, khu người ở),
+ứng dụng mobile cho người ở và backend API — cùng một hệ TypeScript.
 
 ## Công nghệ chính
 
 - Node.js `22.14.x`, pnpm `9.15.0` và Turborepo.
 - Web: Next.js `16.3.0`, React 19, TypeScript, Tailwind CSS `3.4.17` và shadcn/ui.
 - Mobile: Expo SDK 57, Expo Router, React Native và NativeWind 4.
-- Dùng chung: Axios, TanStack Query, Zustand, React Hook Form, Zod và date-fns.
+- Backend: NestJS (TypeScript, Node 22), Prisma; cổng thanh toán PayOS.
+- Dùng chung: Axios, TanStack Query, Zustand, React Hook Form, Zod và date-fns. Định nghĩa dữ
+  liệu dùng chung là Zod schema ở `packages/schemas` — cả ba ứng dụng cùng dùng.
 
 Tailwind phải giữ đúng phiên bản `3.4.17` để web và NativeWind tiếp tục dùng chung preset.
 
 ## Cấu trúc workspace
 
 ```text
-tro-nhanh-fe/
+tro-nhanh/
 ├── .agents/
 │   ├── business/                 # Tài liệu nghiệp vụ theo domain
 │   ├── rules/                    # Coding standards và naming conventions
@@ -23,16 +25,18 @@ tro-nhanh-fe/
 │   └── CLAUDE.md
 ├── apps/
 │   ├── web/                      # Next.js App Router
-│   └── mobile/                   # Expo Router
+│   ├── mobile/                   # Expo Router
+│   └── api/                      # NestJS + Prisma (chưa dựng)
 ├── packages/
 │   ├── api/                      # Axios client dùng chung
 │   ├── schemas/                  # Zod schema dùng chung
-│   ├── types/                    # Type sinh từ OpenAPI
+│   ├── types/                    # Type dùng chung không suy từ schema
 │   ├── constants/                # Constant nghiệp vụ dùng chung
 │   ├── utils/                    # Hàm thuần dùng chung
 │   └── config/                   # TypeScript và Tailwind preset dùng chung
+├── docs/spec/                    # Đặc tả kỹ thuật — nguồn chân lý nghiệp vụ
+├── AGENTS.md                     # Hướng dẫn cho agent (Claude Code và Codex đọc chung)
 ├── HELP.md                       # Liên kết tài liệu cần đọc
-├── openapi.json                  # Backend API contract
 └── turbo.json
 ```
 
@@ -89,7 +93,8 @@ chung phải được chuyển đến thư mục hoặc package chung phù hợp
 | --------------------- | -------------------------------------------------- |
 | `packages/api`        | HTTP client thô và interceptor dùng chung          |
 | `apps/*/src/services` | Điều phối API theo nhu cầu của từng ứng dụng       |
-| `packages/types`      | Contract API sinh từ OpenAPI                       |
+| `packages/schemas`    | Zod schema — nguồn định nghĩa dữ liệu, `z.infer`   |
+| `packages/types`      | Type dùng chung không suy được từ schema           |
 | `apps/*/src/types`    | Props, view model và type chỉ phục vụ UI           |
 | `components`          | Thành phần dùng lại qua nhiều feature              |
 | `features`            | Mã nguồn thuộc sở hữu của một feature              |
@@ -144,7 +149,7 @@ pnpm docker:down
 
 - Next.js: `http://localhost:3000`
 - Expo/Metro: `http://localhost:8081`
-- Backend dự kiến: `http://localhost:8089`
+- API `apps/api`: `http://localhost:8089` (cổng chốt khi dựng)
 
 Khi lockfile hoặc dependency thay đổi, xóa volume dependency rồi build lại container:
 
@@ -153,22 +158,21 @@ docker compose down --volumes
 pnpm docker:dev
 ```
 
-## OpenAPI workflow
+## Định nghĩa dữ liệu dùng chung
 
-`openapi.json` là nguồn dữ liệu gốc của API contract.
+Không có bước sinh mã từ tài liệu API. Định nghĩa dữ liệu khai **một lần** bằng Zod ở
+`packages/schemas`: backend `apps/api` dùng để kiểm tra đầu vào, web và mobile dùng cho biểu
+mẫu, kiểu dữ liệu suy ra bằng `z.infer`. Sửa một trường là cả ba ứng dụng báo lỗi biên dịch.
 
-```bash
-pnpm api:gen
-pnpm typecheck
-```
-
-Không sửa trực tiếp `packages/types/src/api.ts`; file này sẽ bị ghi đè khi sinh type lại.
+Cấu trúc cơ sở dữ liệu chỉ thay đổi qua migration Prisma có đánh số trong `apps/api`; không
+sửa tay DB. Lệnh chạy API và migration bổ sung vào đây khi dựng `apps/api`.
 
 ## Quy chuẩn quan trọng
 
 - Ưu tiên Server Component; Client Component chỉ nằm tại boundary cần tương tác.
 - Data fetching mặc định thực hiện trên server với chiến lược cache được khai báo rõ.
-- Mutation dùng Server Actions và luôn kiểm tra authentication/authorization trong action.
+- Mọi thao tác ghi đi qua `apps/api`; Server Actions chỉ cho việc thuần server của web (cookie
+  phiên, revalidate), không ghi thẳng DB.
 - Dùng `next/image` và `next/link`; web tải Google Font `Be Vietnam Pro` trong
   `globals.css` theo shared Tailwind preset.
 - Dùng absolute import `@/*`, TypeScript strict và không dùng explicit `any`.
@@ -188,6 +192,7 @@ trước khi triển khai feature.
 pnpm lint
 pnpm typecheck
 pnpm build
+pnpm test
 pnpm format:check
 ```
 

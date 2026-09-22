@@ -27,8 +27,11 @@
 - Lấy dữ liệu bằng `async`/`await` trực tiếp trong Server Component, gần nguồn dữ liệu.
 - Khai báo chiến lược cache minh bạch cho từng request; dùng `revalidate`, cache tag hoặc
   `cacheLife`/`staleTimes` phù hợp với cơ chế Next.js đang bật.
-- Dùng Server Actions cho mutation như POST, PUT và DELETE.
-- Mọi Server Action phải tự xác thực danh tính, quyền hạn và quyền sở hữu tài nguyên.
+- **Mọi thao tác ghi đi qua `apps/api`** (service của feature → TanStack Query mutation).
+  Server Actions chỉ dành cho việc thuần server của web như đặt cookie phiên hoặc
+  revalidate — không ghi thẳng DB, vì quy tắc nghiệp vụ và kiểm tra quyền sẽ phải viết hai lần.
+- Server Action nếu có vẫn phải tự xác thực danh tính; không xem việc chỉ được gọi từ giao
+  diện là một lớp bảo mật.
 - Sau mutation, chủ động revalidate path/tag liên quan khi dữ liệu hiển thị cần được làm mới.
 
 ### Performance
@@ -117,6 +120,29 @@
 - Truy cập biến Expo bằng dot notation tĩnh, ví dụ `process.env.EXPO_PUBLIC_API_URL`; không
   destructure hoặc dùng bracket notation vì Expo CLI không inline các dạng đó.
 - Không log token, thông tin định danh nhạy cảm hoặc payload chứa dữ liệu riêng tư.
+
+## NestJS (`apps/api`)
+
+- Mỗi module NestJS ứng với đúng một dòng trong `../business/BACKEND_SERVICES.md` (17 module,
+  hậu tố `*Module`); không tạo module ngoài danh sách khi chưa cập nhật tài liệu.
+- Controller mỏng: nhận request, gọi service, trả kết quả. Quy tắc nghiệp vụ nằm trong service.
+- Prisma chỉ được gọi bên trong module **sở hữu** bảng đó. Module khác cần dữ liệu thì gọi
+  service công khai của module sở hữu — không truy vấn thẳng bảng của domain khác.
+- Validate đầu vào bằng Zod schema từ `packages/schemas` qua một validation pipe dùng chung;
+  không viết class-validator/DTO song song.
+- Guard xếp theo thứ tự: xác thực → vai trò → gating (`SubscriptionModule`) hoặc residency
+  (`ResidencyModule`); guard mount theo tiền tố namespace, không gắn lẻ từng handler.
+- Response đi qua interceptor và exception filter dùng chung theo
+  `../business/API_RESPONSE_STANDARD.md`; service ném lỗi nghiệp vụ kèm `code`, không tự dựng
+  HTTP response.
+- Thao tác nhiều bước bọc `prisma.$transaction`; webhook PayOS idempotent theo
+  `idempotencyKey`.
+- Migration Prisma có đánh số là nguồn chân lý về cấu trúc dữ liệu: không `db push` lên môi
+  trường chung, không sửa migration đã merge — cần đổi thì thêm migration mới.
+- Cấu hình đọc từ biến môi trường và được kiểm tra bằng schema lúc khởi động; secret không
+  commit vào repo.
+- Cấu trúc thư mục bên trong `apps/api` chốt trong kế hoạch dựng backend, không quy định
+  trước ở đây.
 
 ## Feature ownership
 

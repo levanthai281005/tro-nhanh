@@ -1,5 +1,13 @@
 # Bản đối chiếu nghiệp vụ — trạng thái đã dựng tới B9
 
+> **Ghi chú lịch sử (22/09/2026):** Bản đối chiếu này chụp tại mốc `9ad2270` theo tài liệu
+> nghiệp vụ **phiên bản cũ** — backend Java Spring Boot ở repo riêng, hợp đồng API qua
+> `openapi.json`, vai trò Renter/Seller/Moderator cộng dồn, `workspaceStatus`, `GET /me/context`,
+> cổng thanh toán VNPay. Nội dung **không cập nhật lại**, giữ làm bản ghi. Nguồn hiện hành là
+> `docs/spec/dac-ta-ky-thuat.md` (NestJS tại `apps/api`, Prisma, Zod ở `packages/schemas`, vai trò
+> đơn `TENANT/LANDLORD/STAFF/ADMIN`, `subscriptionStatus`, `GET /me`, PayOS). Khi hai bên lệch nhau,
+> đặc tả thắng; các mục ❓ trong file này cần đối chiếu lại với đặc tả trước khi coi là còn mở.
+
 **Mục đích:** một file duy nhất để đối chiếu với tài liệu nghiệp vụ chính, liệt kê _đúng những
 gì code đang làm_ và _chỗ nào khác với tài liệu / khác với prototype_. Dùng để chỉnh tài liệu
 chính cho khớp thực tế, không phải để đọc thay tài liệu.

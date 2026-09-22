@@ -19,15 +19,15 @@ ba shell và hai zone. Quyết định đặt code ở đâu phải dựa trên 
 
 > **Lý do Residency là module trong SaaS, không phải bounded context thứ ba:** (a) *phụ thuộc* — người ở chỉ sinh ra từ `Occupancy` do chủ trọ tạo, không có SaaS thì không tồn tại người ở; (b) *tránh phụ thuộc vòng* — nếu tách riêng, hộp thư sự cố của chủ trọ phải đọc `Incident` (SaaS → Residency) trong khi màn "hóa đơn của tôi" phải đọc `Invoice` (Residency → SaaS), khóa vòng thì mất luôn khả năng tách service sau này; (c) *không cắt quy trình* — `UtilityReadingSubmission` là giai đoạn nháp của `UtilityReading`, tách context thì thao tác duyệt phải ghi xuyên context; (d) *cùng ngôn ngữ nghiệp vụ* — sự cố, bảo trì, hóa đơn đều là ngôn ngữ vận hành BĐS. Nguyên tắc: **bounded context chia theo quyền sở hữu dữ liệu, không chia theo đối tượng người dùng**; khác đối tượng thì tách ở tầng giao diện và API namespace.
 
-**Nguyên tắc phụ thuộc:** Marketplace và SaaS **được phép gọi xuống** Shared Kernel, nhưng **không gọi chéo trực tiếp** vào table của nhau — giao tiếp qua *interface* nội bộ. Các điểm nối hợp lệ giữa 2 domain (một chiều, qua interface): (a) "Tạo tin từ phòng trống" (SaaS → Marketplace); (b) đồng bộ trạng thái tin khi Room đổi trạng thái (SaaS → Marketplace, BR-027); (c) Marketplace đọc dữ liệu Review/avgRating gắn Property; (d) ReviewService đọc Contract/Occupancy để xác minh quyền review.
+**Nguyên tắc phụ thuộc:** Marketplace và SaaS **được phép gọi xuống** Shared Kernel, nhưng **không gọi chéo trực tiếp** vào table của nhau — giao tiếp qua *interface* nội bộ. Các điểm nối hợp lệ giữa 2 domain (một chiều, qua interface): (a) "Tạo tin từ phòng trống" (SaaS → Marketplace); (b) đồng bộ trạng thái tin khi Room đổi trạng thái (SaaS → Marketplace, BR-027); (c) Marketplace đọc dữ liệu Review/avgRating gắn Property; (d) `ReviewModule` đọc Contract/Occupancy để xác minh quyền review.
 
 **Frontend — tách 3 shell, shell Workspace chia 2 zone:**
 
 | Shell | Phạm vi route | Người dùng | Nhóm Dev |
 |---|---|---|---|
-| **Public/Renter shell** | `/`, `/tim-phong`, `/phong/{id}`, `/khu-tro/{slug}`, `/tai-khoan/*` | Guest, Renter | Nhóm A |
-| **Management Workspace shell** | `/chu-tro/*` | Seller | Nhóm B |
-| **Residency shell** | `/nguoi-o/*` | Renter có `residencyStatus ∈ {ACTIVE, PAST}` | Nhóm C |
+| **Public/Tenant shell** | `/`, `/tim-phong`, `/phong/{id}`, `/khu-tro/{slug}`, `/tai-khoan/*` | Guest, Tenant | Nhóm A |
+| **Management Workspace shell** | `/chu-tro/*` | Landlord | Nhóm B |
+| **Residency shell** | `/nguoi-o/*` | Tài khoản đã liên kết với một phòng — `residencyStatus ∈ {ACTIVE, PAST}` | Nhóm C |
 
 **App mobile người ở** dùng chung API với Residency shell; chủ trọ dùng web (Workspace là dashboard nhiều bảng biểu, hợp màn hình lớn).
 
@@ -37,25 +37,25 @@ Bên trong shell Workspace:
 
 | Zone | Màn hình | Điều kiện vào | Gating? |
 |---|---|---|---|
-| **Zone Tin đăng** (Marketplace) | B4 Quản lý tin, B5 Đăng tin cho thuê | Role Seller | **KHÔNG** — Marketplace luôn miễn phí |
-| **Zone Quản lý vận hành** (SaaS) | B1–B3, B6–B16 | Role Seller + `workspaceStatus ∈ {TRIAL, ACTIVE}` | Có; `READ_ONLY` chỉ đọc; `NONE` thấy màn mời dùng thử |
+| **Zone Tin đăng** (Marketplace) | B4 Quản lý tin, B5 Đăng tin cho thuê — route nằm ngoài `/chu-tro` | Vai trò Landlord | **KHÔNG** — Marketplace luôn miễn phí |
+| **Zone Quản lý vận hành** (SaaS) | B1–B3, B6–B16 | Vai trò Landlord + `subscriptionStatus ∈ {TRIAL, ACTIVE}` | Có; `READ_ONLY` chỉ đọc; `NONE` thấy màn mời dùng thử |
 
 Sidebar Workspace hiển thị đúng 2 nhóm ("Tin đăng — miễn phí" / "Quản lý vận hành — SaaS") để chủ trọ luôn thấy rõ cái gì free, cái gì thuộc gói — vừa minh bạch vừa là điểm chạm upsell tự nhiên.
 
 Ba shell **chung component library, chung API client, chung 1 web app** (route-prefix khác nhau) — chưa tách subdomain để khỏi tốn nhiều build/deploy. Ranh giới thiết kế sao cho **về sau tách `app.tronhanh.vn` chỉ là đổi routing**, không phải viết lại.
 
-**Stack frontend & mobile:**
+**Stack:**
 
 | Thành phần | Công nghệ | Lý do |
 |---|---|---|
 | Web (cả 3 shell) | **Next.js (App Router)** | SSR cho trang tin đăng để Google index được — SEO là kênh thu hút người thuê; hệ sinh thái UI phong phú |
 | App người ở | **Expo React Native** | Cùng React + TypeScript với web: dùng chung type, API client, Zod schema và tư duy file-based routing (Expo Router ≈ App Router) |
-| Backend | **Java Spring Boot 4.1 · Java 21 LTS · Maven** | Repo riêng (`tro-nhanh-api`); Spring Boot 3.x đã hết vòng đời nên dự án mới dùng nhánh 4.x |
-| Tổ chức mã nguồn | **Hai repo:** `tro-nhanh-api` (backend) và `tro-nhanh-client` (**monorepo pnpm**: `apps/web`, `apps/mobile` + `packages/types`, `api-client`, `tailwind-preset`) | Backend là hệ Java, client là hệ TypeScript — tách repo cho mỗi bên một pipeline build riêng, gọn hơn là trộn hai hệ |
-| Cầu nối contract | **OpenAPI spec** — backend tự sinh bằng `springdoc-openapi`; client chạy codegen ra `types` + `api-client` | Hai hệ kiểu độc lập (Java ↔ TypeScript) không tự biết nhau; spec là nguồn chân lý duy nhất. Sinh từ code nên luôn khớp API thật; đổi field ở backend → client regen là **cả web lẫn mobile báo lỗi type ngay** |
-| Styling | **Tailwind CSS (web) + NativeWind (mobile)** | Chung ngôn ngữ utility-first và **chung một file preset** (màu, font, spacing) đặt ở `packages/tailwind-preset` — đổi màu thương hiệu một chỗ, cả web lẫn app đổi theo |
+| Backend | **NestJS · TypeScript · Node 22 LTS** | Cùng ngôn ngữ với web và mobile nên dùng chung được định nghĩa dữ liệu; cấu trúc module của NestJS ánh xạ thẳng sang hai domain nghiệp vụ |
+| Tổ chức mã nguồn | **Một monorepo `tro-nhanh`** (pnpm workspace + Turborepo): `apps/web`, `apps/mobile`, `apps/api` cùng `packages/schemas`, `types`, `constants`, `utils`, `config` (thực tế còn `api` — HTTP client — và `access` — luật truy cập) | Cả ba ứng dụng cùng hệ TypeScript nên dùng chung được định nghĩa dữ liệu; sửa một trường là cả ba báo lỗi biên dịch ngay |
+| Định nghĩa dữ liệu dùng chung | **Zod schema** trong `packages/schemas` | Một nguồn chân lý duy nhất: backend dùng để kiểm tra dữ liệu đầu vào, web và mobile dùng cho biểu mẫu, kiểu dữ liệu suy ra từ chính schema (`z.infer`). Tài liệu API sinh từ NestJS chỉ để người đọc, không còn là cầu nối kỹ thuật |
+| Styling | **Tailwind CSS (web) + NativeWind (mobile)** | Chung ngôn ngữ utility-first và **chung một file preset** (màu, font, spacing) đặt ở `packages/config` — đổi màu thương hiệu một chỗ, cả web lẫn app đổi theo |
 
-> **Quy trình đồng bộ contract giữa hai repo:** file `openapi.json` do backend sinh được **commit vào repo client** và cập nhật trong PR mỗi khi API đổi. Nhờ vậy client build được mà không cần chạy backend, và mọi thay đổi API đều nhìn thấy rõ trong lịch sử Git. Client chạy codegen từ file này, **không viết tay** type hay hàm gọi API.
+> **Backend là một ứng dụng NestJS duy nhất** đặt tại `apps/api`, chia thành 17 module theo ranh giới domain ở trên (danh sách chuẩn ở `BACKEND_SERVICES.md`). Truy cập dữ liệu qua **Prisma**; mọi thay đổi cấu trúc dữ liệu đi qua **file migration có đánh số** — migration là nguồn chân lý về cấu trúc, không sửa tay trực tiếp trên cơ sở dữ liệu.
 
 > **Ràng buộc version cần tuân thủ:** NativeWind bản ổn định yêu cầu **Tailwind v3** (`tailwindcss@^3.4.17`) cùng peer dependency `react-native-reanimated` và `react-native-safe-area-context`; cấu hình theo kiểu v3 (`tailwind.config.js` + `presets: [require("nativewind/preset")]`). Vì `create-next-app` mặc định cài Tailwind v4 (cấu hình CSS-first bằng `@theme`, bỏ file config), **phải chỉ định Tailwind v3 khi khởi tạo web** — nếu không sẽ không dùng chung được preset. NativeWind v5 (hỗ trợ Tailwind v4) còn ở giai đoạn pre-release, để dành cho lần nâng cấp sau.
 

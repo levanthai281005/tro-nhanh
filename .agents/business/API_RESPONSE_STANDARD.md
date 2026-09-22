@@ -12,4 +12,8 @@ chuỗi message.
 - **Pagination:** `?page=&pageSize=&sort=`; trả `meta: { page, pageSize, total, totalPages }`. Messaging phân trang con trỏ thời gian (`?before=`/`?after=`).
 - **Status codes:** 200/201 thành công; 400 request sai cấu trúc; 401 chưa xác thực; 403 không đủ quyền (RBAC/ownership/gating); 404 không tồn tại; 409 xung đột (trùng roomCode, chồng lấn hợp đồng, trùng period); **422 lỗi validation ngữ nghĩa**; 429 rate limit; 500 hệ thống.
 
+Ở `apps/api`, chuẩn này được áp bằng **một interceptor** (bọc `data`/`meta`) và **một exception
+filter** (bọc `error`) dùng chung cho toàn ứng dụng — controller không tự dựng hình dạng
+response, service ném lỗi nghiệp vụ mang `code` và để filter chuyển thành HTTP status.
+
 ---

@@ -39,7 +39,7 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 **Nghiệp vụ**
 - `USER_FLOWS.md` — 11 luồng nghiệp vụ chi tiết
 - `BUSINESS_RULES.md` — BR-001 → BR-035
-- `ASSUMPTIONS.md` — AS-001 → AS-025
+- `ASSUMPTIONS.md` — AS-001 → AS-028
 
 **Dữ liệu**
 - `DATA_ENTITIES.md` — 34 entity, field chính và quan hệ
@@ -49,7 +49,7 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 **Giao tiếp với backend**
 - `API_CONTRACT.md` — namespace và toàn bộ endpoint
 - `API_RESPONSE_STANDARD.md` — chuẩn response, mã lỗi, phân trang
-- `BACKEND_SERVICES.md` — service nào sở hữu dữ liệu gì
+- `BACKEND_SERVICES.md` — module NestJS nào sở hữu dữ liệu gì
 
 **Màn hình**
 - `SCREENS_PUBLIC.md` · `SCREENS_WORKSPACE.md` · `SCREENS_RESIDENCY.md` · `SCREENS_ADMIN.md`

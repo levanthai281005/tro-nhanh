@@ -30,6 +30,9 @@ Ba file nên đọc đầu tiên khi mới vào dự án: `business/GLOSSARY.md`
 
 ## Nguyên tắc làm việc
 
+Mục này và "Nguyên tắc bất di bất dịch" trong `AGENTS.md` gốc có phần trùng nhau — **khi sửa
+một nguyên tắc, sửa ở cả hai nơi** để hai file không lệch nhau về sau.
+
 - Đọc hướng dẫn đúng phiên bản framework trong `HELP.md` trước khi triển khai.
 - Giữ Tailwind CSS ở phiên bản `3.4.17` trên toàn workspace.
 - Không import chéo giữa các feature domain `marketplace`, `workspace` và `residency`.
@@ -42,7 +45,7 @@ Ba file nên đọc đầu tiên khi mới vào dự án: `business/GLOSSARY.md`
 - Không dùng explicit `any`; TypeScript phải giữ `strict: true`.
 - Dùng dependency nội bộ qua `workspace:*`.
 - Bảo toàn thay đổi hiện có của người dùng; không reset hoặc xóa ngoài phạm vi yêu cầu.
-- Trước khi bàn giao, chạy các quality gate phù hợp: lint, typecheck, build và format check;
+- Trước khi bàn giao, chạy các quality gate phù hợp: lint, typecheck, build, test và format check;
   đối chiếu `.agents/tasks/PRE_HANDOFF_CHECKLIST.md`.
 - Nghiệp vụ tuân theo mã `BR-xxx` và `AS-xxx` trong `.agents/business/`; giá trị enum lấy đúng
   từ `business/STATUS_ENUMS.md`, không tự dịch hay tự thêm.

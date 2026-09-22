@@ -38,5 +38,5 @@ dữ liệu suy ra từ chính schema.
   module.
 - **Lập kế hoạch trước, chờ duyệt, rồi mới viết code.**
 
-Trước khi bàn giao: `pnpm lint`, `pnpm typecheck`, `pnpm build` và đối chiếu
+Trước khi bàn giao: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` và đối chiếu
 `.agents/tasks/PRE_HANDOFF_CHECKLIST.md`.

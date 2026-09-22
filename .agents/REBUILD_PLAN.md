@@ -11,7 +11,7 @@ Kế hoạch chuyển giao diện từ bản demo cũ sang repo này. Quy trình
 | | Prototype | Repo này |
 |---|---|---|
 | Framework | Vite + React + react-router (hash router) | Next.js App Router |
-| Backend | Supabase | Spring Boot qua `@tronhanh/api` |
+| Backend | Supabase | NestJS (`apps/api`, cùng repo) qua `@tronhanh/api` |
 | Styling | Inline `style={{}}` (~2.590 lần) + token trong `shared/theme.ts` | Tailwind v3 + preset dùng chung |
 | Form | Formik + Yup (chỉ ở `DangTinPage`) | React Hook Form + Zod |
 | Mobile | Không có | Expo React Native |
@@ -58,6 +58,12 @@ kế: xem tin → đăng tin → dashboard chủ trọ.
 
 **Giai đoạn 5 — Viết mới + mobile.** Residency shell (prototype chưa có), hộp thư sự cố và
 duyệt chỉ số phía chủ trọ, rồi app Expo.
+
+**Song song từ nay — backend `apps/api` theo lát cắt dọc.** Backend nằm cùng repo nên không
+còn "chờ backend": mỗi lát cắt = Zod schema ở `packages/schemas` → module NestJS (Prisma,
+migration) → nối ngay với màn frontend tương ứng, thay mock. Lát đầu tiên là xác thực
+(`AuthModule` + `AuthContext`), vì mọi lát sau đều cần phiên thật. Thứ tự các lát tiếp theo
+đi theo màn đã dựng ở giai đoạn 3–4 (khu → phòng → người ở → hợp đồng → hóa đơn).
 
 ---
 
@@ -116,8 +122,9 @@ prototype song song mà so.
 
 **Port trang nặng bị sa lầy.** Tách trước theo khối rồi port từng khối, commit sau mỗi khối.
 
-**Backend chưa sẵn sàng.** Không chờ — dùng dữ liệu mẫu khớp đúng type đã sinh, đánh dấu
-`TODO`. Khi API thật xong chỉ đổi nguồn.
+**Endpoint chưa có.** Backend cùng repo nên ưu tiên dựng luôn theo lát cắt dọc. Nếu lát đó
+chưa tới lượt, dùng dữ liệu mẫu khớp đúng schema trong `packages/schemas`, đánh dấu `TODO`;
+khi endpoint thật xong chỉ đổi nguồn.
 
 **Port nguyên nghiệp vụ lỗi thời.** Prototype dựng trước khi chốt gating 4 trạng thái, đánh
 giá verified, consent liên kết người ở. Khi port phải đối chiếu mã BR trong

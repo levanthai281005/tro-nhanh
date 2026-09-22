@@ -11,11 +11,12 @@ Ba domain, **cấm import chéo** giữa chúng:
 
 | Domain | Thư mục web | Route group | Phục vụ ai |
 |---|---|---|---|
-| `marketplace` | `apps/web/src/features/marketplace/` | `app/(public)/` | Guest, Renter |
-| `workspace` | `apps/web/src/features/workspace/` | `app/(workspace)/chu-tro/` | Seller |
+| `marketplace` | `apps/web/src/features/marketplace/` | `app/(public)/` | Guest, Tenant |
+| `workspace` | `apps/web/src/features/workspace/` | `app/(workspace)/chu-tro/` | Landlord |
 | `residency` | `apps/web/src/features/residency/` | `app/(residency)/nguoi-o/` | Người ở |
 
 Tra `../../business/FEATURE_MODULES.md` để biết chức năng thuộc module nào, rồi suy ra domain.
+Phía backend, module NestJS tương ứng tra `../../business/BACKEND_SERVICES.md`.
 
 ## Bước 2 — Cấu trúc một feature
 
@@ -41,7 +42,7 @@ Thư mục feature đặt tên **kebab-case** và phản ánh đúng domain nghi
 |---|---|
 | Chỉ feature này dùng | trong thư mục feature |
 | Nhiều feature trong cùng app dùng | `apps/<app>/src/components`, `hooks`, `utils` |
-| Cả web và mobile dùng | `packages/*` |
+| Cả web, mobile và api dùng | `packages/*` (schema thực thể luôn ở `packages/schemas`) |
 | Cấu hình hoặc adapter SDK bên thứ ba | `apps/<app>/src/lib` |
 | Hàm thuần, không giữ trạng thái | `apps/<app>/src/utils` |
 
