@@ -38,7 +38,7 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 
 **Nghiệp vụ**
 - `USER_FLOWS.md` — 11 luồng nghiệp vụ chi tiết
-- `BUSINESS_RULES.md` — BR-001 → BR-035
+- `BUSINESS_RULES.md` — BR-001 → BR-038
 - `ASSUMPTIONS.md` — AS-001 → AS-028
 
 **Dữ liệu**

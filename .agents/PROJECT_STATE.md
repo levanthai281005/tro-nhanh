@@ -283,8 +283,24 @@ ngày — cần lâu hơn thì chia nhỏ.
         `Conversation.status`, `Amenity.type`, `Notification.type`. Đã dùng `landlordReply`,
         `initiatorId` (spec Mục 6 có lỗi find-replace `chủ trọReply` và index `renterId` — chủ
         dự án sửa spec riêng).
-      - **Còn nhóm 6** (`BUSINESS_RULES` — BR-029 và BR-034 còn viết theo mô hình xác nhận cũ;
-        BR-007/BR-021/BR-022 còn `sellerId`, `TaxSetting`).
+      - 22/09/2026 — **nhóm 6 (quy tắc nghiệp vụ)** xong: `BUSINESS_RULES` chép lại theo Mục 5
+        của đặc tả **v3.4** — bảng mục lục 38 dòng rồi 37 mục chi tiết, mỗi quy tắc có tên
+        riêng, thứ tự mã tăng dần. Thêm **BR-036** (đơn giá ba tầng: khu → phòng → bản ghi chỉ
+        số, bảng ba tầng của v3.4), **BR-037** (nhiều bản ghi người ở, `isPrimary`, ngày kết
+        thúc = ngày đầu không còn ở), **BR-038** (mã hóa đơn lưu cố định `P203-202603`, hậu tố
+        chống trùng `-2`, nội dung chuyển khoản 25 ký tự — rút mã phòng trước, không cắt kỳ,
+        không cắt hậu tố). BR-021 giữ khoảng trống, đánh dấu "(không dùng)" ở bảng mục lục và
+        **không có mục chi tiết** — giống đặc tả, không đánh số lại. Viết lại BR-013 (một vai
+        trò, bốn tầng quyền), BR-016 (không email, không đăng nhập MXH), BR-029 (liên kết có
+        hiệu lực ngay), BR-023 (chủ trọ được báo cáo đánh giá), BR-024 theo **v3.4**: người ở
+        **viết được đánh giá bất kể khu bật hay tắt công khai**, bật/tắt chỉ quyết định hiển
+        thị. Bỏ định danh kỹ thuật khỏi file (`sellerId`, `linkStatus`, `boostExpireAt`,
+        `Cancelled`, `UtilityReadingSubmission`…) — đã có ở `DATA_ENTITIES`/`STATUS_ENUMS`/
+        `VALIDATION_RULES`, giữ một nguồn; quét sạch Renter/Seller/Moderator/Guest. Cập nhật
+        `README` (BR-001 → BR-038).
+      - **Tồn đọng sau nhóm 6:** `SCREENS_PUBLIC` A4 ghi trang khu công khai có "tin đang cho
+        thuê của khu", còn BR-024 nói trang này **chỉ** có tên khu, khu vực và đánh giá — chốt
+        khi làm `SCREENS_PUBLIC` (nhóm màn hình còn Renter/Seller/Moderator).
 
 ### Đang làm
 
