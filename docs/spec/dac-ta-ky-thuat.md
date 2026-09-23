@@ -711,6 +711,8 @@ Sau khi có chỉ số, chủ trọ lập hóa đơn cho phòng theo tháng. M�
 
 Tổng hóa đơn là tổng các dòng. Chủ trọ sửa hoặc thêm dòng trước khi gửi.
 
+**Làm tròn:** mọi khoản tiền lưu số nguyên đồng; làm tròn ở **từng dòng** rồi cộng lại, không làm tròn trên tổng — để các dòng cộng lại luôn bằng đúng tổng hiển thị (BR-041).
+
 **Chỉ lập được hóa đơn cho phòng có hợp đồng đang hiệu lực.** Tiền thuê lấy thẳng từ hợp đồng,
 không nhập tay — như vậy hóa đơn luôn khớp với thỏa thuận đã ký. Phòng trống hoặc phòng chưa
 có hợp đồng thì không lập hóa đơn được.
@@ -954,7 +956,8 @@ nhận thu tiền. Hai mốc này để tránh việc vừa gắn vào phòng đ
 
 **Hiển thị:** điểm trung bình và số lượt đánh giá hiện trên tin đăng của khu; bấm vào xem
 được trang khu trọ với toàn bộ đánh giá. Đánh giá chỉ hiển thị khi chủ trọ đã bật trang khu
-công khai. Trang khu công khai chỉ hiện tên khu, khu vực và đánh giá — **không lộ** số phòng,
+công khai. Trang khu công khai hiện tên khu, khu vực, đánh giá và **các tin đang cho thuê
+gắn với khu** — **không lộ** số phòng,
 doanh thu hay thông tin người đang ở.
 
 **Báo cáo đánh giá — cả hai phía đều được.** Người dùng báo cáo đánh giá có nội dung vi phạm.
@@ -1069,7 +1072,7 @@ thấy chưa ổn. Mỗi lần chuyển trạng thái đều gửi thông báo c
 ### 4.9 Thanh toán phí nền tảng (boost & gói SaaS) — MỚI
 1. Landlord bấm mua (boost hoặc gói) → BE tạo giao dịch phí nền tảng (`Pending`, kèm `idempotencyKey`) → trả URL thanh toán cổng thanh toán.
 2. Chủ trọ thanh toán trên cổng thanh toán → cổng gọi **`POST /payments/webhook`** (máy chủ gọi máy chủ) → BE verify chữ ký → set `Success`/`Failed`. **Chỉ webhook mới kích hoạt quyền lợi** (set `boostExpireAt` hoặc tạo/gia hạn gói đã đăng ký) — return URL trên trình duyệt chỉ để hiển thị kết quả, vì user có thể đóng tab.
-3. Giao dịch treo (`Pending` quá 15 phút không có webhook) → job đánh `Failed`; Landlord thấy trạng thái ở màn gói/tin của mình, bấm thử lại (idempotencyKey mới).
+3. Giao dịch treo (`Pending` quá 15 phút không có webhook) → job đánh `Failed` để dọn giao diện; chủ trọ thấy trạng thái ở màn gói/tin của mình, bấm thử lại (idempotencyKey mới). Nếu webhook báo thành công tới sau đó thì **vẫn kích hoạt quyền lợi**, chuyển `Failed` → `Success` (BR-039).
 
 ### 4.10 Người ở báo cáo sự cố
 1. Người ở đang thuê mở ứng dụng hoặc khu người ở trên web → "Báo sự cố" → nhập tiêu đề, mô tả, mức ưu tiên, đính kèm ảnh → gửi.
@@ -1135,6 +1138,9 @@ năng ở trên đều có dòng "Quy tắc áp dụng" trỏ về đây.
 | BR-036 | Đơn giá điện nước ba tầng |
 | BR-037 | Người ở và ngày kết thúc |
 | BR-038 | Mã hóa đơn và nội dung chuyển khoản |
+| BR-039 | Webhook thanh toán tới muộn |
+| BR-040 | Webhook không khớp giao dịch |
+| BR-041 | Làm tròn tiền và đơn vị lưu trữ |
 
 ---
 
@@ -1313,7 +1319,8 @@ viên vận hành.
 Đánh giá lưu gắn với khu trọ. Hiển thị ở hai nơi: điểm và số lượt trên tin đăng của khu, và
 toàn bộ danh sách trên trang khu công khai.
 
-Trang khu công khai **chỉ** hiện tên khu, khu vực và đánh giá — **không lộ** số phòng, doanh
+Trang khu công khai hiện tên khu, khu vực, đánh giá và **các tin đang cho thuê gắn với khu**
+— **không lộ** số phòng, doanh
 thu hay thông tin người đang ở. Người ở **viết được đánh giá bất kể khu đang bật hay tắt trang công khai** — đánh giá luôn được
 lưu. Việc bật trang khu công khai **chỉ quyết định hiển thị**: bật thì khu và đánh giá xuất hiện
 công khai; tắt thì ẩn, nhưng đánh giá vẫn giữ nguyên để bật lại là hiện như cũ.
@@ -1456,6 +1463,40 @@ Mã QR được sinh tại máy người dùng, không gọi dịch vụ tạo �
 **Lý do:** mã lưu cố định vì nó là tham chiếu ra ngoài hệ thống — đã nằm trong nội dung chuyển khoản thì không được đổi. Cắt hậu tố thì `P203-202603-2` thành `P203-202603`, trùng đúng mã hóa đơn thứ nhất. Cắt phần kỳ tạo ra một kỳ khác có thật, khiến chủ trọ đối chiếu nhầm tháng. Gọi
 dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của chủ trọ sang bên thứ ba.
 
+
+### BR-039 — Webhook thanh toán tới muộn
+
+- Giao dịch ở trạng thái `Pending` quá 15 phút mà chưa có webhook thì tác vụ định kỳ đánh
+  `Failed` — nhưng đây **chỉ để dọn giao diện**, không phải quyết định về tiền.
+- Nếu webhook báo thành công tới sau đó, hệ thống **vẫn kích hoạt quyền lợi** và cho phép
+  chuyển `Failed` → `Success`. Việc chuyển ngược này **chỉ được thực hiện qua webhook đã xác
+  thực chữ ký**, không có đường nào khác.
+- Nếu trong lúc chờ, chủ trọ đã thử lại và giao dịch thứ hai cũng thành công — tức trả tiền
+  hai lần — thì kích hoạt cả hai (cộng dồn thời hạn) và ghi nhật ký để quản trị viên hoàn
+  tiền thủ công. Hệ thống **không tự hoàn tiền**.
+- **Lý do:** webhook có chữ ký hợp lệ nghĩa là tiền đã rời tài khoản khách. Bỏ qua nó thì
+  khách mất tiền mà không nhận được gì — loại khiếu nại tệ nhất. Nguồn chân lý về việc đã
+  thanh toán hay chưa luôn là cổng thanh toán, không phải tác vụ định kỳ của hệ thống.
+
+### BR-040 — Webhook không khớp giao dịch
+
+- Webhook có **chữ ký hợp lệ** nhưng mã giao dịch không khớp bản ghi nào: trả về thành công
+  cho cổng thanh toán và **ghi nhật ký cảnh báo** để người vận hành kiểm tra. Không trả lỗi.
+- Webhook có **chữ ký không hợp lệ**: từ chối ngay, ghi nhật ký. Đây có thể là yêu cầu giả mạo.
+- **Lý do phân biệt hai ca:** cổng thanh toán thường gửi lại khi nhận lỗi. Mã không khớp thì
+  gửi lại bao nhiêu lần cũng không khớp, chỉ tạo vòng lặp vô ích. Còn chữ ký sai thì phải chặn.
+- Hành vi gửi lại cụ thể tùy nhà cung cấp — cần đối chiếu tài liệu PayOS khi triển khai thật.
+
+### BR-041 — Làm tròn tiền và đơn vị lưu trữ
+
+- Chỉ số đồng hồ điện nước lưu **số nguyên** (đồng hồ thông thường hiển thị số nguyên).
+- Mọi khoản tiền lưu **số nguyên đồng**, không dùng số thực.
+- Làm tròn tới đồng gần nhất ở **từng dòng hóa đơn**; tổng hóa đơn là **tổng các dòng đã làm
+  tròn**, không phải làm tròn trên tổng.
+- Hệ thống **không tự làm tròn lên hàng nghìn**. Chủ trọ muốn làm tròn theo thói quen của mình
+  thì tự sửa dòng hóa đơn.
+- **Lý do làm tròn từng dòng:** nếu làm tròn trên tổng, các dòng cộng lại có thể lệch tổng hiển
+  thị một hai đồng. Số tiền nhỏ nhưng người ở soi thấy là mất lòng tin vào cả hóa đơn.
 ---
 
 ## 6. DANH SÁCH DỮ LIỆU (37 entity)
@@ -1665,10 +1706,10 @@ GET /admin/dashboard
 - **Báo cáo sự cố:** tiêu đề 5–120 ký tự; mô tả tối đa 2.000 ký tự; tối đa 5 ảnh; chỉ tạo được khi đang ở phòng (đã rời đi thì không gửi mới).
 - **Người ở:** ngày kết thúc không sớm hơn ngày bắt đầu; số điện thoại bắt buộc; tên bắt buộc khi chưa liên kết tài khoản.
 - **Contract:** `endDate > startDate`; chặn Contract Active thứ hai và chồng lấn thời gian trên cùng Room (409).
-- **UtilityReading:** `currentReading ≥ previousReading`; `unitPrice ≥ 0`; unique (roomId, type, period).
-- **Invoice:** `period` đúng `YYYY-MM`; tổng = Σ InvoiceItem; unique (contractId, period); `invoiceCode` unique, không sửa được sau khi tạo. VietQR sinh kèm amount + addInfo = `invoiceCode`, tối đa 25 ký tự — rút phần mã phòng trước, không cắt phần kỳ và không cắt hậu tố.
+- **UtilityReading:** chỉ số lưu **số nguyên** (BR-041); `currentReading ≥ previousReading`; `unitPrice ≥ 0`; unique (roomId, type, period).
+- **Invoice:** `period` đúng `YYYY-MM`; tổng = Σ InvoiceItem **đã làm tròn** (BR-041); unique (contractId, period); `invoiceCode` unique, không sửa được sau khi tạo. VietQR sinh kèm amount + addInfo = `invoiceCode`, tối đa 25 ký tự — rút phần mã phòng trước, không cắt phần kỳ và không cắt hậu tố.
 - **Payment:** `amount > 0`; Σ Payment không vượt `totalAmount`.
-- **PlatformTransaction:** `idempotencyKey` unique; webhook verify chữ ký gateway; xử lý webhook idempotent (nhận trùng không kích hoạt trùng).
+- **PlatformTransaction:** `idempotencyKey` unique; webhook verify chữ ký gateway; xử lý webhook idempotent (nhận trùng không kích hoạt trùng); `Failed` → `Success` chỉ qua webhook đã xác thực (BR-039); webhook chữ ký hợp lệ mà không khớp giao dịch thì trả thành công kèm cảnh báo (BR-040).
 - **Review:** `rating ∈ [1,5]`; `content ≤ 1.000`; `contractId` hợp lệ, thuộc `authorUserId` qua bản ghi người ở đã liên kết; không phải chủ khu; đạt điều kiện mở; chặn trùng theo `contractId`.
 - **Conversation:** người khởi tạo ≠ người đăng tin; tin ở trạng thái cho phép.
 - **Subscription:** không TRIAL lần 2; `purchase/renew` kiểm `planId` Active.
