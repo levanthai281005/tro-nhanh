@@ -3,8 +3,8 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: **đợt cập nhật tài liệu theo đặc tả mới** (22/09/2026 — nhóm 5: dữ liệu
-37 bảng, xem mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
+Cập nhật lần cuối: **đồng bộ đặc tả v3.5** (23/09/2026 — BR-039/040/041 và BR-024 mới, xem
+mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
 **B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
 
 **Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 7 route chạy được:
@@ -298,9 +298,20 @@ ngày — cần lâu hơn thì chia nhỏ.
         `Cancelled`, `UtilityReadingSubmission`…) — đã có ở `DATA_ENTITIES`/`STATUS_ENUMS`/
         `VALIDATION_RULES`, giữ một nguồn; quét sạch Renter/Seller/Moderator/Guest. Cập nhật
         `README` (BR-001 → BR-038).
-      - **Tồn đọng sau nhóm 6:** `SCREENS_PUBLIC` A4 ghi trang khu công khai có "tin đang cho
-        thuê của khu", còn BR-024 nói trang này **chỉ** có tên khu, khu vực và đánh giá — chốt
-        khi làm `SCREENS_PUBLIC` (nhóm màn hình còn Renter/Seller/Moderator).
+      - 23/09/2026 — **đồng bộ đặc tả v3.5** xong: `BUSINESS_RULES` thêm **BR-039** (webhook
+        tới muộn: tác vụ 15 phút chỉ dọn giao diện, `Failed` → `Success` chỉ qua webhook đã xác
+        thực chữ ký), **BR-040** (chữ ký hợp lệ mà mã không khớp thì trả thành công + ghi cảnh
+        báo; chữ ký sai thì chặn), **BR-041** (tiền và chỉ số lưu số nguyên, làm tròn **từng
+        dòng** hóa đơn, không tự làm tròn lên hàng nghìn). Ba mục "đã chốt — chờ vào đặc tả"
+        trong `skills/critical-path-testing/references/TEST_CASES.md` (1.3, 4.2, 4.3) nay dẫn
+        thẳng BR-041/BR-039/BR-040; bảng vùng trong `SKILL.md` cũng dẫn theo.
+        `VALIDATION_RULES` gắn ba mã mới vào ràng buộc: `UtilityReading` (chỉ số số nguyên) và
+        `Invoice` (tổng = Σ dòng **đã làm tròn**) dẫn BR-041; `PlatformTransaction` dẫn
+        BR-039/BR-040.
+      - **Tồn đọng sau nhóm 6 đã hết:** v3.5 sửa BR-024 theo hướng `SCREENS_PUBLIC` A4 vốn
+        đang ghi — trang khu công khai **có** tin đang cho thuê của khu. A4 giữ nguyên,
+        `BUSINESS_RULES` chép lại theo bản mới. Thuật ngữ vai trò còn sót trong tiêu đề mục
+        (`RENTER SHELL` → `TENANT SHELL`, `MODERATOR AREA` → `STAFF AREA`) đã đổi.
 
 ### Đang làm
 
@@ -347,7 +358,6 @@ ngày — cần lâu hơn thì chia nhỏ.
       nay là FK `typeId` → danh mục `ListingType`, `provinceCode + wardCode` + `wardName +
       addressDetail`, bảng `ListingCost` riêng. Đồng bộ khi làm lát Listing của `apps/api`
       (`catalog.ts` đổi sang tra danh mục từ API; schema tách `ListingCost`).
-- [ ] Tài liệu nhóm 6 (xem mục "Tài liệu theo đặc tả mới" ở trên).
 
 ### Tiếp theo
 

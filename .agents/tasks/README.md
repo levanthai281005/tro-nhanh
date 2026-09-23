@@ -9,6 +9,8 @@ Mỗi file mô tả quy trình chuẩn cho một loại việc lặp lại trong
 | Dựng feature mới không có mẫu prototype | `ADD_NEW_FEATURE.md` |
 | Làm form nhập liệu | `CREATE_FORM.md` |
 | Nối một endpoint mới từ backend | `INTEGRATE_API_ENDPOINT.md` |
+| Tạo một module NestJS mới ở `apps/api` | `CREATE_API_MODULE.md` |
+| Thay đổi cấu trúc dữ liệu (bảng, cột, index) | `ADD_DB_MIGRATION.md` |
 | Tách file vượt giới hạn dòng | `REFACTOR_LARGE_FILE.md` |
 | Trước khi báo hoàn thành | `PRE_HANDOFF_CHECKLIST.md` |
 
