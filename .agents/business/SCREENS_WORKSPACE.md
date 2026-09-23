@@ -25,7 +25,7 @@ Danh sách màn hình thuộc `app/(workspace)` — khu quản lý của chủ t
 | B7 | Chi tiết khu + nhận tiền + public | `/chu-tro/khu-tro/{id}` | Workspace | Sửa khu; STK/VietQR; bật hồ sơ public | V1 |
 | B8 | Quản lý phòng | `/chu-tro/khu-tro/{id}/phong` | Workspace | Lưới phòng theo trạng thái; badge "Có tin đang chạy"; "Tạo tin từ phòng" | MVP (mock) → V1 |
 | B9 | Chi tiết phòng | `/chu-tro/phong/{id}` | Workspace | Thông tin, người ở hiện tại (nhiều Occupancy), HĐ, hóa đơn gần đây | V1 |
-| B10 | Quản lý người ở | `/chu-tro/phong/{id}/nguoi-o` | Workspace | Thêm theo SĐT (linked Pending/Confirmed hoặc fallback), kết thúc ở (endDate), lịch sử | V1 |
+| B10 | Quản lý người ở | `/chu-tro/phong/{id}/nguoi-o` | Workspace | Thêm theo SĐT (liên kết hiệu lực ngay — "đã liên kết" / "chưa liên kết", BR-029), kết thúc ở (endDate), lịch sử | V1 |
 | B11 | Hợp đồng | `/chu-tro/hop-dong`, `…/{id}` | Workspace | Tạo HĐ (chặn chồng lấn), upload scan, nhắc hết hạn, chấm dứt | V1 |
 | B12 | Điện nước & Hóa đơn | `/chu-tro/hoa-don` | Workspace | UtilityReading → Invoice → xuất kèm VietQR (amount + mã HĐ) → gửi → "Đã thu" | MVP (demo luồng) → V1 |
 | B13 | Chi tiết hóa đơn | `/chu-tro/hoa-don/{id}` | Workspace | Dòng hóa đơn, STK/QR, lịch sử thu | V1 |

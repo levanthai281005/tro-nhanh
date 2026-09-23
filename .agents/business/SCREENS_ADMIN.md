@@ -4,7 +4,7 @@ Danh sách màn hình quản trị hệ thống và kiểm duyệt nội dung.
 
 ---
 
-## ADMIN / MODERATOR AREA — route gốc `/admin`
+## ADMIN / STAFF AREA — route gốc `/admin`
 
 | # | Màn hình | Route | Mô tả | Giai đoạn |
 |---|---|---|---|---|

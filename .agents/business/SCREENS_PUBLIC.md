@@ -5,7 +5,7 @@ Mã màn hình (A1, A2...) dùng để tham chiếu trong task và commit.
 
 ---
 
-## PUBLIC / RENTER SHELL — route gốc `/`
+## PUBLIC / TENANT SHELL — route gốc `/`
 
 **Khu công khai (Guest xem được):**
 

@@ -1,4 +1,4 @@
-# Quy tắc nghiệp vụ (BR-001 → BR-038)
+# Quy tắc nghiệp vụ (BR-001 → BR-041)
 
 Danh mục tra cứu toàn bộ quy tắc của hệ thống, chép theo Mục 5 của
 `docs/spec/dac-ta-ky-thuat.md` — nội dung, tên quy tắc và thứ tự mã giữ đúng như đặc tả. Mọi
@@ -49,6 +49,9 @@ Quy tắc phát biểu bằng lời. Tên cột và giá trị enum tương ứn
 | BR-036 | Đơn giá điện nước ba tầng |
 | BR-037 | Người ở và ngày kết thúc |
 | BR-038 | Mã hóa đơn và nội dung chuyển khoản |
+| BR-039 | Webhook thanh toán tới muộn |
+| BR-040 | Webhook không khớp giao dịch |
+| BR-041 | Làm tròn tiền và đơn vị lưu trữ |
 
 ---
 
@@ -227,11 +230,11 @@ viên vận hành.
 Đánh giá lưu gắn với khu trọ. Hiển thị ở hai nơi: điểm và số lượt trên tin đăng của khu, và
 toàn bộ danh sách trên trang khu công khai.
 
-Trang khu công khai **chỉ** hiện tên khu, khu vực và đánh giá — **không lộ** số phòng, doanh
-thu hay thông tin người đang ở. Người ở **viết được đánh giá bất kể khu đang bật hay tắt trang
-công khai** — đánh giá luôn được lưu. Việc bật trang khu công khai **chỉ quyết định hiển thị**:
-bật thì khu và đánh giá xuất hiện công khai; tắt thì ẩn, nhưng đánh giá vẫn giữ nguyên để bật
-lại là hiện như cũ.
+Trang khu công khai hiện tên khu, khu vực, đánh giá và **các tin đang cho thuê gắn với khu** —
+**không lộ** số phòng, doanh thu hay thông tin người đang ở. Người ở **viết được đánh giá bất
+kể khu đang bật hay tắt trang công khai** — đánh giá luôn được lưu. Việc bật trang khu công
+khai **chỉ quyết định hiển thị**: bật thì khu và đánh giá xuất hiện công khai; tắt thì ẩn,
+nhưng đánh giá vẫn giữ nguyên để bật lại là hiện như cũ.
 
 **Lý do không để việc bật công khai quyết định có nhận được đánh giá hay không:** nếu vậy, chủ
 trọ cứ để khu ở chế độ riêng tư thì không ai đánh giá được, rồi bật lên khi muốn với lý lịch
@@ -375,5 +378,42 @@ Mã QR được sinh tại máy người dùng, không gọi dịch vụ tạo �
 khoản thì không được đổi. Cắt hậu tố thì `P203-202603-2` thành `P203-202603`, trùng đúng mã
 hóa đơn thứ nhất. Cắt phần kỳ tạo ra một kỳ khác có thật, khiến chủ trọ đối chiếu nhầm tháng.
 Gọi dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của chủ trọ sang bên thứ ba.
+
+## BR-039 — Webhook thanh toán tới muộn
+
+- Giao dịch ở trạng thái `Pending` quá 15 phút mà chưa có webhook thì tác vụ định kỳ đánh
+  `Failed` — nhưng đây **chỉ để dọn giao diện**, không phải quyết định về tiền.
+- Nếu webhook báo thành công tới sau đó, hệ thống **vẫn kích hoạt quyền lợi** và cho phép
+  chuyển `Failed` → `Success`. Việc chuyển ngược này **chỉ được thực hiện qua webhook đã xác
+  thực chữ ký**, không có đường nào khác.
+- Nếu trong lúc chờ, chủ trọ đã thử lại và giao dịch thứ hai cũng thành công — tức trả tiền
+  hai lần — thì kích hoạt cả hai (cộng dồn thời hạn) và ghi nhật ký để quản trị viên hoàn
+  tiền thủ công. Hệ thống **không tự hoàn tiền**.
+
+**Lý do:** webhook có chữ ký hợp lệ nghĩa là tiền đã rời tài khoản khách. Bỏ qua nó thì khách
+mất tiền mà không nhận được gì — loại khiếu nại tệ nhất. Nguồn chân lý về việc đã thanh toán
+hay chưa luôn là cổng thanh toán, không phải tác vụ định kỳ của hệ thống.
+
+## BR-040 — Webhook không khớp giao dịch
+
+- Webhook có **chữ ký hợp lệ** nhưng mã giao dịch không khớp bản ghi nào: trả về thành công
+  cho cổng thanh toán và **ghi nhật ký cảnh báo** để người vận hành kiểm tra. Không trả lỗi.
+- Webhook có **chữ ký không hợp lệ**: từ chối ngay, ghi nhật ký. Đây có thể là yêu cầu giả mạo.
+- Hành vi gửi lại cụ thể tùy nhà cung cấp — cần đối chiếu tài liệu PayOS khi triển khai thật.
+
+**Lý do phân biệt hai ca:** cổng thanh toán thường gửi lại khi nhận lỗi. Mã không khớp thì gửi
+lại bao nhiêu lần cũng không khớp, chỉ tạo vòng lặp vô ích. Còn chữ ký sai thì phải chặn.
+
+## BR-041 — Làm tròn tiền và đơn vị lưu trữ
+
+- Chỉ số đồng hồ điện nước lưu **số nguyên** (đồng hồ thông thường hiển thị số nguyên).
+- Mọi khoản tiền lưu **số nguyên đồng**, không dùng số thực.
+- Làm tròn tới đồng gần nhất ở **từng dòng hóa đơn**; tổng hóa đơn là **tổng các dòng đã làm
+  tròn**, không phải làm tròn trên tổng.
+- Hệ thống **không tự làm tròn lên hàng nghìn**. Chủ trọ muốn làm tròn theo thói quen của mình
+  thì tự sửa dòng hóa đơn.
+
+**Lý do làm tròn từng dòng:** nếu làm tròn trên tổng, các dòng cộng lại có thể lệch tổng hiển
+thị một hai đồng. Số tiền nhỏ nhưng người ở soi thấy là mất lòng tin vào cả hóa đơn.
 
 ---

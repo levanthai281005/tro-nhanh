@@ -32,13 +32,13 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 **Định danh và quyền**
 - `SURFACES_AND_MODES.md` — **ba Surface, Mode, Capability; bảng quyết định vào được đâu.**
   Được thi hành bằng code ở `packages/access` — sửa luật thì sửa file này trước
-- `ROLES_AND_IDENTITY.md` — role cộng dồn, ba tầng định danh, JWT
+- `ROLES_AND_IDENTITY.md` — bốn vai trò (mỗi tài khoản một vai trò), ba tầng định danh, JWT
 - `ACTORS_AND_RBAC.md` — 5 actor, ma trận quyền, pipeline guard
 - `ACCESS_GATING.md` — 4 trạng thái Workspace, luồng mở Workspace
 
 **Nghiệp vụ**
 - `USER_FLOWS.md` — 11 luồng nghiệp vụ chi tiết
-- `BUSINESS_RULES.md` — BR-001 → BR-038
+- `BUSINESS_RULES.md` — BR-001 → BR-041
 - `ASSUMPTIONS.md` — AS-001 → AS-028
 
 **Dữ liệu**
