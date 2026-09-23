@@ -69,6 +69,17 @@ Tin nhu cầu thuê (`RoomWantedPost`, `RoommateWantedPost`) dùng chung tập g
 
 Client **không tự tính** trạng thái này; luôn dùng giá trị backend trả về.
 
+**`Property.waterPricingMethod`** — cách tính tiền nước của khu (BR-042)
+
+| Giá trị | Ý nghĩa | Có nhập chỉ số nước? |
+|---|---|---|
+| `PerCubicMeter` | Theo khối: (chỉ số mới − chỉ số cũ) × đơn giá | Có |
+| `PerPerson` | Theo đầu người: số người trong phòng × đơn giá mỗi người | Không |
+| `FlatRate` | Khoán cố định mỗi tháng | Không |
+
+Cài ở **cấp khu**, áp dụng cho mọi phòng trong khu. Bản ghi chỉ số giữ bản sao ở
+`UtilityReading.pricingMethod` — **đổi cách tính của khu không làm đổi hóa đơn các kỳ trước**.
+
 **`UtilityReadingSubmission.status`** (BR-033): `Pending` · `Approved` · `Rejected`.
 
 **`Incident.status`** — vòng đời sự cố (BR-035)
@@ -136,6 +147,9 @@ Không có giá trị chờ: liên kết người ở **có hiệu lực ngay** 
 - **`accessPolicy`** (giờ giấc ra vào — BR-025): `Free` · `Restricted`.
 - **`InvoiceItem.type`**: `Rent` · `Electricity` · `Water` · `Service` · `Deposit` · `Other`.
 - **`UtilityReading.type`**: `Electricity` · `Water`.
+- **`ListingCost.waterPricingMethod`** và **`UtilityReading.pricingMethod`**: dùng chung tập giá
+  trị của `Property.waterPricingMethod` (`PerCubicMeter` · `PerPerson` · `FlatRate` — BR-042).
+  Trên tin đăng là để hiển thị đúng đơn vị giá; trên bản ghi chỉ số là bản sao chốt cứng lúc ghi.
 - **`Payment.method`**: `Cash` · `BankTransfer`.
 - **`PlatformTransaction.type`**: `Boost` · `Subscription`.
 - **`Report.targetType`**: `RentalListing` · `RoomWantedPost` · `RoommateWantedPost` ·

@@ -1,4 +1,4 @@
-# Quy tắc nghiệp vụ (BR-001 → BR-041)
+# Quy tắc nghiệp vụ (BR-001 → BR-043)
 
 Danh mục tra cứu toàn bộ quy tắc của hệ thống, chép theo Mục 5 của
 `docs/spec/dac-ta-ky-thuat.md` — nội dung, tên quy tắc và thứ tự mã giữ đúng như đặc tả. Mọi
@@ -52,6 +52,8 @@ Quy tắc phát biểu bằng lời. Tên cột và giá trị enum tương ứn
 | BR-039 | Webhook thanh toán tới muộn |
 | BR-040 | Webhook không khớp giao dịch |
 | BR-041 | Làm tròn tiền và đơn vị lưu trữ |
+| BR-042 | Ba cách tính tiền nước |
+| BR-043 | Danh mục hành chính và cách lưu địa chỉ |
 
 ---
 
@@ -415,5 +417,40 @@ lại bao nhiêu lần cũng không khớp, chỉ tạo vòng lặp vô ích. C�
 
 **Lý do làm tròn từng dòng:** nếu làm tròn trên tổng, các dòng cộng lại có thể lệch tổng hiển
 thị một hai đồng. Số tiền nhỏ nhưng người ở soi thấy là mất lòng tin vào cả hóa đơn.
+
+## BR-042 — Ba cách tính tiền nước
+
+Mỗi khu trọ chọn **một** cách tính nước, đặt ở cấp khu và áp dụng cho mọi phòng trong khu:
+
+| Cách tính | Công thức | Dùng khi |
+|---|---|---|
+| Theo khối | (chỉ số mới − chỉ số cũ) × đơn giá | Phòng có đồng hồ nước riêng |
+| Theo đầu người | số người trong phòng × đơn giá mỗi người | Phổ biến nhất — cả khu dùng chung một đồng hồ |
+| Khoán cố định | một số tiền cố định mỗi tháng | Chủ trọ tính gộp cho gọn |
+
+Với hai cách sau, **không nhập chỉ số nước** — giao diện chỉ hỏi chỉ số điện. Số người trong
+phòng lấy từ **tổng nhân khẩu của các bản ghi người ở đang ở phòng đó**, không nhập tay.
+
+Cách tính được **chốt cứng vào bản ghi chỉ số** lúc ghi, cùng với đơn giá (BR-036). Đổi cách
+tính của khu không làm đổi hóa đơn các kỳ trước.
+
+Tin đăng lưu cách tính riêng để hiển thị đúng — "20.000đ mỗi người" khác hẳn "15.000đ mỗi
+khối", ghi sai là người thuê hiểu nhầm giá.
+
+**Lý do:** phần lớn nhà trọ Việt Nam dùng chung một đồng hồ nước cho cả khu và chia theo đầu
+người, hoặc tính khoán. Nếu hệ thống chỉ tính được theo khối thì module hóa đơn — điểm khác
+biệt cốt lõi của sản phẩm — không dùng được cho phần lớn chủ trọ.
+
+## BR-043 — Danh mục hành chính và cách lưu địa chỉ
+
+- Danh mục tỉnh/thành và phường/xã **gói sẵn trong mã nguồn** dùng chung cho cả ba ứng dụng,
+  **không làm endpoint riêng**. Danh mục rất ít thay đổi (lần gần nhất 01/07/2025), gói sẵn thì
+  bộ lọc phản hồi tức thì và máy chủ dùng đúng bộ dữ liệu đó để kiểm tra mã hợp lệ.
+- Địa chỉ lưu **mã** tỉnh và phường/xã để lọc, kèm **tên** và địa chỉ chi tiết để hiển thị.
+- **Tên phường/xã do máy chủ suy ra từ mã**, không nhận tên do client gửi lên.
+
+**Lý do:** nhận tên từ client thì sai chính tả hoặc tên cũ sẽ lọt vào cơ sở dữ liệu và bộ lọc
+hỏng theo. Lọc theo khu vực bằng so sánh chuỗi thì lệch một ký tự là mất kết quả; còn mã trả
+lời "đơn vị hành chính nào" một cách chuẩn xác, tên chỉ là ảnh chụp tại thời điểm đăng.
 
 ---

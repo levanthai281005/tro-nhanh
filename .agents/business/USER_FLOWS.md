@@ -38,7 +38,7 @@ nào thuộc luồng đó, để không bỏ sót bước hoặc làm sai thứ 
 
 ## Landlord ghi điện nước → hóa đơn → ghi nhận thu (luồng cốt lõi)
 1. Người ở gửi chỉ số qua kênh ngoài (thủ công).
-2. Nhập `UtilityReading` cho từng Room có Contract Active (chặn trùng theo unique roomId+type+period; chỉ số mới ≥ cũ).
+2. Nhập `UtilityReading` cho từng Room có Contract Active (chặn trùng theo unique roomId+type+period; chỉ số mới ≥ cũ). **Nước theo cách tính của khu (BR-042):** theo khối thì nhập chỉ số như điện; theo đầu người hoặc khoán thì **không nhập chỉ số** — bản ghi chốt `pricingMethod` + `occupantCount` (tổng nhân khẩu người ở đang ở phòng) + đơn giá.
 3. Tạo `Invoice` (unique theo contractId+period) + `InvoiceItem`; reading dùng cho hóa đơn được đánh dấu `invoiceId`.
 4. Xuất PDF/ảnh kèm STK + **VietQR nhúng amount + mã hóa đơn** → gửi in-app (khi Occupancy đã liên kết tài khoản) hoặc tải về gửi ngoài.
 5. Nhận tiền ngoài nền tảng → bấm "Đã thu" (đủ/một phần) → ghi `Payment` → **status Invoice suy tự động** từ ΣPayment: đủ → `Paid`; một phần trước hạn → `PartiallyPaid`; qua `dueDate` chưa đủ → job set `Overdue` (thu tiếp một phần vẫn `Overdue`, thu đủ → `Paid`).

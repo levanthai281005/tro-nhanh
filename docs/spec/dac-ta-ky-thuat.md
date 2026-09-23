@@ -539,7 +539,6 @@ nhiều khu thường muốn tách dòng tiền để dễ đối chiếu.
 được hiển thị**. Việc bật tắt chỉ quyết định hiển thị — người ở **vẫn viết được đánh giá bất kể
 khu đang bật hay tắt**, đánh giá được lưu và tích lũy dần. Tắt đi thì trang khu và điểm đánh
 giá ẩn khỏi trang công khai, nhưng đánh giá vẫn giữ nguyên — bật lại thì hiện lại như cũ.
-được giữ lại** — bật lại thì hiện lại như cũ.
 
 **Cài đặt cho từng khu:** cách tính tiền nước — theo khối, theo đầu người hay khoán cố định (BR-042); và cho phép người ở gửi chỉ số điện nước kèm ảnh đồng hồ hay không (mặc định tắt) — xem Module 9.
 

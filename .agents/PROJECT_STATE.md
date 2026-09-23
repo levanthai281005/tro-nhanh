@@ -3,9 +3,14 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: **đồng bộ đặc tả v3.5** (23/09/2026 — BR-039/040/041 và BR-024 mới, xem
-mục "Đã xong"). Trước đó: **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
+Cập nhật lần cuối: **đồng bộ đặc tả v3.6** (23/09/2026 — BR-042/043, bốn khoảng trống dữ liệu đã
+chốt; **bộ tài liệu đóng băng sau đợt này**, xem mục "Đã xong"). Trước đó: **đồng bộ đặc tả v3.5**
+(BR-039/040/041 và BR-024), **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
 **B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
+
+> **Tài liệu đã đóng băng.** Việc tiếp theo là **viết code**, không sửa tài liệu nữa — trừ khi
+> dựng thật rồi phát hiện tài liệu sai. Phát hiện sai thì sửa kèm lý do, không sửa vì "đọc thấy
+> nên viết khác".
 
 **Bắt đầu phiên mới:** đọc mục "Đang làm" bên dưới. Khu Workspace đã có 7 route chạy được:
 `/chu-tro/khu-tro` (B6) · `/chu-tro/khu-tro/{id}` (B7) · `/chu-tro/khu-tro/{id}/phong` (B8) ·
@@ -308,6 +313,28 @@ ngày — cần lâu hơn thì chia nhỏ.
         `VALIDATION_RULES` gắn ba mã mới vào ràng buộc: `UtilityReading` (chỉ số số nguyên) và
         `Invoice` (tổng = Σ dòng **đã làm tròn**) dẫn BR-041; `PlatformTransaction` dẫn
         BR-039/BR-040.
+      - 23/09/2026 — **đồng bộ đặc tả v3.6** xong, **đợt cuối — tài liệu đóng băng**: bốn khoảng
+        trống dữ liệu mở lâu nay ở `BACKEND_PROPOSALS.md` đã chốt vào đặc tả. `BUSINESS_RULES`
+        thêm **BR-042** (ba cách tính nước: theo khối / theo đầu người / khoán cố định; cài ở
+        **cấp khu**; hai cách sau không nhập chỉ số; cách tính + đơn giá + số người **chốt cứng
+        vào bản ghi chỉ số**) và **BR-043** (danh mục hành chính **gói sẵn trong mã nguồn**, cả
+        ba app dùng chung, **không làm endpoint**; tên phường/xã do máy chủ suy từ mã).
+        `DATA_ENTITIES` thêm `RentalListing.latitude/longitude` (rỗng được),
+        `Room.maxOccupants`, `Property.waterPricingMethod` (nguồn chính),
+        `ListingCost.waterPricingMethod` (hiển thị trên tin), `UtilityReading.pricingMethod` +
+        `occupantCount`, và `UtilityReading.currentReading` **thành nullable**. `STATUS_ENUMS`
+        thêm enum `PerCubicMeter/PerPerson/FlatRate`. `VALIDATION_RULES` thêm `maxOccupants > 0`,
+        ràng buộc **Địa chỉ** (mã phải có trong danh mục gói sẵn, tên suy ở server) và điều kiện
+        chỉ số nước theo cách tính. `FEATURE_MODULES` (M3/M5/M6/M9), `SCREENS_WORKSPACE`
+        (B7 cài đặt khu, B9 `maxOccupants`, B12 ẩn ô chỉ số nước), `USER_FLOWS` 4.6 và
+        `TEST_CASES` §1.7 (9 ca cho ba cách tính nước) theo đó.
+        **Hai mục chuyển sang hoãn:** `otherFees` (quan hệ một-nhiều, chưa xứng chi phí cấu trúc;
+        ô nhập ở B5 vẫn còn nhưng không có chỗ lưu) và **đếm lượt xem tin** (phải chọn giữa cột
+        đếm và bảng sự kiện — quyết trên số liệu thật khi dựng `AnalyticsModule`; lượt liên hệ
+        thì suy được từ `ContactEvent` sẵn có). **Đề xuất endpoint `GET /public/wards` bị bác** —
+        ghi rõ trong `BACKEND_PROPOSALS.md` để không ai dựng lại.
+        Sửa **một chỗ trong đặc tả** (được chủ dự án cho phép): xóa mảnh câu lơ lửng
+        `được giữ lại** — bật lại thì hiện lại như cũ.` sót lại ở Module 5, không đụng gì khác.
       - **Tồn đọng sau nhóm 6 đã hết:** v3.5 sửa BR-024 theo hướng `SCREENS_PUBLIC` A4 vốn
         đang ghi — trang khu công khai **có** tin đang cho thuê của khu. A4 giữ nguyên,
         `BUSINESS_RULES` chép lại theo bản mới. Thuật ngữ vai trò còn sót trong tiêu đề mục

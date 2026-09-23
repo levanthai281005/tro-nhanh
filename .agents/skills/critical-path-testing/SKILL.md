@@ -9,7 +9,7 @@ Lát cắt chạm một trong bốn vùng dưới đây thì **test viết trong
 
 | Vùng | Hỏng thì sao | Quy tắc gốc |
 |---|---|---|
-| Tính tiền điện nước và hóa đơn | Sai số tiền thật giữa chủ trọ và người ở | BR-004, BR-036, BR-038, BR-041 |
+| Tính tiền điện nước và hóa đơn | Sai số tiền thật giữa chủ trọ và người ở | BR-004, BR-036, BR-038, BR-041, BR-042 |
 | Lọc dữ liệu theo chủ sở hữu | Chủ trọ thấy dữ liệu của chủ trọ khác | BR-007, BR-008, BR-034 |
 | Kiểm tra quyền theo gói dịch vụ | Mất doanh thu gói, hoặc khóa nhầm phần miễn phí | BR-015 |
 | Chống trùng khi cổng thanh toán gọi lại | Tính phí trùng, cộng quyền lợi hai lần | BR-039, BR-040, AS-026 |

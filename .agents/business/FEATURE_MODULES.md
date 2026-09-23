@@ -16,7 +16,7 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Chức năng con:** cập nhật tên, avatar, SĐT liên hệ, email (tùy chọn); cài đặt hiển thị dashboard (BR-012). Thông tin nhận tiền đặt theo Property (Module 5), không ở Profile. `contactPhone` chưa đặt → prefill bằng `phoneNumber` tài khoản.
 
 ## Module 3 — Rental Listing Management `[MKT]`
-- **Chức năng con:** tạo tin nhiều bước (cơ bản; tiện ích & mô tả; ảnh ≥ 3; chi phí; tiện ích xung quanh; giờ giấc; **[nếu Landlord có Property] bước tùy chọn "Tin này thuộc khu trọ nào?"** — gắn `propertyId` để tin nhận badge đánh giá khu); lưu Draft; gửi duyệt; sửa/ẩn/xóa (xóa mềm); **gia hạn** (BR-026); boost (BR-005, cấu hình boost do Admin đặt: `boostPrice`, `boostDays`; chỉ boost tin Active); tạo tin từ Room trống (prefill, gắn sẵn `roomId` + `propertyId`); xem tin của tôi.
+- **Chức năng con:** tạo tin nhiều bước (cơ bản; tiện ích & mô tả; ảnh ≥ 3; chi phí — gồm **cách tính tiền nước** để tin hiển thị đúng đơn vị giá, BR-042; tiện ích xung quanh; **toạ độ sinh bằng geocoding từ địa chỉ lúc đăng, được rỗng** — AS-018; giờ giấc; **[nếu Landlord có Property] bước tùy chọn "Tin này thuộc khu trọ nào?"** — gắn `propertyId` để tin nhận badge đánh giá khu); lưu Draft; gửi duyệt; sửa/ẩn/xóa (xóa mềm); **gia hạn** (BR-026); boost (BR-005, cấu hình boost do Admin đặt: `boostPrice`, `boostDays`; chỉ boost tin Active); tạo tin từ Room trống (prefill, gắn sẵn `roomId` + `propertyId`); xem tin của tôi.
 - **Rule:** vòng đời BR-001; thời hạn hiển thị & gia hạn BR-026; sửa trường quan trọng phải duyệt lại — **tin ẩn tạm trong lúc chờ duyệt lại, UI cảnh báo trước khi lưu** (BR-003); đồng bộ với Room (BR-027); validation `propertyId`/`roomId` phải thuộc chính `landlordId`.
 
 ## Module 4 — Demand Posts — Tin của người tìm thuê `[MKT]`
@@ -24,11 +24,11 @@ thuộc feature folder nào trong `apps/web/src/features`.
 - **Rule:** hiển thị 30 ngày → tự `Expired`, gia hạn +30 ngày **không cần duyệt lại nếu không sửa** (BR-009); tối đa 2 tin Active mỗi loại (BR-010); qua kiểm duyệt như tin cho thuê (BR-001).
 
 ## Module 5 — Property/Khu trọ Management `[SaaS]`
-- **Chức năng con:** tạo/sửa/xóa Property; cấu hình nhận tiền (ngân hàng, STK, tên chủ TK → VietQR); bật/tắt hồ sơ khu public (`isPublicProfileEnabled`, opt-in); danh sách Property kèm tổng phòng & phòng trống.
+- **Chức năng con:** tạo/sửa/xóa Property; đơn giá mặc định của khu (điện, nước, phí dịch vụ — BR-036); **cài đặt cách tính tiền nước của khu** (`waterPricingMethod`: theo khối / theo đầu người / khoán cố định — BR-042, áp dụng cho mọi phòng trong khu); bật/tắt cho người ở gửi chỉ số (`allowOccupantMeterSubmission`, mặc định tắt — Module 9); cấu hình nhận tiền (ngân hàng, STK, tên chủ TK → VietQR); bật/tắt hồ sơ khu public (`isPublicProfileEnabled`, opt-in); danh sách Property kèm tổng phòng & phòng trống.
 - **Rule:** không xóa Property còn Room Rented/Deposited hoặc Contract Active (BR-011); hạn mức theo gói (BR-015); gating (BR-013). Tắt public/xóa mềm Property → trang khu và badge **ẩn**, review **giữ trong DB** (bật lại thì hiện lại) — BR-024.
 
 ## Module 6 — Room Management `[SaaS]`
-- **Chức năng con:** thêm/sửa/xóa Room (mã phòng, tầng, diện tích, giá, tiện ích, giờ giấc, ghi chú); đổi trạng thái; lọc; "Tạo tin đăng" cho Room Available (Room đang có tin Active gắn với nó → hiện badge "Có tin đang chạy", **chặn tạo tin thứ hai** từ cùng Room).
+- **Chức năng con:** thêm/sửa/xóa Room (mã phòng, tầng, diện tích, giá, **số người ở tối đa `maxOccupants`** — tùy chọn, đơn giá riêng đè giá khu, tiện ích, giờ giấc, ghi chú); đổi trạng thái; lọc; "Tạo tin đăng" cho Room Available (Room đang có tin Active gắn với nó → hiện badge "Có tin đang chạy", **chặn tạo tin thứ hai** từ cùng Room).
 - **Rule:** trạng thái BR-002 + đồng bộ với Contract (BR-031) và Listing (BR-027); `roomCode` unique trong Property; xóa Room chỉ khi không có Contract Active.
 
 ## Module 7 — Occupancy Management (Quản lý người ở) `[SaaS]`
@@ -44,6 +44,7 @@ thuộc feature folder nào trong `apps/web/src/features`.
 
 ## Module 9 — Payment/Invoice/Utility Tracking `[SaaS]`
 - **Luồng chuẩn:** người ở gửi chỉ số qua kênh ngoài (thủ công — AS-009) → chủ trọ nhập `UtilityReading` → hệ thống tính tiền (điện = (mới − cũ) × đơn giá) → `Invoice` + `InvoiceItem` → xuất (ảnh/PDF) kèm STK + **VietQR nhúng số tiền + mã hóa đơn** → gửi (in-app nếu Occupancy đã liên kết tài khoản + Notification `InvoiceReceived`; hoặc tải về gửi ngoài) → chủ trọ bấm "Đã thu" → ghi `Payment`.
+- **Ba cách tính tiền nước (BR-042):** khu chọn một cách ở `Property.waterPricingMethod` — **theo khối** ((mới − cũ) × đơn giá), **theo đầu người** (số người trong phòng × đơn giá mỗi người), hoặc **khoán cố định**. Hai cách sau **không nhập chỉ số nước** (form chỉ hỏi chỉ số điện) và số người lấy từ **tổng nhân khẩu các `Occupancy` đang ở phòng**, không nhập tay. Bản ghi chỉ số chốt cứng `pricingMethod` + `occupantCount` + `unitPrice` lúc ghi, nên đổi cách tính của khu không làm đổi hóa đơn kỳ trước (BR-036).
 - **Luồng tùy chọn — người ở gửi chỉ số trong app:** nếu khu bật `Property.allowOccupantMeterSubmission` (mặc định **tắt**), người ở gửi số kèm **ảnh đồng hồ** → tạo `UtilityReadingSubmission` (trạng thái `Pending`) → chủ trọ xem ảnh rồi **xác nhận hoặc sửa số** → chỉ khi xác nhận mới sinh `UtilityReading` chính thức và luồng hóa đơn chạy tiếp như trên. Số người ở gửi được lưu lại kể cả khi chủ sửa, để đối chiếu khi tranh chấp (BR-033).
 - **Rule:** trạng thái Invoice BR-004 (trạng thái **suy tự động từ Σ Payment so với `totalAmount`**; đường ra khỏi Overdue: thu đủ → `Paid`, thu một phần → vẫn `Overdue`); unique **`Invoice(contractId, period)`** — cho phép 2 hóa đơn cùng phòng cùng tháng khi đổi người giữa kỳ; unique **`UtilityReading(roomId, type, period)`** + field `invoiceId` đánh dấu đã lên hóa đơn nào; quá hạn → job Overdue + Notification. **Tiền cọc** (`Contract.deposit`) ghi nhận như một `InvoiceItem` `type=Deposit` trong hóa đơn kỳ đầu — nền tảng chỉ ghi nhận, không giữ tiền (AS-002). Nền tảng không xử lý dòng tiền (AS-002).
 

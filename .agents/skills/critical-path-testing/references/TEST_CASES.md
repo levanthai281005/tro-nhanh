@@ -24,7 +24,7 @@ tiền của hóa đơn tháng trước.
 | Ca | Kỳ vọng |
 |---|---|
 | Tiêu thụ | Đúng bằng chỉ số mới trừ chỉ số cũ |
-| Chỉ số mới nhỏ hơn chỉ số cũ | Bị chặn ngay ở schema |
+| Chỉ số mới nhỏ hơn chỉ số cũ | Bị chặn ngay ở schema (điện, và nước khi tính theo khối — xem 1.7) |
 | Ghi hai lần cùng phòng, cùng loại, cùng kỳ | Bị chặn (unique), trả 409 |
 | Kỳ mới | Chỉ số cũ lấy đúng chỉ số mới của kỳ liền trước |
 | Chỉ số người ở gửi lên (BR-033) | Chưa phải chỉ số chính thức, không vào hóa đơn |
@@ -78,6 +78,22 @@ tiền của hóa đơn tháng trước.
 | Nội dung chuyển khoản | Không bao giờ vượt 25 ký tự |
 | Mã phòng dài | Rút phần mã phòng; **không cắt kỳ, không cắt hậu tố** |
 | Mã phòng có dấu tiếng Việt | Bỏ dấu |
+
+### 1.7 Ba cách tính tiền nước (BR-042)
+
+> Cách tính đặt ở **cấp khu**; bản ghi chỉ số chốt cứng cách tính, đơn giá và số người lúc ghi.
+
+| Ca | Kỳ vọng |
+|---|---|
+| Khu tính theo khối | Tiền nước = (mới − cũ) × đơn giá; chỉ số nước **bắt buộc** |
+| Khu tính theo đầu người | Tiền nước = số người × đơn giá mỗi người; **không nhận chỉ số nước** |
+| Khu tính khoán | Tiền nước = số tiền cố định; không nhận chỉ số, không nhân số người |
+| Số người dùng để tính | Lấy từ **tổng nhân khẩu các bản ghi người ở đang ở phòng**, không nhận từ request |
+| Người ở chuyển vào/rời đi giữa kỳ | Số người chốt trong bản ghi chỉ số của kỳ đó, kỳ sau tính lại |
+| Đổi cách tính của khu sau khi đã ghi kỳ trước | Hóa đơn kỳ đã ghi **giữ nguyên** cách tính và số tiền cũ |
+| Tính tiền cho một bản ghi chỉ số | Đọc cách tính từ **chính bản ghi**, không tra ngược lên khu |
+| Khu theo đầu người mà phòng không còn bản ghi người ở nào | Báo lỗi rõ ràng thay vì **lặng lẽ ra 0 đồng** (đặc tả chưa chốt cách xử lý — quyết định khi dựng `InvoiceModule`, ghi lại vào đặc tả) |
+| Tin đăng của khu | Hiển thị đúng đơn vị: "đồng/người" hay "đồng/khối" hay "khoán" |
 
 `packages/utils/src/invoiceNote.ts` đã có sẵn logic này kèm test. Backend **dùng lại hàm đó**;
 viết hàm cắt chuỗi thứ hai trong `apps/api` là tạo ra hai cách cắt khác nhau cho cùng một mã.
