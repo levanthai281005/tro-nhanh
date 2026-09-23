@@ -541,8 +541,7 @@ khu đang bật hay tắt**, đánh giá được lưu và tích lũy dần. T�
 giá ẩn khỏi trang công khai, nhưng đánh giá vẫn giữ nguyên — bật lại thì hiện lại như cũ.
 được giữ lại** — bật lại thì hiện lại như cũ.
 
-**Chức năng bật tắt cho từng khu:** cho phép người ở gửi chỉ số điện nước kèm ảnh đồng hồ hay
-không (mặc định tắt) — xem Module 9.
+**Cài đặt cho từng khu:** cách tính tiền nước — theo khối, theo đầu người hay khoán cố định (BR-042); và cho phép người ở gửi chỉ số điện nước kèm ảnh đồng hồ hay không (mặc định tắt) — xem Module 9.
 
 **Ràng buộc:** không xóa được khu còn phòng đang cho thuê, đang giữ cọc, hoặc còn hợp đồng
 hiệu lực. Số khu và số phòng tối đa phụ thuộc gói dịch vụ đã mua.
@@ -658,7 +657,17 @@ Số điện tiêu thụ = Chỉ số mới − Chỉ số cũ
 Tiền điện = Số điện tiêu thụ × Đơn giá điện của khu
 ```
 
-Nước tính theo đúng cách đó với đơn giá nước riêng.
+**Nước có ba cách tính**, vì nhà trọ Việt Nam không tính nước giống nhau. Chủ trọ chọn cách
+cho từng khu trọ:
+
+| Cách tính | Công thức | Dùng khi |
+|---|---|---|
+| **Theo khối** | `(Chỉ số mới − Chỉ số cũ) × Đơn giá nước` | Phòng có đồng hồ nước riêng |
+| **Theo đầu người** | `Số người trong phòng × Đơn giá nước mỗi người` | Phổ biến nhất — cả khu dùng chung một đồng hồ |
+| **Khoán cố định** | Một số tiền cố định mỗi tháng | Chủ trọ tính gộp cho gọn |
+
+Với hai cách sau thì **không cần nhập chỉ số nước**; hệ thống chỉ hỏi chỉ số điện. Số người
+trong phòng lấy từ tổng số nhân khẩu của các bản ghi người ở đang ở phòng đó.
 
 **Đơn giá lấy theo ba tầng, tầng dưới đè tầng trên:**
 
@@ -1141,6 +1150,8 @@ năng ở trên đều có dòng "Quy tắc áp dụng" trỏ về đây.
 | BR-039 | Webhook thanh toán tới muộn |
 | BR-040 | Webhook không khớp giao dịch |
 | BR-041 | Làm tròn tiền và đơn vị lưu trữ |
+| BR-042 | Ba cách tính tiền nước |
+| BR-043 | Danh mục hành chính và cách lưu địa chỉ |
 
 ---
 
@@ -1433,7 +1444,7 @@ Ba tầng, tầng dưới đè tầng trên:
 | 2 | Phòng | Giá riêng của phòng; để trống thì dùng giá của khu |
 | 3 | Bản ghi chỉ số | **Chốt cứng lúc ghi** — chép đơn giá đang áp dụng vào chính bản ghi, không bao giờ đọc ngược lên hai tầng trên |
 
-Sửa giá ở tầng 1 hay 2 về sau chỉ ảnh hưởng các kỳ ghi sau.
+Sửa giá ở tầng 1 hay 2 về sau chỉ ảnh hưởng các kỳ ghi sau. Cách tính nước cũng được chốt cứng vào bản ghi chỉ số theo đúng cơ chế này (BR-042).
 
 Ở cấp phòng, **để trống nghĩa là dùng giá của khu; số 0 nghĩa là miễn phí**. Giao diện không
 được hiển thị ô trống thành "chưa cấu hình".
@@ -1497,6 +1508,31 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
   thì tự sửa dòng hóa đơn.
 - **Lý do làm tròn từng dòng:** nếu làm tròn trên tổng, các dòng cộng lại có thể lệch tổng hiển
   thị một hai đồng. Số tiền nhỏ nhưng người ở soi thấy là mất lòng tin vào cả hóa đơn.
+
+### BR-042 — Ba cách tính tiền nước
+
+- Mỗi khu trọ chọn **một** cách tính nước: **theo khối**, **theo đầu người**, hoặc **khoán cố
+  định**. Cài đặt ở cấp khu, áp dụng cho mọi phòng trong khu.
+- Theo khối: `(chỉ số mới − chỉ số cũ) × đơn giá`. Theo đầu người: `số người trong phòng ×
+  đơn giá mỗi người`. Khoán: một số tiền cố định mỗi tháng.
+- Với hai cách sau, **không nhập chỉ số nước**. Số người lấy từ tổng nhân khẩu của các bản ghi
+  người ở đang ở phòng đó.
+- Cách tính được **chốt cứng vào bản ghi chỉ số** lúc ghi, cùng với đơn giá (BR-036). Đổi cách
+  tính của khu không làm đổi hóa đơn các kỳ trước.
+- Tin đăng lưu cách tính riêng để hiển thị đúng — "20.000đ mỗi người" khác hẳn "15.000đ mỗi
+  khối", ghi sai là người thuê hiểu nhầm giá.
+- **Lý do:** phần lớn nhà trọ Việt Nam dùng chung một đồng hồ nước cho cả khu và chia theo đầu
+  người, hoặc tính khoán. Nếu hệ thống chỉ tính được theo khối thì module hóa đơn — điểm khác
+  biệt cốt lõi của sản phẩm — không dùng được cho phần lớn chủ trọ.
+
+### BR-043 — Danh mục hành chính và cách lưu địa chỉ
+
+- Danh mục tỉnh/thành và phường/xã **gói sẵn trong mã nguồn** dùng chung cho cả ba ứng dụng,
+  không làm endpoint riêng. Lý do: danh mục rất ít thay đổi (lần gần nhất 01/07/2025), gói sẵn
+  thì bộ lọc phản hồi tức thì và backend dùng đúng bộ dữ liệu đó để kiểm tra mã hợp lệ.
+- Địa chỉ lưu **mã** tỉnh và phường/xã để lọc, kèm **tên** và địa chỉ chi tiết để hiển thị.
+- **Tên phường/xã do máy chủ suy ra từ mã**, không nhận tên do client gửi lên. Nhận tên từ
+  client thì sai chính tả hoặc tên cũ sẽ lọt vào cơ sở dữ liệu và bộ lọc hỏng theo.
 ---
 
 ## 6. DANH SÁCH DỮ LIỆU (37 entity)
@@ -1512,19 +1548,19 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **AuthMethod** | Cách đăng nhập của một tài khoản | `userId`, `provider` (Password/Google/…), `secretHash` (null với đăng nhập bên thứ ba), `providerUserId` (null), `linkedAt`; unique (`userId`, `provider`) | n-1 User |
 | **Profile** | Hồ sơ | `userId`, `fullName`, `avatarUrl`, `contactPhone`, `displaySettings` (jsonb) | 1-1 User |
 | **RefreshToken** | Phiên đăng nhập | `userId`, `tokenHash`, `expiresAt`, `revokedAt` (null) | n-1 User |
-| **RentalListing** | Tin cho thuê | `landlordId`, `typeId`, `propertyId` (null — gắn để hiện điểm đánh giá khu và bật đồng bộ chống tin ảo), `roomId` (null), `title`, `provinceCode` + `wardCode` (**mã hành chính, dùng để lọc**), `wardName` + `addressDetail` (**dùng để hiển thị**), `area`, `price`, `description`, `accessPolicy` (Free/Restricted), `accessOpenTime`/`accessCloseTime` (null), `contactPhone`, `status`, `rejectReason` (null), `approvedAt` (null), `expireAt` (= approvedAt + 60 ngày), `boostExpireAt` (null — **trạng thái đẩy tin suy từ cột này**, không giữ cờ riêng) | n-1 User/ListingType/Property(null)/Room(null); 1-1 ListingCost; 1-n ListingNearbyPlace/Media/Favorite/Report/Conversation/ContactEvent; n-n Amenity |
+| **RentalListing** | Tin cho thuê | `landlordId`, `typeId`, `propertyId` (null — gắn để hiện điểm đánh giá khu và bật đồng bộ chống tin ảo), `roomId` (null), `title`, `provinceCode` + `wardCode` (**mã hành chính, dùng để lọc**), `wardName` + `addressDetail` (**dùng để hiển thị**), `latitude` + `longitude` (null — dùng cho bản đồ, AS-018), `area`, `price`, `description`, `accessPolicy` (Free/Restricted), `accessOpenTime`/`accessCloseTime` (null), `contactPhone`, `status`, `rejectReason` (null), `approvedAt` (null), `expireAt` (= approvedAt + 60 ngày), `boostExpireAt` (null — **trạng thái đẩy tin suy từ cột này**, không giữ cờ riêng) | n-1 User/ListingType/Property(null)/Room(null); 1-1 ListingCost; 1-n ListingNearbyPlace/Media/Favorite/Report/Conversation/ContactEvent; n-n Amenity |
 | **ListingType** | Danh mục loại hình cho thuê | `code` (unique), `name`, `description` | 1-n RentalListing |
-| **ListingCost** | Các khoản chi phí của một tin | `listingId` (unique — quan hệ một-một), `electricityBill`, `waterBill`, `serviceFee`, `deposit` | 1-1 RentalListing |
+| **ListingCost** | Các khoản chi phí của một tin | `listingId` (unique — quan hệ một-một), `electricityBill`, `waterBill`, `waterPricingMethod` (để tin hiển thị đúng "20.000đ/người" hay "15.000đ/khối"), `serviceFee`, `deposit` | 1-1 RentalListing |
 | **ListingNearbyPlace** | Tiện ích xung quanh tin đăng | `listingId`, `type` (trường học/chợ/siêu thị/bến xe…), `description`, `distance` (km) | n-1 RentalListing |
 | **RoomWantedPost** | Tin tìm phòng | `tenantId`, `desiredWards` (jsonb — danh sách mã phường/xã), `priceMin/priceMax`, `typeId`, `minArea`, `desiredAmenities` (jsonb), `moveInDate`, `description`, `status`, `expireAt` | n-1 User; 1-n Conversation/Report |
 | **RoommateWantedPost** | Tin ở ghép | `tenantId`, `currentAddress`, `wardName` + `provinceCode` + `wardCode`, `sharePrice`, `neededCount`, `genderRequirement`, `requirements`, `status`, `expireAt` | n-1 User; 1-n Media/Conversation/Report |
-| **Property** | Khu trọ + nhận tiền + hồ sơ public | `landlordId`, `name`, `address`, `wardName` + `provinceCode` + `wardCode`, `floorCount`, `note`, `bankName/bankAccountNumber/bankAccountName` (null), `isPublicProfileEnabled` (mặc định false), `publicSlug` (unique, null), `avgRating` (null), `reviewCount` (mặc định 0), `allowOccupantMeterSubmission` (mặc định false), **`electricityUnitPrice`, `waterUnitPrice`, `serviceFee`** (đơn giá mặc định của khu) | n-1 User; 1-n Room/Review |
-| **Room** | Phòng | `propertyId`, `roomCode` (unique trong property), `floor`, `area`, `price`, `status`, `accessPolicy`, `accessOpenTime/CloseTime`, `note`, **`electricityPrice`, `waterPrice`, `servicePrice`** (nullable — để trống thì dùng giá của khu; `0` nghĩa là miễn phí)  | n-1 Property; n-n Amenity; 1-n Occupancy/Contract/Invoice/UtilityReading; 0-n RentalListing |
+| **Property** | Khu trọ + nhận tiền + hồ sơ public | `landlordId`, `name`, `address`, `wardName` + `provinceCode` + `wardCode`, `floorCount`, `note`, `bankName/bankAccountNumber/bankAccountName` (null), `isPublicProfileEnabled` (mặc định false), `publicSlug` (unique, null), `avgRating` (null), `reviewCount` (mặc định 0), `allowOccupantMeterSubmission` (mặc định false), **`electricityUnitPrice`, `waterUnitPrice`, `serviceFee`** (đơn giá mặc định của khu), **`waterPricingMethod`** (PerCubicMeter/PerPerson/FlatRate — cách tính nước của khu, BR-042) | n-1 User; 1-n Room/Review |
+| **Room** | Phòng | `propertyId`, `roomCode` (unique trong property), `floor`, `area`, `price`, `status`, `accessPolicy`, `accessOpenTime/CloseTime`, `note`, **`electricityPrice`, `waterPrice`, `servicePrice`** (nullable — để trống thì dùng giá của khu; `0` nghĩa là miễn phí), `maxOccupants` (null — số người ở tối đa)  | n-1 Property; n-n Amenity; 1-n Occupancy/Contract/Invoice/UtilityReading; 0-n RentalListing |
 | **Occupancy** | Người ở thực tế | `roomId`, `userId` (null khi chưa liên kết tài khoản), `fullName`, `phoneNumber`, `startDate`, `endDate` (null; **ngày đầu tiên không còn ở**), `occupantCount` (số nhân khẩu của bản ghi này), `isPrimary` (người đại diện đứng hợp đồng), `note` | n-1 Room; n-1 User (null) |
 | **Contract** | Hợp đồng | `roomId`, `occupancyId` (đại diện), `startDate`, `endDate`, `rentPrice`, `deposit`, `status`, `terminateReason` | n-1 Room/Occupancy; 1-n Media (scan); tối đa 1 Review |
 | **Invoice** | Hóa đơn kỳ | `roomId`, `contractId`, `invoiceCode` (**unique, sinh một lần lúc tạo, không bao giờ đổi** — BR-038), `period` (YYYY-MM), `dueDate`, `totalAmount`, `status`; **unique (contractId, period)** | n-1 Room/Contract; 1-n InvoiceItem/Payment/Media |
 | **InvoiceItem** | Dòng hóa đơn | `invoiceId`, `type` (Rent/Electricity/Water/Service/Deposit/Other), `description`, `quantity`, `unitPrice`, `amount` | n-1 Invoice |
-| **UtilityReading** | Chỉ số điện nước | `roomId`, `type` (Electricity/Water), `period`, `previousReading`, `currentReading`, `unitPrice`, **`invoiceId` (null — đánh dấu đã lên hóa đơn)**; **unique (roomId, type, period)** | n-1 Room; n-1 Invoice (null) |
+| **UtilityReading** | Chỉ số điện nước | `roomId`, `type` (Electricity/Water), `period`, `previousReading`, `currentReading` (null khi nước không tính theo khối), `unitPrice`, `pricingMethod` (**chốt cứng lúc ghi** cùng đơn giá — BR-036, BR-042), `occupantCount` (null — số người dùng để tính khi tính theo đầu người), **`invoiceId` (null — đánh dấu đã lên hóa đơn)**; **unique (roomId, type, period)** | n-1 Room; n-1 Invoice (null) |
 | **Payment** | Ghi nhận thu **tiền thuê** (tay) | `invoiceId` (bắt buộc), `amount`, `method` (Cash/BankTransfer), `paidAt`, `note` | n-1 Invoice |
 | **PlatformTransaction** | Giao dịch **phí nền tảng** qua cổng thanh toán — dùng chung cho cả đẩy tin và gói dịch vụ | `landlordId`, `type` (Boost/Subscription), `listingId` (null), `boostPackageId` (null), `userSubscriptionId` (null), `amount`, `paymentMethod`, `status` (Pending/Success/Failed), `gatewayTxnId` (null), `idempotencyKey` (unique), `paidAt` (null) | n-1 User; n-1 RentalListing/BoostPackage/UserSubscription (tùy loại) |
 | **BoostPackage** | Danh mục gói đẩy tin | `code` (unique), `name`, `description`, `durationDays`, `price`, `isActive` | 1-n PlatformTransaction |
@@ -1701,12 +1737,13 @@ GET /admin/dashboard
 - **Số điện thoại** đúng định dạng Việt Nam và duy nhất toàn hệ thống; **mật khẩu** tối thiểu 8 ký tự.
 - **RentalListing:** tiêu đề 10–120 ký tự; giá > 0; ảnh ≥ 3; `accessPolicy=Restricted` bắt buộc `accessOpenTime/CloseTime`; **`propertyId`/`roomId` (nếu có) phải thuộc chính `landlordId`**; nội dung qua lọc từ khóa cấm khi gửi duyệt.
 - **Property:** bật public phải có `name` + `wardName` + `provinceCode` + `wardCode`; `publicSlug` tự sinh, unique. Nhận tiền: STK chỉ số; `bankAccountName` IN HOA không dấu (VietQR hợp lệ).
-- **Room:** `roomCode` unique trong Property; giá ≥ 0; diện tích > 0.
+- **Room:** `roomCode` unique trong Property; giá ≥ 0; diện tích > 0; `maxOccupants` > 0 nếu có.
+- **Địa chỉ:** `provinceCode` và `wardCode` phải có trong danh mục gói sẵn; tên phường/xã do máy chủ suy ra, không nhận từ client (BR-043).
 - **UtilityReadingSubmission:** `submittedValue ≥ previousReading` của kỳ trước; **ảnh đồng hồ bắt buộc**; mỗi (room, type, period) chỉ một submission `Pending`.
 - **Báo cáo sự cố:** tiêu đề 5–120 ký tự; mô tả tối đa 2.000 ký tự; tối đa 5 ảnh; chỉ tạo được khi đang ở phòng (đã rời đi thì không gửi mới).
 - **Người ở:** ngày kết thúc không sớm hơn ngày bắt đầu; số điện thoại bắt buộc; tên bắt buộc khi chưa liên kết tài khoản.
 - **Contract:** `endDate > startDate`; chặn Contract Active thứ hai và chồng lấn thời gian trên cùng Room (409).
-- **UtilityReading:** chỉ số lưu **số nguyên** (BR-041); `currentReading ≥ previousReading`; `unitPrice ≥ 0`; unique (roomId, type, period).
+- **UtilityReading:** chỉ số lưu **số nguyên** (BR-041); `currentReading ≥ previousReading` khi nước tính theo khối, bỏ trống khi tính theo đầu người hoặc khoán (BR-042); `unitPrice ≥ 0`; unique (roomId, type, period).
 - **Invoice:** `period` đúng `YYYY-MM`; tổng = Σ InvoiceItem **đã làm tròn** (BR-041); unique (contractId, period); `invoiceCode` unique, không sửa được sau khi tạo. VietQR sinh kèm amount + addInfo = `invoiceCode`, tối đa 25 ký tự — rút phần mã phòng trước, không cắt phần kỳ và không cắt hậu tố.
 - **Payment:** `amount > 0`; Σ Payment không vượt `totalAmount`.
 - **PlatformTransaction:** `idempotencyKey` unique; webhook verify chữ ký gateway; xử lý webhook idempotent (nhận trùng không kích hoạt trùng); `Failed` → `Success` chỉ qua webhook đã xác thực (BR-039); webhook chữ ký hợp lệ mà không khớp giao dịch thì trả thành công kèm cảnh báo (BR-040).
