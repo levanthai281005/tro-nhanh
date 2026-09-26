@@ -1,13 +1,29 @@
 import { z } from 'zod';
 import {
   ACCESS_POLICY_VALUES,
+  LISTING_MIN_PHOTOS,
   listingAreaSchema,
-  listingMediaSchema,
-  listingPhoneSchema,
   listingPriceSchema,
   listingTitleSchema,
-  PROPERTY_TYPE_VALUES,
+  vnPhoneSchema,
 } from '@tronhanh/schemas';
+
+/**
+ * TODO(B5): loại hình cho thuê nay là **danh mục do quản trị viên quản lý** (`ListingType`,
+ * Module 3) — tin mang `typeId`, bộ lọc đi bằng `code`. Ba giá trị dưới đây là bản tạm để màn
+ * đăng tin còn chạy được với dữ liệu mock; khi nối API danh mục thì bỏ hẳn, không đưa trở lại
+ * `@tronhanh/schemas`.
+ */
+const LEGACY_PROPERTY_TYPE_VALUES = ['BoardingRoom', 'ServicedApartment', 'Apartment'] as const;
+
+/**
+ * TODO(B5): tin đăng thật gắn ảnh bằng `mediaIds` (ảnh upload trước qua `POST /media/upload`),
+ * xem `listingMediaIdsSchema`. Form đang giữ đường dẫn ảnh mock nên kiểm theo đường dẫn, chỉ
+ * dùng chung **số ảnh tối thiểu**.
+ */
+const photoUrlsSchema = z
+  .array(z.string().min(1))
+  .min(LISTING_MIN_PHOTOS, `Cần ít nhất ${LISTING_MIN_PHOTOS} ảnh của phòng`);
 
 /**
  * Schema theo từng bước của form đăng tin.
@@ -42,7 +58,7 @@ const requiredAmount = (message: string) =>
     .pipe(z.number({ invalid_type_error: message }).positive(message));
 
 export const locationStepSchema = z.object({
-  propertyType: z.enum(PROPERTY_TYPE_VALUES, { message: 'Vui lòng chọn loại hình' }),
+  propertyType: z.enum(LEGACY_PROPERTY_TYPE_VALUES, { message: 'Vui lòng chọn loại hình' }),
   wardCode: z.string().min(1, 'Vui lòng chọn khu vực'),
   district: z.string().min(1, 'Vui lòng chọn khu vực'),
   address: z.string().trim().min(1, 'Vui lòng nhập địa chỉ cụ thể'),
@@ -64,7 +80,7 @@ export const roomStepSchema = z
 
 export const mediaStepSchema = z.object({
   title: listingTitleSchema,
-  photoUrls: listingMediaSchema,
+  photoUrls: photoUrlsSchema,
   description: z.string().trim().min(10, 'Mô tả cần ít nhất 10 ký tự'),
 });
 
@@ -81,7 +97,7 @@ export const costsStepSchema = z
     waterPrice: z.string(),
     waterPricingUnit: z.enum(['PerPerson', 'PerCubicMeter']),
     deposit: z.string().optional(),
-    contactPhone: listingPhoneSchema,
+    contactPhone: vnPhoneSchema,
   })
   .superRefine((value, ctx) => {
     if (value.electricityMode === 'Fixed' && !parseAmount(value.electricityPrice)) {
