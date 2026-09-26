@@ -5,8 +5,8 @@ export interface Property {
   name: string;
   address: string;
   district: string;
-  provinceCode: number | null;
-  wardCode: number | null;
+  provinceCode: string | null;
+  wardCode: string | null;
   floorCount: number | null;
   note: string | null;
   bankName: string | null;
@@ -56,8 +56,8 @@ export interface CreatePropertyInput {
   name: string;
   address: string;
   district: string;
-  provinceCode: number | null;
-  wardCode: number | null;
+  provinceCode: string | null;
+  wardCode: string | null;
 }
 
 /** Sửa thông tin nhận dạng khu (B7 — khối "Thông tin khu"). */
@@ -65,8 +65,8 @@ export interface UpdatePropertyInfoInput {
   name: string;
   address: string;
   district: string;
-  provinceCode: number | null;
-  wardCode: number | null;
+  provinceCode: string | null;
+  wardCode: string | null;
   floorCount: number | null;
   note: string | null;
 }

@@ -51,15 +51,15 @@ export function AreaSelect({ value, onChange, hasError }: AreaSelectProps) {
   }, []);
 
   const provinceOptions: SelectOption[] = useMemo(
-    () => VN_PROVINCES.map((province) => ({ label: province.name, value: String(province.code) })),
+    () => VN_PROVINCES.map((province) => ({ label: province.name, value: province.code })),
     [],
   );
 
   const wardOptions: SelectOption[] = useMemo(() => {
     if (!wards || !value.provinceCode) return [];
     return wards
-      .filter((ward) => String(ward.provinceCode) === value.provinceCode)
-      .map((ward) => ({ label: ward.name, value: String(ward.code) }));
+      .filter((ward) => ward.provinceCode === value.provinceCode)
+      .map((ward) => ({ label: ward.name, value: ward.code }));
   }, [wards, value.provinceCode]);
 
   const selectProvince = (provinceCode: string) => {
@@ -67,7 +67,7 @@ export function AreaSelect({ value, onChange, hasError }: AreaSelectProps) {
     onChange({
       provinceCode,
       wardCode: '',
-      provinceName: VN_PROVINCES.find((p) => String(p.code) === provinceCode)?.name ?? null,
+      provinceName: VN_PROVINCES.find((p) => p.code === provinceCode)?.name ?? null,
       wardName: null,
     });
   };
@@ -76,8 +76,8 @@ export function AreaSelect({ value, onChange, hasError }: AreaSelectProps) {
     onChange({
       provinceCode: value.provinceCode,
       wardCode,
-      provinceName: VN_PROVINCES.find((p) => String(p.code) === value.provinceCode)?.name ?? null,
-      wardName: wards?.find((ward) => String(ward.code) === wardCode)?.name ?? null,
+      provinceName: VN_PROVINCES.find((p) => p.code === value.provinceCode)?.name ?? null,
+      wardName: wards?.find((ward) => ward.code === wardCode)?.name ?? null,
     });
   };
 

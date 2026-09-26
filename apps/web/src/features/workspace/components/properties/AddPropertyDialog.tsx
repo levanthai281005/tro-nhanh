@@ -45,8 +45,8 @@ export function AddPropertyDialog({ sellerId, onClose, onCreated }: AddPropertyD
       name,
       address,
       district,
-      provinceCode: area.provinceCode ? Number(area.provinceCode) : null,
-      wardCode: area.wardCode ? Number(area.wardCode) : null,
+      provinceCode: area.provinceCode || null,
+      wardCode: area.wardCode || null,
     });
 
     if (!parsed.success) {

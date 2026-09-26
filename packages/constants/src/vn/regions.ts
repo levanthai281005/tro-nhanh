@@ -13,14 +13,20 @@ import type { VnWardTuple } from './wards.generated';
 export type { VnProvince, VnWardTuple };
 export { VN_PROVINCES };
 
+/**
+ * Mã tỉnh và mã phường/xã là **chuỗi đệm số 0** theo chuẩn Cục Thống kê ("01", "00004"),
+ * giống hệt dạng lưu trong cơ sở dữ liệu và dạng `@tronhanh/schemas` kiểm. Không có bước
+ * chuyển kiểu nào ở ranh giới — mỗi chỗ chuyển là một chỗ có thể quên, mà quên thì "01" thành
+ * "1" và bộ lọc không ra kết quả nhưng cũng không báo lỗi.
+ */
 export interface VnWard {
-  readonly code: number;
+  readonly code: string;
   readonly name: string;
-  readonly provinceCode: number;
+  readonly provinceCode: string;
 }
 
 /** Tên tỉnh theo mã; `null` khi mã không tồn tại (dữ liệu cũ hoặc hỏng). */
-export function provinceName(code: number | null | undefined): string | null {
+export function provinceName(code: string | null | undefined): string | null {
   if (code == null) return null;
   return VN_PROVINCES.find((province) => province.code === code)?.name ?? null;
 }

@@ -30,8 +30,8 @@ export function PropertyInfoSection({
   );
   const [note, setNote] = useState(property.note ?? '');
   const [area, setArea] = useState({
-    provinceCode: property.provinceCode === null ? '' : String(property.provinceCode),
-    wardCode: property.wardCode === null ? '' : String(property.wardCode),
+    provinceCode: property.provinceCode ?? '',
+    wardCode: property.wardCode ?? '',
   });
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -48,8 +48,8 @@ export function PropertyInfoSection({
       name,
       address,
       district,
-      provinceCode: area.provinceCode ? Number(area.provinceCode) : null,
-      wardCode: area.wardCode ? Number(area.wardCode) : null,
+      provinceCode: area.provinceCode || null,
+      wardCode: area.wardCode || null,
     });
 
     if (!parsed.success) {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { provinceCodeSchema, wardCodeSchema } from './address';
 
 /**
  * Ràng buộc thực thể `Property` (khu trọ) — `VALIDATION_RULES.md`.
@@ -34,8 +35,8 @@ export const propertySchema = z.object({
   name: propertyNameSchema,
   address: propertyAddressSchema,
   district: z.string().trim().max(120),
-  provinceCode: z.number().int().nullable(),
-  wardCode: z.number().int().nullable(),
+  provinceCode: provinceCodeSchema.nullable(),
+  wardCode: wardCodeSchema.nullable(),
   note: z.string().trim().max(500).optional(),
 });
 

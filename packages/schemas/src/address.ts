@@ -7,21 +7,24 @@ import { z } from 'zod';
  * chuẩn xác; tên là ảnh chụp tại thời điểm đăng, dùng để hiển thị đúng lịch sử sau những lần
  * đổi địa giới.
  *
- * **Mã là chuỗi chữ số, không phải số.** Mã của Tổng cục Thống kê có số 0 đứng đầu ("01" là
- * Hà Nội) — lưu thành số là mất số 0 đó. `@tronhanh/constants` giữ mã dưới dạng `number` vì
- * file sinh tự động tối ưu kích thước; đổi qua lại ở ranh giới (`AreaSelect` của web đã làm
- * đúng bằng `String(ward.code)`).
+ * **Mã là chuỗi đệm số 0, đúng độ dài chuẩn của Cục Thống kê:** tỉnh 2 chữ số ("01" là Hà
+ * Nội), phường/xã 5 chữ số ("00004"). `@tronhanh/constants` giữ đúng dạng này nên không có
+ * bước chuyển kiểu nào ở ranh giới. Schema đòi **đủ độ dài** chứ không nhận "1": nhận thì một
+ * chỗ quên đệm số 0 sẽ lọt qua kiểm tra rồi lọc không ra kết quả mà không báo lỗi.
  */
+
+export const PROVINCE_CODE_PATTERN = /^\d{2}$/;
+export const WARD_CODE_PATTERN = /^\d{5}$/;
 
 export const provinceCodeSchema = z
   .string()
   .trim()
-  .regex(/^\d{1,2}$/, 'Mã tỉnh/thành không hợp lệ');
+  .regex(PROVINCE_CODE_PATTERN, 'Mã tỉnh/thành phải gồm đúng 2 chữ số');
 
 export const wardCodeSchema = z
   .string()
   .trim()
-  .regex(/^\d{1,5}$/, 'Mã phường/xã không hợp lệ');
+  .regex(WARD_CODE_PATTERN, 'Mã phường/xã phải gồm đúng 5 chữ số');
 
 /** Tên phường/xã — **chỉ có ở dữ liệu đọc**; xem ghi chú ở `addressWriteSchema`. */
 export const wardNameSchema = z
@@ -123,13 +126,11 @@ export function withAddressCatalog<TSchema extends z.ZodType<AddressWriteInput>>
 
 /** Dựng `AddressCatalog` từ danh sách phẳng — tiện cho `apps/api` lúc khởi động. */
 export function buildAddressCatalog(
-  provinces: readonly { code: number | string }[],
-  wards: readonly { code: number | string; provinceCode: number | string }[],
+  provinces: readonly { code: string }[],
+  wards: readonly { code: string; provinceCode: string }[],
 ): AddressCatalog {
   return {
-    provinceCodes: provinces.map((province) => String(province.code)),
-    wardToProvince: new Map(
-      wards.map((ward) => [String(ward.code), String(ward.provinceCode)] as const),
-    ),
+    provinceCodes: provinces.map((province) => province.code),
+    wardToProvince: new Map(wards.map((ward) => [ward.code, ward.provinceCode] as const)),
   };
 }

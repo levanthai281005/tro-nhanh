@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { addressViewSchema, addressWriteSchema } from './address';
+import {
+  addressViewSchema,
+  addressWriteSchema,
+  provinceCodeSchema,
+  wardCodeSchema,
+} from './address';
 import { amenityRefSchema, listingTypeRefSchema } from './catalog';
 import {
   auditFieldsSchema,
@@ -344,16 +349,8 @@ function queryArray<TItem extends z.ZodTypeAny>(itemSchema: TItem) {
 export const listingSearchQuerySchema = paginationQuerySchema
   .extend({
     keyword: z.string().trim().max(120).optional(),
-    provinceCode: z
-      .string()
-      .trim()
-      .regex(/^\d{1,2}$/)
-      .optional(),
-    wardCode: z
-      .string()
-      .trim()
-      .regex(/^\d{1,5}$/)
-      .optional(),
+    provinceCode: provinceCodeSchema.optional(),
+    wardCode: wardCodeSchema.optional(),
     priceMin: z.coerce.number().int().nonnegative().optional(),
     priceMax: z.coerce.number().int().positive().optional(),
     areaMin: z.coerce.number().positive().optional(),
