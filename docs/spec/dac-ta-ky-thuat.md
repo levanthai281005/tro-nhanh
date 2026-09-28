@@ -1151,6 +1151,7 @@ năng ở trên đều có dòng "Quy tắc áp dụng" trỏ về đây.
 | BR-041 | Làm tròn tiền và đơn vị lưu trữ |
 | BR-042 | Ba cách tính tiền nước |
 | BR-043 | Danh mục hành chính và cách lưu địa chỉ |
+| BR-044 | Định danh bằng mã cho danh mục |
 
 ---
 
@@ -1532,6 +1533,20 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 - Địa chỉ lưu **mã** tỉnh và phường/xã để lọc, kèm **tên** và địa chỉ chi tiết để hiển thị.
 - **Tên phường/xã do máy chủ suy ra từ mã**, không nhận tên do client gửi lên. Nhận tên từ
   client thì sai chính tả hoặc tên cũ sẽ lọt vào cơ sở dữ liệu và bộ lọc hỏng theo.
+
+### BR-044 — Định danh bằng mã cho danh mục
+
+- Mọi danh mục mà người dùng lọc theo — loại hình cho thuê, tiện ích — có cột **`code` duy
+  nhất**. Bộ lọc và đường dẫn dùng `code`, không dùng `id` kiểu uuid và không dùng tên hiển thị.
+- Loại tiện ích xung quanh tin đăng là **tập giá trị cố định**: `School`, `University`,
+  `Market`, `Supermarket`, `ConvenienceStore`, `Hospital`, `Pharmacy`, `Restaurant`, `Cafe`,
+  `BusStation`, `MetroStation`, `Park`, `Gym`, `Other`. Cách nhóm các giá trị này để hiển thị là
+  quyết định của giao diện.
+- **Lý do dùng mã:** đường dẫn kết quả tìm kiếm là thứ người dùng gửi cho nhau — mang uuid thì
+  không đọc được, mang tên hiển thị thì đổi tên là hỏng bộ lọc. Cùng lý do với việc lưu mã hành
+  chính ở BR-043.
+- **Lý do tập giá trị cố định cho tiện ích xung quanh:** để chuỗi tự do thì mỗi chủ trọ gõ một
+  kiểu — "trường học", "Trường học", "gần trường" — không nhóm được và không lọc được.
 ---
 
 ## 6. DANH SÁCH DỮ LIỆU (37 entity)
@@ -1550,7 +1565,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **RentalListing** | Tin cho thuê | `landlordId`, `typeId`, `propertyId` (null — gắn để hiện điểm đánh giá khu và bật đồng bộ chống tin ảo), `roomId` (null), `title`, `provinceCode` + `wardCode` (**mã hành chính, dùng để lọc**), `wardName` + `addressDetail` (**dùng để hiển thị**), `latitude` + `longitude` (null — dùng cho bản đồ, AS-018), `area`, `price`, `description`, `accessPolicy` (Free/Restricted), `accessOpenTime`/`accessCloseTime` (null), `contactPhone`, `status`, `rejectReason` (null), `approvedAt` (null), `expireAt` (= approvedAt + 60 ngày), `boostExpireAt` (null — **trạng thái đẩy tin suy từ cột này**, không giữ cờ riêng) | n-1 User/ListingType/Property(null)/Room(null); 1-1 ListingCost; 1-n ListingNearbyPlace/Media/Favorite/Report/Conversation/ContactEvent; n-n Amenity |
 | **ListingType** | Danh mục loại hình cho thuê | `code` (unique), `name`, `description` | 1-n RentalListing |
 | **ListingCost** | Các khoản chi phí của một tin | `listingId` (unique — quan hệ một-một), `electricityBill`, `waterBill`, `waterPricingMethod` (để tin hiển thị đúng "20.000đ/người" hay "15.000đ/khối"), `serviceFee`, `deposit` | 1-1 RentalListing |
-| **ListingNearbyPlace** | Tiện ích xung quanh tin đăng | `listingId`, `type` (trường học/chợ/siêu thị/bến xe…), `description`, `distance` (km) | n-1 RentalListing |
+| **ListingNearbyPlace** | Tiện ích xung quanh tin đăng | `listingId`, `type` (**tập giá trị cố định** — BR-044), `description`, `distance` (km, số) | n-1 RentalListing |
 | **RoomWantedPost** | Tin tìm phòng | `tenantId`, `desiredWards` (jsonb — danh sách mã phường/xã), `priceMin/priceMax`, `typeId`, `minArea`, `desiredAmenities` (jsonb), `moveInDate`, `description`, `status`, `expireAt` | n-1 User; 1-n Conversation/Report |
 | **RoommateWantedPost** | Tin ở ghép | `tenantId`, `currentAddress`, `wardName` + `provinceCode` + `wardCode`, `sharePrice`, `neededCount`, `genderRequirement`, `requirements`, `status`, `expireAt` | n-1 User; 1-n Media/Conversation/Report |
 | **Property** | Khu trọ + nhận tiền + hồ sơ public | `landlordId`, `name`, `address`, `wardName` + `provinceCode` + `wardCode`, `floorCount`, `note`, `bankName/bankAccountNumber/bankAccountName` (null), `isPublicProfileEnabled` (mặc định false), `publicSlug` (unique, null), `avgRating` (null), `reviewCount` (mặc định 0), `allowOccupantMeterSubmission` (mặc định false), **`electricityUnitPrice`, `waterUnitPrice`, `serviceFee`** (đơn giá mặc định của khu), **`waterPricingMethod`** (PerCubicMeter/PerPerson/FlatRate — cách tính nước của khu, BR-042) | n-1 User; 1-n Room/Review |
@@ -1573,7 +1588,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **UserSubscription** | Gói của Landlord | `landlordId`, `planId`, `startDate`, `expireDate`, `status` (Trial/Active/Expired/Cancelled) | n-1 User/SubscriptionPlan; 1-n PlatformTransaction |
 
 
-| **Amenity** | Tiện ích (danh mục) | `name`, `icon`, `type` (Room/Surrounding) | n-n RentalListing/Room |
+| **Amenity** | Tiện ích (danh mục) | `code` (**unique** — dùng để lọc và trên đường dẫn), `name`, `icon`, `type` (Room/Surrounding) | n-n RentalListing/Room |
 | **BannedKeyword** | Từ khóa cấm | `keyword`, `isActive` | (danh mục Admin) |
 | **Media** | File/ảnh | `ownerType` (RentalListing/RoommateWantedPost/Contract/Profile/Invoice/Incident/UtilityReadingSubmission), `ownerId` (null khi mới upload), `url`, `mimeType`, `sizeBytes`, `isPrivate`, `displayOrder` (thứ tự hiển thị; ảnh đầu tiên là ảnh đại diện của tin) | đa hình; media chưa gắn owner sau 24h bị job dọn |
 | **Review** | Đánh giá khu trọ | `propertyId`, `authorUserId`, `contractId` (bằng chứng, unique), `rating` (1–5), `content` (≤1.000), `status` (Visible/Hidden/Reported), `landlordReply` (null, V2) | n-1 Property/User/Contract |
@@ -1623,7 +1638,7 @@ POST /media/upload DELETE /media/{id}
 ### 7.3 Marketplace
 ```
 # Công khai — không cần đăng nhập
-GET /public/listings GET /public/listings/{id}
+GET /public/listings GET /public/listings/{id} (kèm `maxOccupants` của phòng khi tin gắn phòng, rỗng nếu không)
 GET /public/search/listings GET /public/amenities
 GET /public/khu-tro/{slug} (trang khu public + review)
 GET /public/properties/{id}/reviews
@@ -1733,7 +1748,8 @@ GET /admin/dashboard
 
 ## 9. VALIDATION DỮ LIỆU (điểm chính)
 
-- **Số điện thoại** đúng định dạng Việt Nam và duy nhất toàn hệ thống; **mật khẩu** tối thiểu 8 ký tự.
+- **Số điện thoại** đúng định dạng Việt Nam và duy nhất toàn hệ thống; **mật khẩu** tối thiểu 8 ký tự; **mã xác thực** gồm 6 chữ số.
+- **Văn bản tự do:** mô tả tin đăng tối đa 5.000 ký tự; địa chỉ chi tiết tối đa 200 ký tự. Giới hạn để chặn dữ liệu gửi lên không giới hạn độ dài.
 - **RentalListing:** tiêu đề 10–120 ký tự; giá > 0; ảnh ≥ 3; `accessPolicy=Restricted` bắt buộc `accessOpenTime/CloseTime`; **`propertyId`/`roomId` (nếu có) phải thuộc chính `landlordId`**; nội dung qua lọc từ khóa cấm khi gửi duyệt.
 - **Property:** bật public phải có `name` + `wardName` + `provinceCode` + `wardCode`; `publicSlug` tự sinh, unique. Nhận tiền: STK chỉ số; `bankAccountName` IN HOA không dấu (VietQR hợp lệ).
 - **Room:** `roomCode` unique trong Property; giá ≥ 0; diện tích > 0; `maxOccupants` > 0 nếu có.
