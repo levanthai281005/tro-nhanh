@@ -13,7 +13,7 @@ function waitForMockRequest() {
   });
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // POST /marketplace/reports. reporterId sẽ lấy từ session, không lấy từ payload client.
 export async function createListingReport(input: CreateListingReportInput): Promise<ListingReport> {
   await waitForMockRequest();

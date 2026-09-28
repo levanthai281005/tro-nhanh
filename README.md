@@ -30,7 +30,6 @@ tro-nhanh/
 ├── packages/
 │   ├── api/                      # Axios client dùng chung
 │   ├── schemas/                  # Zod schema dùng chung
-│   ├── types/                    # Type dùng chung không suy từ schema
 │   ├── constants/                # Constant nghiệp vụ dùng chung
 │   ├── utils/                    # Hàm thuần dùng chung
 │   └── config/                   # TypeScript và Tailwind preset dùng chung
@@ -94,7 +93,6 @@ chung phải được chuyển đến thư mục hoặc package chung phù hợp
 | `packages/api`        | HTTP client thô và interceptor dùng chung          |
 | `apps/*/src/services` | Điều phối API theo nhu cầu của từng ứng dụng       |
 | `packages/schemas`    | Zod schema — nguồn định nghĩa dữ liệu, `z.infer`   |
-| `packages/types`      | Type dùng chung không suy được từ schema           |
 | `apps/*/src/types`    | Props, view model và type chỉ phục vụ UI           |
 | `components`          | Thành phần dùng lại qua nhiều feature              |
 | `features`            | Mã nguồn thuộc sở hữu của một feature              |

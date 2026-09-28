@@ -87,7 +87,7 @@ function toStats(rows: readonly MyListingRow[]): MyListingStats {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // GET /marketplace/me/listings — trả mọi trạng thái, danh tính seller lấy từ session.
 export async function getMyListings(sellerId: string | undefined): Promise<MyListingsResult> {
   await waitForMockRequest();
@@ -108,20 +108,20 @@ export async function getMyListings(sellerId: string | undefined): Promise<MyLis
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong — gói và giá do backend cấu hình.
+// TODO: nối API thật khi có endpoint thật — gói và giá do backend cấu hình.
 export async function getBoostPackages(): Promise<readonly BoostPackage[]> {
   await waitForMockRequest();
   return MOCK_BOOST_PACKAGES;
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // PATCH /marketplace/listings/{id} — chỉ đổi giữa Active và Hidden.
 export async function setListingVisibility(listingId: string, nextStatus: 'Active' | 'Hidden') {
   await waitForMockRequest();
   mergeOverride(listingId, { status: nextStatus });
 }
 
-// TODO: nối API thật khi packages/types sinh xong: DELETE /marketplace/listings/{id}.
+// TODO: nối API thật khi có endpoint thật: DELETE /marketplace/listings/{id}.
 export async function deleteListing(listingId: string) {
   await waitForMockRequest();
   mergeOverride(listingId, { isDeleted: true });
@@ -131,7 +131,7 @@ export async function deleteListing(listingId: string) {
  * BR-005 — boost cộng dồn nếu tin còn hạn nổi bật, và chỉ boost được tin Active.
  * Ngày hết hạn do tầng service quyết định, client không tự tính rồi gửi lên.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /marketplace/listings/{id}/boost.
+// TODO: nối API thật khi có endpoint thật: POST /marketplace/listings/{id}/boost.
 export async function boostListing(listingId: string, days: number): Promise<string> {
   await waitForMockRequest();
 
@@ -157,7 +157,7 @@ export async function boostListing(listingId: string, days: number): Promise<str
  * BR-026 — gia hạn +60 ngày, đưa tin trở lại `Active` mà không cần duyệt lại, với điều kiện
  * không sửa nội dung. Sửa trường quan trọng là luồng khác (BR-003) và thuộc form đăng tin.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /marketplace/listings/{id}/renew.
+// TODO: nối API thật khi có endpoint thật: PATCH /marketplace/listings/{id}/renew.
 export async function renewListing(listingId: string): Promise<string> {
   await waitForMockRequest();
 

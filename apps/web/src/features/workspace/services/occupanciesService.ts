@@ -36,7 +36,7 @@ function snapshot(roomId: string): OccupanciesResult {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/rooms/{id}/occupancies.
+// TODO: nối API thật khi có endpoint thật: GET /management/rooms/{id}/occupancies.
 export async function getOccupancies(roomId: string): Promise<OccupanciesResult> {
   await waitForMockRequest();
   return snapshot(roomId);
@@ -48,7 +48,7 @@ export async function getOccupancies(roomId: string): Promise<OccupanciesResult>
  * SĐT là định danh duy nhất toàn hệ thống (BR-016). Bản prototype tra bằng email — sai với
  * nghiệp vụ đã chốt, và email lại là trường **tùy chọn** nên phần lớn người ở không có.
  */
-// TODO: nối API thật khi packages/types sinh xong: GET /management/occupancies/lookup?phone=…
+// TODO: nối API thật khi có endpoint thật: GET /management/occupancies/lookup?phone=…
 export async function lookupRenterByPhone(phoneNumber: string): Promise<RenterLookupResult> {
   await waitForMockRequest();
 
@@ -67,7 +67,7 @@ export async function lookupRenterByPhone(phoneNumber: string): Promise<RenterLo
  * cửa gian lận "gắn tài khoản chim mồi để mở quyền đánh giá" mở ra ngay, và người thật thì bị
  * gắn vào phòng mà không biết.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /management/rooms/{id}/occupancies.
+// TODO: nối API thật khi có endpoint thật: POST /management/rooms/{id}/occupancies.
 export async function addOccupancy(input: AddOccupancyInput): Promise<OccupanciesResult> {
   await waitForMockRequest();
 
@@ -112,7 +112,7 @@ export async function addOccupancy(input: AddOccupancyInput): Promise<Occupancie
  * **Không xóa.** Lịch sử ở là bằng chứng cho quyền viết đánh giá (BR-022) và là dấu vết vận
  * hành của phòng.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/occupancies/{id}.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/occupancies/{id}.
 export async function endOccupancy(
   occupancyId: string,
   endDate: string,
@@ -137,7 +137,7 @@ export async function endOccupancy(
 }
 
 /** Chỉ định người đứng tên hợp đồng. Mỗi phòng tối đa một người (BR-006). */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/occupancies/{id}.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/occupancies/{id}.
 export async function setContractRepresentative(occupancyId: string): Promise<OccupanciesResult> {
   await waitForMockRequest();
 
@@ -158,7 +158,7 @@ export async function setContractRepresentative(occupancyId: string): Promise<Oc
  *
  * Chủ trọ **không** tự xác nhận thay được — chỉ gửi lại lời mời, trạng thái về `Pending`.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/occupancies/{id}.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/occupancies/{id}.
 export async function inviteOccupantLink(occupancyId: string): Promise<OccupanciesResult> {
   await waitForMockRequest();
 

@@ -108,7 +108,7 @@ const MOCK_LISTING_SEEDS: readonly MockListingSeed[] = [
   },
 ];
 
-// TODO: nối API thật khi packages/types sinh xong; fixtures này giữ nguyên field entity
+// TODO: nối API thật khi có endpoint thật; fixtures này giữ nguyên field entity
 // Favorite/RentalListing/Media trong DATA_ENTITIES.md để chỉ thay nguồn, không đổi UI contract.
 export const MOCK_SAVED_LISTING_RECORDS: readonly SavedListingRecord[] = MOCK_LISTING_SEEDS.map(
   (seed, index) => {

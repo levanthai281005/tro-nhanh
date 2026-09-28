@@ -44,7 +44,7 @@ function toListItem(contract: Contract): ContractListItem | null {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/contracts.
+// TODO: nối API thật khi có endpoint thật: GET /management/contracts.
 export async function getContractsBySeller(
   sellerId: string | undefined,
 ): Promise<readonly ContractListItem[]> {
@@ -56,7 +56,7 @@ export async function getContractsBySeller(
     .filter((item): item is ContractListItem => item !== null);
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/contracts/{id}.
+// TODO: nối API thật khi có endpoint thật: GET /management/contracts/{id}.
 export async function getContractById(contractId: string): Promise<ContractListItem | null> {
   await waitForMockRequest();
   const contract = findContract(contractId);
@@ -74,7 +74,7 @@ export async function getContractById(contractId: string): Promise<ContractListI
  * Kiểm ở đây chỉ để báo lỗi tử tế bằng tiếng Việt. **Biên thật là ràng buộc `EXCLUDE` ở
  * database** — hai request gửi cùng lúc đều đọc thấy "chưa có hợp đồng chồng lấn" rồi cùng ghi.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /management/rooms/{id}/contracts.
+// TODO: nối API thật khi có endpoint thật: POST /management/rooms/{id}/contracts.
 export async function createContract(input: CreateContractInput): Promise<Contract> {
   await waitForMockRequest();
 
@@ -131,7 +131,7 @@ export async function createContract(input: CreateContractInput): Promise<Contra
  * Vẫn phải kiểm chồng lấn: dời hạn về sau có thể đè lên một hợp đồng `Active` khác đã ký
  * trước cho khoảng thời gian đó.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/contracts/{id}.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/contracts/{id}.
 export async function extendContract(contractId: string, newEndDate: string): Promise<Contract> {
   await waitForMockRequest();
 
@@ -170,7 +170,7 @@ export async function extendContract(contractId: string, newEndDate: string): Pr
  * đúng một gợi ý một chạm, nên chỗ này chỉ gỡ cờ `hasActiveContract` và để UI mời đổi trạng
  * thái phòng.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/contracts/{id}.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/contracts/{id}.
 export async function terminateContract(
   contractId: string,
   terminateReason: string,
@@ -211,7 +211,7 @@ export async function terminateContract(
  * Trả về **cả phòng đã có hợp đồng Active** thay vì lọc bỏ: chủ trọ cần thấy phòng đó và
  * hiểu vì sao chưa chọn được (BR-006), chứ không phải tự hỏi tại sao phòng biến mất.
  */
-// TODO: nối API thật khi packages/types sinh xong — backend gộp sẵn trong GET rooms.
+// TODO: nối API thật khi có endpoint thật — backend gộp sẵn trong GET rooms.
 export async function getContractRoomOptions(
   sellerId: string,
 ): Promise<readonly ContractRoomOption[]> {

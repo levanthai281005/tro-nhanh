@@ -16,7 +16,7 @@ function waitForMockRequest() {
   });
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // GET /public/listings?status=Active&limit={limit} qua @tronhanh/api.
 export async function getFeaturedListings(limit = 4): Promise<readonly FeaturedListingCardView[]> {
   await waitForMockRequest();
@@ -85,7 +85,7 @@ function toDemandPostCard(record: HomeDemandPostRecord): DemandPostCardView {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // GET /public/room-wanted-posts và GET /public/roommate-wanted-posts qua @tronhanh/api.
 export async function listActiveDemandPosts(): Promise<readonly DemandPostCardView[]> {
   await waitForMockRequest();

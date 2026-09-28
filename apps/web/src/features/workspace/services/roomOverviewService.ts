@@ -55,7 +55,7 @@ function toReadingEntry(reading: {
  * để component không phải tự tra năm bảng rồi ghép — cách chắc chắn để sinh N+1 và để hai
  * khối trên cùng màn lệch nhau.
  */
-// TODO: nối API thật khi packages/types sinh xong: GET /management/rooms/{id}.
+// TODO: nối API thật khi có endpoint thật: GET /management/rooms/{id}.
 export async function getRoomOverview(
   roomId: string,
   sellerId: string,

@@ -90,7 +90,7 @@ function toTotals(items: readonly InvoiceListItem[]): InvoiceSummaryTotals {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/invoices.
+// TODO: nối API thật khi có endpoint thật: GET /management/invoices.
 export async function getInvoicesBySeller(sellerId: string | undefined): Promise<InvoicesResult> {
   await waitForMockRequest();
   if (!sellerId) return { items: [], totals: toTotals([]), periods: [] };
@@ -117,7 +117,7 @@ export async function getInvoicesBySeller(sellerId: string | undefined): Promise
  * `Thu một phần` ở màn phòng — và đây là màn tiền, hai con số đá nhau là mất niềm tin vào cả
  * hệ thống chứ không riêng một cái badge.
  */
-// TODO: nối API thật khi packages/types sinh xong: GET /management/rooms/{id}/invoices.
+// TODO: nối API thật khi có endpoint thật: GET /management/rooms/{id}/invoices.
 export async function getInvoicesByRoom(roomId: string): Promise<readonly InvoiceListItem[]> {
   await waitForMockRequest();
 
@@ -133,7 +133,7 @@ export async function getInvoicesByRoom(roomId: string): Promise<readonly Invoic
  * Kiểm ở đây chỉ để báo lỗi tử tế bằng tiếng Việt; **biên thật là ràng buộc unique ở
  * database**, vì hai request gửi cùng lúc đều đọc thấy "chưa có hóa đơn kỳ này" rồi cùng ghi.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /management/rooms/{id}/invoices.
+// TODO: nối API thật khi có endpoint thật: POST /management/rooms/{id}/invoices.
 export async function createInvoice(input: CreateInvoiceInput): Promise<InvoiceListItem> {
   await waitForMockRequest();
 
@@ -192,7 +192,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<InvoiceL
  * thu" gửi nguyên tổng thì sổ ghi nhận 4tr cho hóa đơn 3tr, và badge vẫn xanh nên không ai
  * nhận ra.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /management/invoices/{id}/payments.
+// TODO: nối API thật khi có endpoint thật: POST /management/invoices/{id}/payments.
 export async function recordPayment(input: RecordPaymentInput): Promise<InvoiceListItem> {
   await waitForMockRequest();
 
@@ -237,7 +237,7 @@ export async function recordPayment(input: RecordPaymentInput): Promise<InvoiceL
  * Chỉ ghi mốc thời gian. Gửi in-app thật cần hộp thư (A11) và `Notification` — chưa dựng, nên
  * chủ trọ tự gửi ngoài (in ra hoặc chụp màn hình) rồi đánh dấu ở đây để theo dõi kỳ nào đã báo.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/invoices/{id}/send.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/invoices/{id}/send.
 export async function markInvoiceSent(invoiceId: string): Promise<InvoiceListItem> {
   await waitForMockRequest();
 

@@ -51,7 +51,7 @@ function toCell(
  * Chỉ liệt kê phòng **có hợp đồng Active**: hóa đơn bắt buộc gắn hợp đồng (unique
  * `contractId + period`), nên ghi chỉ số cho phòng trống là ghi vào chỗ không bao giờ dùng tới.
  */
-// TODO: nối API thật khi packages/types sinh xong: GET /management/rooms/{id}/utility-readings.
+// TODO: nối API thật khi có endpoint thật: GET /management/rooms/{id}/utility-readings.
 export async function getUtilityReadingRows(
   propertyId: string,
   period: string,
@@ -94,7 +94,7 @@ export async function getUtilityReadingRows(
  * Ở backend thật đây là **một transaction**: nửa bảng lưu được, nửa còn lại lỗi thì chủ trọ
  * không có cách nào biết dòng nào đã vào.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /management/rooms/{id}/utility-readings.
+// TODO: nối API thật khi có endpoint thật: POST /management/rooms/{id}/utility-readings.
 export async function saveUtilityReadings(
   propertyId: string,
   input: SaveUtilityReadingsInput,

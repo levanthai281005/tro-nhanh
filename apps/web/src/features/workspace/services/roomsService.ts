@@ -33,7 +33,7 @@ function toCounts(rooms: readonly RoomListItem[]): RoomsResult['counts'] {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/properties/{id}/rooms.
+// TODO: nối API thật khi có endpoint thật: GET /management/properties/{id}/rooms.
 export async function getRoomsByProperty(propertyId: string): Promise<RoomsResult> {
   await waitForMockRequest();
 
@@ -44,7 +44,7 @@ export async function getRoomsByProperty(propertyId: string): Promise<RoomsResul
   return { items, counts: toCounts(items) };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/rooms/{id}.
+// TODO: nối API thật khi có endpoint thật: GET /management/rooms/{id}.
 export async function getRoomById(roomId: string): Promise<RoomListItem | null> {
   await waitForMockRequest();
   return findRoom(roomId) ?? null;
@@ -66,7 +66,7 @@ function assertRoomCodeAvailable(propertyId: string, roomCode: string, exceptRoo
   }
 }
 
-// TODO: nối API thật khi packages/types sinh xong: POST /management/properties/{id}/rooms.
+// TODO: nối API thật khi có endpoint thật: POST /management/properties/{id}/rooms.
 export async function createRoom(input: RoomWriteInput): Promise<RoomListItem> {
   await waitForMockRequest();
   assertRoomCodeAvailable(input.propertyId, input.roomCode);
@@ -96,7 +96,7 @@ export async function createRoom(input: RoomWriteInput): Promise<RoomListItem> {
   return room;
 }
 
-// TODO: nối API thật khi packages/types sinh xong: PUT /management/rooms/{id}.
+// TODO: nối API thật khi có endpoint thật: PUT /management/rooms/{id}.
 export async function updateRoom(roomId: string, input: RoomWriteInput): Promise<RoomListItem> {
   await waitForMockRequest();
 
@@ -130,7 +130,7 @@ export async function updateRoom(roomId: string, input: RoomWriteInput): Promise
  * trong **cùng transaction** và bắn Notification `ListingAutoRented`. Client chỉ cảnh báo
  * trước, không tự sửa tin — `RentalListing` thuộc Surface khác.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/rooms/{id}/status.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/rooms/{id}/status.
 export async function setRoomStatus(roomId: string, status: RoomStatus): Promise<RoomListItem> {
   await waitForMockRequest();
 
@@ -153,7 +153,7 @@ export async function setRoomStatus(roomId: string, status: RoomStatus): Promise
 }
 
 /** Xóa phòng chỉ được khi không còn hợp đồng `Active` (Module 6, BR-006). */
-// TODO: nối API thật khi packages/types sinh xong: DELETE /management/rooms/{id}.
+// TODO: nối API thật khi có endpoint thật: DELETE /management/rooms/{id}.
 export async function deleteRoom(roomId: string): Promise<void> {
   await waitForMockRequest();
 

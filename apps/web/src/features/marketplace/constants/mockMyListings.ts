@@ -185,7 +185,7 @@ function toRentalListing(seed: MyListingSeed): RentalListing {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong — nguồn sẽ là GET /marketplace/me/listings.
+// TODO: nối API thật khi có endpoint thật — nguồn sẽ là GET /marketplace/me/listings.
 export const MOCK_MY_LISTING_RECORDS: readonly ListingRecord[] = MY_LISTING_SEEDS.map((seed) => {
   const listing = toRentalListing(seed);
 
@@ -210,7 +210,7 @@ export const MOCK_MY_LISTING_RECORDS: readonly ListingRecord[] = MY_LISTING_SEED
  * Gói đẩy tin. Prototype từng hardcode "100.000đ / 7 ngày" ngay trong modal, lệch hẳn với
  * cấu hình nền tảng thật — nên giá luôn đọc từ một nguồn duy nhất như ở đây.
  */
-// TODO: nối API thật khi packages/types sinh xong — nguồn sẽ là platform settings của backend.
+// TODO: nối API thật khi có endpoint thật — nguồn sẽ là platform settings của backend.
 export const MOCK_BOOST_PACKAGES: readonly BoostPackage[] = [
   { days: 7, price: 20_000 },
   { days: 15, price: 35_000 },

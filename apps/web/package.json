@@ -16,7 +16,6 @@
     "@tronhanh/api": "workspace:*",
     "@tronhanh/constants": "workspace:*",
     "@tronhanh/schemas": "workspace:*",
-    "@tronhanh/types": "workspace:*",
     "@tronhanh/utils": "workspace:*",
     "axios": "^1.7.0",
     "class-variance-authority": "^0.7.1",

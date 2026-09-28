@@ -65,7 +65,7 @@ function isPublicActiveListing(record: ListingRecord, now: number) {
   );
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // GET /public/listings/{id}. Review giữ nguồn riêng vì A3 chỉ hiển thị empty state trong MVP.
 export async function getPublicListingDetail(listingId: string): Promise<ListingDetailData | null> {
   await waitForMockRequest();
@@ -85,7 +85,7 @@ export async function getPublicListingDetail(listingId: string): Promise<Listing
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // GET /public/listings/{id}/similar. Trong mock giữ đúng tiêu chí prototype: cùng quận, giá ±30%.
 export async function getSimilarListings(
   currentRecord: ListingRecord,
@@ -130,9 +130,10 @@ function matchesFilters(record: ListingRecord, filters: ListingSearchParams) {
   );
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
-// GET /public/search/listings qua @tronhanh/api. Response type sẽ lấy từ @tronhanh/types,
-// còn bộ lọc client giữ đúng query contract thay vì tự tạo DTO API ở đây.
+// TODO: nối API thật khi có endpoint thật:
+// GET /public/search/listings qua @tronhanh/api. Query và response lấy từ
+// `listingSearchQuerySchema` / `listingSearchResponseSchema` của @tronhanh/schemas, không tự
+// tạo DTO API ở đây.
 export async function searchListings(params: ListingSearchParams): Promise<ListingSearchResult> {
   await waitForMockRequest();
   const now = Date.now();

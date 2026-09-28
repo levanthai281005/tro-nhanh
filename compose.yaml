@@ -17,7 +17,6 @@ x-dev-service: &dev-service
     - config_node_modules:/workspace/packages/config/node_modules
     - constants_node_modules:/workspace/packages/constants/node_modules
     - schemas_node_modules:/workspace/packages/schemas/node_modules
-    - types_node_modules:/workspace/packages/types/node_modules
     - utils_node_modules:/workspace/packages/utils/node_modules
     - turbo_cache:/workspace/.turbo
   environment:
@@ -41,7 +40,6 @@ services:
       - config_node_modules:/workspace/packages/config/node_modules
       - constants_node_modules:/workspace/packages/constants/node_modules
       - schemas_node_modules:/workspace/packages/schemas/node_modules
-      - types_node_modules:/workspace/packages/types/node_modules
       - utils_node_modules:/workspace/packages/utils/node_modules
       - turbo_cache:/workspace/.turbo
       - next_cache:/workspace/apps/web/.next
@@ -61,7 +59,6 @@ services:
       - config_node_modules:/workspace/packages/config/node_modules
       - constants_node_modules:/workspace/packages/constants/node_modules
       - schemas_node_modules:/workspace/packages/schemas/node_modules
-      - types_node_modules:/workspace/packages/types/node_modules
       - utils_node_modules:/workspace/packages/utils/node_modules
       - turbo_cache:/workspace/.turbo
       - expo_cache:/workspace/apps/mobile/.expo
@@ -79,7 +76,6 @@ volumes:
   config_node_modules:
   constants_node_modules:
   schemas_node_modules:
-  types_node_modules:
   utils_node_modules:
   turbo_cache:
   next_cache:

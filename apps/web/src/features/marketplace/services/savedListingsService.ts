@@ -28,7 +28,7 @@ function toSavedListingCard(record: SavedListingRecord): SavedListingCardView {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // GET /marketplace/me/favorites qua @tronhanh/api, không gửi renterId lên backend.
 export async function getSavedListings(
   renterId: string | undefined,
@@ -44,7 +44,7 @@ export async function getSavedListings(
     .map(toSavedListingCard);
 }
 
-// TODO: nối API thật khi packages/types sinh xong; endpoint danh sách Favorite sẽ là nguồn
+// TODO: nối API thật khi có endpoint thật; endpoint danh sách Favorite sẽ là nguồn
 // duy nhất cho cả list và tập id, TanStack Query giữ hai projection theo query key riêng.
 export async function getSavedListingIds(renterId: string | undefined) {
   await waitForMockRequest();
@@ -55,7 +55,7 @@ export async function getSavedListingIds(renterId: string | undefined) {
   ).map((record) => record.listing.id);
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // POST /marketplace/listings/{id}/favorite; danh tính lấy từ session, không từ payload.
 export async function saveListing(renterId: string, listingId: string) {
   await waitForMockRequest();
@@ -65,7 +65,7 @@ export async function saveListing(renterId: string, listingId: string) {
   if (belongsToRenter) savedListingIds.add(listingId);
 }
 
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // DELETE /marketplace/listings/{id}/favorite; danh tính lấy từ session, không từ payload.
 export async function unsaveListing(renterId: string, listingId: string) {
   await waitForMockRequest();

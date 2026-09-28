@@ -9,7 +9,7 @@ import { MOCK_SESSION_CONTEXT } from '@/features/session/constants/mockSessionCo
  * `Occupancy`. Client tự suy nghĩa là luật gating có hai bản, mà bản ở client thì người dùng
  * sửa được.
  */
-// TODO: nối API thật khi packages/types sinh xong: GET /me/context.
+// TODO: nối API thật khi có endpoint thật: GET /me/context.
 export async function getSessionContext(): Promise<SessionContext> {
   // `parseSessionContext` chạy cả với dữ liệu mock — mock lệch hợp đồng phải vỡ ngay ở đây,
   // chứ không phải lặng lẽ chảy vào UI rồi sai ở một màn nào đó.

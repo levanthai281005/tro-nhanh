@@ -48,7 +48,7 @@ function toSnapshot(
  * Tiền thuê lấy từ **hợp đồng**, không lấy `Room.price`. Prototype lấy giá phòng — với phòng
  * đã tăng giá sau ngày ký, hóa đơn ra số tiền chủ trọ không có quyền thu.
  */
-// TODO: nối API thật khi packages/types sinh xong — backend gộp sẵn trong GET rooms.
+// TODO: nối API thật khi có endpoint thật — backend gộp sẵn trong GET rooms.
 export async function getInvoiceRoomOptions(
   sellerId: string | undefined,
   period: string,

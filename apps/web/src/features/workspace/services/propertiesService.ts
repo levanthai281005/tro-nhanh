@@ -35,7 +35,7 @@ function toListItem(property: Property): PropertyListItem {
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/properties.
+// TODO: nối API thật khi có endpoint thật: GET /management/properties.
 // Danh tính seller lấy từ session, không nhận từ client (BR-007).
 export async function getProperties(sellerId: string | undefined): Promise<PropertiesResult> {
   await waitForMockRequest();
@@ -50,7 +50,7 @@ export async function getProperties(sellerId: string | undefined): Promise<Prope
   };
 }
 
-// TODO: nối API thật khi packages/types sinh xong: GET /management/properties/{id}.
+// TODO: nối API thật khi có endpoint thật: GET /management/properties/{id}.
 export async function getPropertyById(propertyId: string): Promise<Property | null> {
   await waitForMockRequest();
   return findProperty(propertyId) ?? null;
@@ -63,7 +63,7 @@ export async function getPropertyById(propertyId: string): Promise<Property | nu
  * màn chi tiết khu (B7) — nơi có validate và xem trước mã VietQR. Nhồi hết vào đây thì bước
  * đầu tiên của người dùng mới thành một form dài, và họ sẽ điền số bừa cho xong.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /management/properties.
+// TODO: nối API thật khi có endpoint thật: POST /management/properties.
 export async function createProperty(
   sellerId: string,
   input: CreatePropertyInput,
@@ -111,7 +111,7 @@ function mutateProperty(propertyId: string, patch: Partial<Property>): Property 
   return updated;
 }
 
-// TODO: nối API thật khi packages/types sinh xong: PUT /management/properties/{id}.
+// TODO: nối API thật khi có endpoint thật: PUT /management/properties/{id}.
 export async function updatePropertyInfo(
   propertyId: string,
   input: UpdatePropertyInfoInput,
@@ -128,7 +128,7 @@ export async function updatePropertyInfo(
   });
 }
 
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/properties/{id}/settings.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/properties/{id}/settings.
 export async function updatePropertyPricing(
   propertyId: string,
   input: UpdatePropertyPricingInput,
@@ -141,7 +141,7 @@ export async function updatePropertyPricing(
   });
 }
 
-// TODO: nối API thật khi packages/types sinh xong: PUT /management/properties/{id}.
+// TODO: nối API thật khi có endpoint thật: PUT /management/properties/{id}.
 export async function updatePropertyPayout(
   propertyId: string,
   input: UpdatePropertyPayoutInput,
@@ -161,7 +161,7 @@ export async function updatePropertyPayout(
  * hiện lại. `publicSlug` do backend sinh và bảo đảm unique; ở đây tạo tạm từ tên khu để bản
  * demo có đường dẫn xem trước.
  */
-// TODO: nối API thật khi packages/types sinh xong: PATCH /management/properties/{id}/public.
+// TODO: nối API thật khi có endpoint thật: PATCH /management/properties/{id}/public.
 export async function setPropertyPublicProfile(
   propertyId: string,
   isEnabled: boolean,
@@ -198,7 +198,7 @@ function toSlug(name: string): string {
  * biến mất khỏi màn quản lý là mất dấu vết vận hành. Dữ liệu hóa đơn và hợp đồng cũ **giữ
  * nguyên** kể cả sau khi xóa.
  */
-// TODO: nối API thật khi packages/types sinh xong: DELETE /management/properties/{id}.
+// TODO: nối API thật khi có endpoint thật: DELETE /management/properties/{id}.
 export async function deleteProperty(propertyId: string): Promise<void> {
   await waitForMockRequest();
 

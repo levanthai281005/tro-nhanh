@@ -25,8 +25,8 @@ Ba file nên đọc đầu tiên khi mới vào dự án: `business/GLOSSARY.md`
 - `apps/api`: backend NestJS (TypeScript) — một ứng dụng duy nhất, 17 module chia theo hai
   domain + Shared Kernel (xem `business/BACKEND_SERVICES.md`); dữ liệu qua Prisma, migration
   có đánh số.
-- `packages/*`: `schemas` (Zod — nguồn định nghĩa dữ liệu chung cho cả ba app), `types`,
-  `constants`, `utils`, `config` (preset Tailwind), `api` (client), `access` (luật truy cập).
+- `packages/*`: `schemas` (Zod — nguồn định nghĩa dữ liệu chung cho cả ba app), `constants`,
+  `utils`, `config` (preset Tailwind), `api` (client), `access` (luật truy cập).
 
 ## Nguyên tắc làm việc
 

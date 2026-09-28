@@ -21,7 +21,7 @@ export interface UploadedPhoto {
  * sau 24h bị job dọn" — tức backend vốn thiết kế cho việc tải trước, gắn chủ sau. Nhờ vậy
  * bản nháp chỉ cần lưu URL, và người dùng thấy ảnh lên ngay thay vì chờ một cục lúc gửi.
  */
-// TODO: nối API thật khi packages/types sinh xong: POST /media (trả về url + id, ownerId null).
+// TODO: nối API thật khi có endpoint thật: POST /media (trả về url + id, ownerId null).
 export async function uploadListingPhoto(file: File): Promise<UploadedPhoto> {
   await wait(MOCK_UPLOAD_DELAY_MS);
 
@@ -52,7 +52,7 @@ export interface SubmitListingResult {
  * Gửi tin. Trạng thái do server quyết định, client chỉ nói rõ ý định là lưu nháp hay gửi
  * duyệt — không tự gán `status` rồi đẩy lên.
  */
-// TODO: nối API thật khi packages/types sinh xong:
+// TODO: nối API thật khi có endpoint thật:
 // POST /marketplace/listings (tạo) và PUT /marketplace/listings/{id} (sửa).
 export async function submitListing(input: SubmitListingInput): Promise<SubmitListingResult> {
   await wait(MOCK_REQUEST_DELAY_MS);

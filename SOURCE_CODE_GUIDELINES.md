@@ -19,7 +19,6 @@ tro-nhanh/
 │   ├── config/               # TypeScript và Tailwind config dùng chung
 │   ├── constants/            # Constant nghiệp vụ dùng chung
 │   ├── schemas/              # Zod schema — nguồn định nghĩa dữ liệu chung
-│   ├── types/                # Type dùng chung không suy từ schema
 │   └── utils/                # Hàm thuần dùng chung
 ├── .agents/                  # Hướng dẫn dành cho coding agent
 ├── docs/spec/                # Đặc tả kỹ thuật — nguồn chân lý nghiệp vụ
@@ -139,7 +138,6 @@ Cấu trúc thư mục bên trong `apps/api` và lệnh chạy local sẽ bổ s
   hoặc query key tại đây.
 - `@tronhanh/schemas`: Zod schema — nguồn định nghĩa dữ liệu duy nhất, cả web, mobile và api cùng
   dùng; kiểu suy ra bằng `z.infer`.
-- `@tronhanh/types`: type dùng chung không suy được từ schema. UI model không thuộc package này.
 - `@tronhanh/constants`: trạng thái, giới hạn và constant nghiệp vụ dùng chung.
 - `@tronhanh/utils`: hàm thuần, không side effect và không phụ thuộc framework UI.
 - `@tronhanh/config`: TypeScript base config và Tailwind design preset.
