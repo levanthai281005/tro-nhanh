@@ -43,7 +43,7 @@ POST /media/upload            DELETE /media/{id}
 ## Marketplace
 ```
 ## Công khai — không cần đăng nhập
-GET  /public/listings                 GET  /public/listings/{id}
+GET  /public/listings                 GET  /public/listings/{id}  (kèm maxOccupants của phòng khi tin gắn phòng, rỗng nếu không)
 GET  /public/search/listings          GET  /public/amenities
 GET  /public/khu-tro/{slug}           (trang khu public + review)
 GET  /public/properties/{id}/reviews
