@@ -1,4 +1,4 @@
-# Quy tắc nghiệp vụ (BR-001 → BR-043)
+# Quy tắc nghiệp vụ (BR-001 → BR-044)
 
 Danh mục tra cứu toàn bộ quy tắc của hệ thống, chép theo Mục 5 của
 `docs/spec/dac-ta-ky-thuat.md` — nội dung, tên quy tắc và thứ tự mã giữ đúng như đặc tả. Mọi
@@ -54,6 +54,7 @@ Quy tắc phát biểu bằng lời. Tên cột và giá trị enum tương ứn
 | BR-041 | Làm tròn tiền và đơn vị lưu trữ |
 | BR-042 | Ba cách tính tiền nước |
 | BR-043 | Danh mục hành chính và cách lưu địa chỉ |
+| BR-044 | Định danh bằng mã cho danh mục |
 
 ---
 
@@ -452,5 +453,19 @@ biệt cốt lõi của sản phẩm — không dùng được cho phần lớn 
 **Lý do:** nhận tên từ client thì sai chính tả hoặc tên cũ sẽ lọt vào cơ sở dữ liệu và bộ lọc
 hỏng theo. Lọc theo khu vực bằng so sánh chuỗi thì lệch một ký tự là mất kết quả; còn mã trả
 lời "đơn vị hành chính nào" một cách chuẩn xác, tên chỉ là ảnh chụp tại thời điểm đăng.
+
+## BR-044 — Định danh bằng mã cho danh mục
+
+- Mọi danh mục mà người dùng lọc theo — loại hình cho thuê, tiện ích — có **mã duy nhất**. Bộ
+  lọc và đường dẫn dùng mã, **không dùng định danh uuid và không dùng tên hiển thị**.
+- Loại tiện ích xung quanh tin đăng là **tập giá trị cố định** (14 giá trị, liệt kê ở
+  `STATUS_ENUMS.md`). Cách nhóm các giá trị này để hiển thị là quyết định của giao diện.
+
+**Lý do dùng mã:** đường dẫn kết quả tìm kiếm là thứ người dùng gửi cho nhau — mang uuid thì
+không đọc được, mang tên hiển thị thì đổi tên là hỏng bộ lọc. Cùng lý do với việc lưu mã hành
+chính ở BR-043.
+
+**Lý do tập giá trị cố định cho tiện ích xung quanh:** để chuỗi tự do thì mỗi chủ trọ gõ một
+kiểu — "trường học", "Trường học", "gần trường" — không nhóm được và không lọc được.
 
 ---

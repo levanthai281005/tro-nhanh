@@ -5,7 +5,8 @@ Backend luôn kiểm tra lại, nhưng client phải chặn sớm để trải n
 
 ---
 
-- **SĐT** VN hợp lệ, unique toàn hệ thống — là định danh tài khoản, **không có email** (BR-016); **mật khẩu** ≥ 8 ký tự. **AuthMethod:** unique (`userId`, `provider`); hiện chỉ `Password`.
+- **SĐT** VN hợp lệ, unique toàn hệ thống — là định danh tài khoản, **không có email** (BR-016); **mật khẩu** ≥ 8 ký tự; **mã xác thực (OTP)** gồm đúng 6 chữ số. **AuthMethod:** unique (`userId`, `provider`); hiện chỉ `Password`.
+- **Văn bản tự do:** mô tả tin đăng ≤ 5.000 ký tự; địa chỉ chi tiết ≤ 200 ký tự. Giới hạn để chặn dữ liệu gửi lên không giới hạn độ dài.
 - **RentalListing:** tiêu đề 10–120 ký tự; giá > 0; ảnh ≥ 3; `accessPolicy=Restricted` bắt buộc `accessOpenTime/CloseTime`; **`propertyId`/`roomId` (nếu có) phải thuộc chính `landlordId`**; nội dung qua lọc `BannedKeyword` khi gửi duyệt.
 - **Property:** bật public phải có `name` + `wardName` + `provinceCode` + `wardCode`; `publicSlug` tự sinh, unique. Nhận tiền: STK chỉ số; `bankAccountName` IN HOA không dấu (VietQR hợp lệ).
 - **Room:** `roomCode` unique trong Property; giá ≥ 0; diện tích > 0; `maxOccupants` > 0 nếu có. `electricityPrice/waterPrice/servicePrice` ≥ 0 nếu có; **null = dùng giá của khu, `0` = miễn phí** — giao diện không hiển thị ô trống thành "chưa cấu hình" (BR-036).

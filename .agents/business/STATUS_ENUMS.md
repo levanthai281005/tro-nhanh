@@ -140,7 +140,13 @@ Không có giá trị chờ: liên kết người ở **có hiệu lực ngay** 
   tra từ API danh mục, không hard-code `BoardingRoom/ServicedApartment/Apartment`.
 - **`AuthMethod.provider`**: `Password` — hiện chỉ dùng giá trị này (BR-016); đăng nhập bên
   thứ ba là dự phòng, chưa hỗ trợ.
-- **`Amenity.type`**: `Room` · `Surrounding`.
+- **`Amenity.type`**: `Room` · `Surrounding`. Tiện ích lọc và lên đường dẫn bằng **`Amenity.code`**
+  (unique), không bằng `id` hay tên (BR-044) — `code` là dữ liệu danh mục, không phải enum cố
+  định trong code.
+- **`ListingNearbyPlace.type`** — loại tiện ích xung quanh tin đăng, **tập giá trị cố định**
+  (BR-044): `School` · `University` · `Market` · `Supermarket` · `ConvenienceStore` ·
+  `Hospital` · `Pharmacy` · `Restaurant` · `Cafe` · `BusStation` · `MetroStation` · `Park` ·
+  `Gym` · `Other`. Cách nhóm để hiển thị là quyết định của giao diện, không phải của dữ liệu.
 - **`Notification.type`**: `ListingApproved` · `Rejected` · `NewMessage` · `ContractExpiring` ·
   `InvoiceDue` · `InvoiceOverdue` · `InvoiceReceived` · `SubscriptionRenewal` · `TrialEnding` ·
   `ReviewModerated` · `OccupancyLinked` · `ListingAutoRented` · `FavoriteChanged` · `System`.
