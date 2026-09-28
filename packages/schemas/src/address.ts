@@ -37,7 +37,7 @@ export const addressDetailSchema = z
   .string()
   .trim()
   .min(1, 'Vui lòng nhập địa chỉ cụ thể')
-  .max(255, 'Địa chỉ tối đa 255 ký tự');
+  .max(200, 'Địa chỉ chi tiết tối đa 200 ký tự');
 
 /**
  * Địa chỉ trong **request ghi**. Cố ý **không có `wardName`**: tên phường/xã do máy chủ suy

@@ -69,6 +69,17 @@ describe('kiểm mã có trong danh mục (withAddressCatalog)', () => {
     expect(guarded.safeParse(address('00', '27316')).success).toBe(false);
   });
 
+  it('giới hạn địa chỉ chi tiết đúng 200 ký tự (Mục 9)', () => {
+    expect(
+      addressWriteSchema.safeParse({ ...address('79', '27316'), addressDetail: 'a'.repeat(200) })
+        .success,
+    ).toBe(true);
+    expect(
+      addressWriteSchema.safeParse({ ...address('79', '27316'), addressDetail: 'a'.repeat(201) })
+        .success,
+    ).toBe(false);
+  });
+
   it('bỏ tên phường/xã client gửi kèm — tên do máy chủ suy từ mã', () => {
     const parsed = addressWriteSchema.parse({
       ...address('79', '27316'),
