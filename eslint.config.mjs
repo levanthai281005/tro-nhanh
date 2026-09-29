@@ -32,6 +32,7 @@ export default tseslint.config(
       '**/.expo/**',
       '**/dist/**',
       '**/.turbo/**',
+      'apps/api/src/generated/**',
       '**/nativewind-env.d.ts',
     ],
   },

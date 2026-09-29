@@ -1,5 +1,5 @@
 {
-  "name": "tro-nhanh-fe",
+  "name": "tro-nhanh",
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
@@ -9,8 +9,11 @@
   "scripts": {
     "dev:web": "turbo run dev --filter=web",
     "dev:mobile": "turbo run start --filter=mobile",
+    "dev:api": "turbo run dev --filter=api",
     "docker:dev": "docker compose up --build web",
     "docker:mobile": "docker compose --profile mobile up --build mobile",
+    "docker:api": "docker compose up --build api",
+    "docker:db": "docker compose up -d postgres",
     "docker:check": "docker compose --profile tools run --rm tools pnpm lint && docker compose --profile tools run --rm tools pnpm typecheck",
     "docker:down": "docker compose down",
     "build": "turbo run build",

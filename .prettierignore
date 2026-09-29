@@ -7,6 +7,7 @@ dist
 **/expo-env.d.ts
 **/next-env.d.ts
 pnpm-lock.yaml
+apps/api/src/generated
 .agents/
 memory.md
 docs/spec/

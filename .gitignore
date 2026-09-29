@@ -12,6 +12,8 @@ coverage/
 .env.*.local
 .DS_Store
 *.tsbuildinfo
+# Prisma Client sinh ra từ schema — `pnpm --filter api db:generate`
+apps/api/src/generated/
 # Bản sao lưu nén (VD .agents.rar) — không bao giờ commit
 *.rar
 *.zip
