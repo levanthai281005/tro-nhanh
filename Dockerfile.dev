@@ -11,6 +11,7 @@ WORKDIR /workspace
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/package.json
 COPY apps/mobile/package.json apps/mobile/package.json
+COPY apps/api/package.json apps/api/package.json
 COPY packages/access/package.json packages/access/package.json
 COPY packages/api/package.json packages/api/package.json
 COPY packages/config/package.json packages/config/package.json
@@ -24,7 +25,7 @@ COPY . .
 
 RUN chmod +x /workspace/docker/dev-entrypoint.sh
 
-EXPOSE 3000 8081
+EXPOSE 3000 8081 8089
 
 ENTRYPOINT ["sh", "/workspace/docker/dev-entrypoint.sh"]
 CMD ["pnpm", "dev:web"]
