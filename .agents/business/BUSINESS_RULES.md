@@ -1,4 +1,4 @@
-# Quy tắc nghiệp vụ (BR-001 → BR-044)
+# Quy tắc nghiệp vụ (BR-001 → BR-045)
 
 Danh mục tra cứu toàn bộ quy tắc của hệ thống, chép theo Mục 5 của
 `docs/spec/dac-ta-ky-thuat.md` — nội dung, tên quy tắc và thứ tự mã giữ đúng như đặc tả. Mọi
@@ -55,6 +55,7 @@ Quy tắc phát biểu bằng lời. Tên cột và giá trị enum tương ứn
 | BR-042 | Ba cách tính tiền nước |
 | BR-043 | Danh mục hành chính và cách lưu địa chỉ |
 | BR-044 | Định danh bằng mã cho danh mục |
+| BR-045 | Mã xác thực |
 
 ---
 
@@ -467,5 +468,25 @@ chính ở BR-043.
 
 **Lý do tập giá trị cố định cho tiện ích xung quanh:** để chuỗi tự do thì mỗi chủ trọ gõ một
 kiểu — "trường học", "Trường học", "gần trường" — không nhóm được và không lọc được.
+
+## BR-045 — Mã xác thực
+
+- Mã xác thực gửi qua tin nhắn khi đăng ký và khi khôi phục mật khẩu, gồm 6 chữ số. Hệ thống
+  **chỉ lưu bản băm** của mã, không lưu mã gốc.
+- Mã hết hạn sau **5 phút** và chỉ dùng được **một lần**. Nhập sai quá **5 lần** thì mã đó hết
+  hiệu lực, người dùng phải xin mã mới.
+- Xin mã mới thì mã cũ **cùng mục đích** của số điện thoại đó hết hiệu lực ngay.
+- Giới hạn gửi theo **số điện thoại**: hai lần gửi cách nhau ít nhất **60 giây**, tối đa **5 lần
+  mỗi giờ**.
+- Giới hạn gửi theo **địa chỉ IP** của người yêu cầu: tối đa **20 lần mỗi giờ**, tính gộp mọi số
+  điện thoại.
+- Bản ghi mã quá **30 ngày** thì bị **xóa hẳn** — ngoại lệ của quy ước xóa mềm.
+
+**Lý do giới hạn theo IP:** chỉ giới hạn theo số thì kẻ phá hoại đổi số liên tục vẫn đốt được
+tiền tin nhắn không giới hạn. Mức theo IP đặt cao hơn mức theo số vì nhiều người dùng mạng di
+động đi chung một địa chỉ IP.
+
+**Lý do xóa hẳn:** mã chỉ có một triệu khả năng nên bản băm dò ngược được; địa chỉ IP là dữ liệu
+cá nhân. Giữ lâu không có ích mà chỉ thêm rủi ro.
 
 ---

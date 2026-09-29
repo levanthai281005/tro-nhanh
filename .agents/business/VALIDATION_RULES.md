@@ -6,6 +6,7 @@ Backend luôn kiểm tra lại, nhưng client phải chặn sớm để trải n
 ---
 
 - **SĐT** VN hợp lệ, unique toàn hệ thống — là định danh tài khoản, **không có email** (BR-016); **mật khẩu** ≥ 8 ký tự; **mã xác thực (OTP)** gồm đúng 6 chữ số. **AuthMethod:** unique (`userId`, `provider`); hiện chỉ `Password`.
+- **VerificationCode (BR-045):** chỉ lưu bản băm; hết hạn sau 5 phút; dùng một lần (`consumedAt` khác null là hết dùng); sai quá 5 lần là mã hết hiệu lực; xin mã mới thì mã cũ cùng `purpose` hết hiệu lực. Gửi theo số: cách nhau ≥ 60 giây, ≤ 5 lần/giờ; theo IP: ≤ 20 lần/giờ gộp mọi số. Kiểm ở service `AuthModule` bằng cách đếm bản ghi — không phải ràng buộc Zod.
 - **Văn bản tự do:** mô tả tin đăng ≤ 5.000 ký tự; địa chỉ chi tiết ≤ 200 ký tự. Giới hạn để chặn dữ liệu gửi lên không giới hạn độ dài.
 - **RentalListing:** tiêu đề 10–120 ký tự; giá > 0; ảnh ≥ 3; `accessPolicy=Restricted` bắt buộc `accessOpenTime/CloseTime`; **`propertyId`/`roomId` (nếu có) phải thuộc chính `landlordId`**; nội dung qua lọc `BannedKeyword` khi gửi duyệt.
 - **Property:** bật public phải có `name` + `wardName` + `provinceCode` + `wardCode`; `publicSlug` tự sinh, unique. Nhận tiền: STK chỉ số; `bankAccountName` IN HOA không dấu (VietQR hợp lệ).

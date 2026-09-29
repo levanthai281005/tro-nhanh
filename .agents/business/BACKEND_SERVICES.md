@@ -15,7 +15,7 @@ file này để biết một nghiệp vụ thuộc về đâu khi cần tra endp
 **Shared Kernel (5):**
 | Module | Trách nhiệm |
 |---|---|
-| `AuthModule` | Đăng ký/đăng nhập, OTP, token + RefreshToken, vai trò (nâng cấp qua "Trở thành chủ trọ" — `POST /me/become-landlord`; Admin điều chỉnh — BR-013), guard phân quyền |
+| `AuthModule` | Đăng ký/đăng nhập, mã xác thực (`VerificationCode`, BR-045), token + RefreshToken, vai trò (nâng cấp qua "Trở thành chủ trọ" — `POST /me/become-landlord`; Admin điều chỉnh — BR-013), guard phân quyền |
 | `UserProfileModule` | Profile, display settings, xóa tài khoản |
 | `MediaModule` | Upload, signed URL, phân quyền file, job dọn media mồ côi |
 | `NotificationModule` | Thông báo trong ứng dụng + push cho app; SMS **chỉ** gửi mã xác thực (AS-028), nhắc hạn không đi qua SMS; scheduled jobs (Overdue, Contract Expired, tin Expired, nhắc gói, TRIAL, giao dịch treo) |

@@ -127,6 +127,9 @@ Cài ở **cấp khu**, áp dụng cho mọi phòng trong khu. Bản ghi chỉ s
 
 Không có giá trị chờ: liên kết người ở **có hiệu lực ngay** khi chủ trọ gắn (BR-029) — `Occupancy` chỉ có `userId` null hay không null, không có trạng thái liên kết riêng. Người được gắn nhầm tự gỡ bằng nút "Không phải tôi".
 
+**`VerificationCode.purpose`** (BR-045): `Register` · `ResetPassword`. Xin mã mới thì mã cũ cùng
+mục đích của số đó hết hiệu lực — mã đăng ký không dùng để đặt lại mật khẩu và ngược lại.
+
 **`UserSubscription.status`**: `Trial` · `Active` · `Expired` · `Cancelled`.
 
 **`PlatformTransaction.status`**: `Pending` · `Success` · `Failed`.

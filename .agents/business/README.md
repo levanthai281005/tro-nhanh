@@ -38,11 +38,11 @@ Nguồn chân lý nghiệp vụ của dự án Trọ Nhanh. Mỗi file phụ tr�
 
 **Nghiệp vụ**
 - `USER_FLOWS.md` — 11 luồng nghiệp vụ chi tiết
-- `BUSINESS_RULES.md` — BR-001 → BR-044
-- `ASSUMPTIONS.md` — AS-001 → AS-028
+- `BUSINESS_RULES.md` — BR-001 → BR-045
+- `ASSUMPTIONS.md` — AS-001 → AS-029
 
 **Dữ liệu**
-- `DATA_ENTITIES.md` — 37 entity, field chính và quan hệ
+- `DATA_ENTITIES.md` — 38 entity, field chính và quan hệ
 - `STATUS_ENUMS.md` — toàn bộ enum trạng thái
 - `VALIDATION_RULES.md` — ràng buộc nhập liệu
 
