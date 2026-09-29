@@ -114,8 +114,7 @@ tĩnh; không lưu secret trong các biến này.
 
 ## 5. API application
 
-`apps/api` là backend NestJS duy nhất của hệ thống (chưa dựng — việc kế tiếp theo
-`.agents/PROJECT_STATE.md`). Những điều đã chốt, chi tiết ở
+`apps/api` là backend NestJS duy nhất của hệ thống. Những điều đã chốt, chi tiết ở
 `.agents/rules/CODING_STANDARDS.md` mục NestJS:
 
 - Chia 17 module theo hai domain + Shared Kernel, danh sách chuẩn ở
@@ -130,7 +129,38 @@ tĩnh; không lưu secret trong các biến này.
 - Cổng thanh toán PayOS; webhook là nơi duy nhất kích hoạt quyền lợi sau thanh toán. SMS chỉ gửi
   mã xác thực.
 
-Cấu trúc thư mục bên trong `apps/api` và lệnh chạy local sẽ bổ sung vào đây khi dựng.
+```text
+apps/api/
+├── prisma/
+│   ├── schema/                 # Mỗi nhóm bảng một file, cùng tên nhóm với migration
+│   ├── migrations/             # Migration có đánh số — nguồn chân lý về cấu trúc dữ liệu
+│   └── seed/                   # Dữ liệu danh mục khởi tạo (dựng cùng PR schema)
+├── src/
+│   ├── main.ts                 # Tiền tố /api/v1, cổng 8089
+│   ├── app.module.ts
+│   ├── config/                 # Biến môi trường, kiểm bằng Zod lúc khởi động
+│   ├── infrastructure/         # Hạ tầng (Prisma) — không phải module nghiệp vụ
+│   ├── health/                 # GET /api/v1/health
+│   ├── modules/                # 17 module nghiệp vụ, tạo dần theo lát cắt:
+│   │                           # shared-kernel/ · marketplace/ · property-management/
+│   └── generated/prisma/       # Prisma Client sinh ra — không commit
+├── prisma.config.ts            # Cấu hình Prisma CLI (đọc DIRECT_URL)
+├── rspack.config.js            # Build: bundle @tronhanh/*, mọi thư viện khác để ngoài
+└── vitest.config.ts
+```
+
+- **ESM** (`"type": "module"`). Import tương đối không cần đuôi `.js` vì mã được bundle —
+  `tsconfig.json` kế thừa `moduleResolution: Bundler` của `packages/config` như mọi package khác.
+- **Build bằng Rspack, không bằng Nest CLI.** Các package `@tronhanh/*` export thẳng mã
+  TypeScript nên phải được bundle; Nest CLI 12 lại cần Node ≥ 22.22.3 ngay cả để build. `tsc`
+  chỉ dùng để typecheck. Không có `nest generate` — module mới tạo tay theo
+  `.agents/tasks/CREATE_API_MODULE.md`.
+- **Test bằng Vitest** kèm `unplugin-swc` để phát decorator metadata; thiếu nó Nest không biết
+  inject gì vào constructor.
+- `modules/` chia ba nhóm theo domain để sau này thêm luật ESLint chặn import chéo, giống
+  `features/*` bên web. Chưa tạo thư mục nào khi chưa có module.
+
+Lệnh chạy local, biến môi trường và cách nối Supabase: `docs/DEVELOPMENT_SETUP.md` mục 3–4.
 
 ## 6. Shared packages
 

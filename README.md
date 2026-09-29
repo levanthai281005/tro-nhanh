@@ -8,7 +8,8 @@ Monorepo cho nền tảng Trọ Nhanh: website (khu công khai, workspace chủ 
 - Node.js `22.14.x`, pnpm `9.15.0` và Turborepo.
 - Web: Next.js `16.3.0`, React 19, TypeScript, Tailwind CSS `3.4.17` và shadcn/ui.
 - Mobile: Expo SDK 57, Expo Router, React Native và NativeWind 4.
-- Backend: NestJS (TypeScript, Node 22), Prisma; cổng thanh toán PayOS.
+- Backend: NestJS 12 (ESM, TypeScript, Node 22) build bằng Rspack, Prisma 7; PostgreSQL và lưu
+  trữ tệp trên Supabase; cổng thanh toán PayOS.
 - Dùng chung: Axios, TanStack Query, Zustand, React Hook Form, Zod và date-fns. Định nghĩa dữ
   liệu dùng chung là Zod schema ở `packages/schemas` — cả ba ứng dụng cùng dùng.
 
@@ -26,7 +27,7 @@ tro-nhanh/
 ├── apps/
 │   ├── web/                      # Next.js App Router
 │   ├── mobile/                   # Expo Router
-│   └── api/                      # NestJS + Prisma (chưa dựng)
+│   └── api/                      # NestJS + Prisma
 ├── packages/
 │   ├── api/                      # Axios client dùng chung
 │   ├── schemas/                  # Zod schema dùng chung
@@ -119,6 +120,17 @@ Chạy mobile:
 pnpm dev:mobile
 ```
 
+Chạy backend (cần Docker Desktop cho PostgreSQL):
+
+```bash
+cp apps/api/.env.example apps/api/.env
+pnpm docker:db
+pnpm dev:api
+```
+
+API ở `http://localhost:8089/api/v1`, kiểm bằng `GET /api/v1/health`. Chi tiết, lệnh migration và
+cách nối Supabase: [docs/DEVELOPMENT_SETUP.md](./docs/DEVELOPMENT_SETUP.md).
+
 ## Biến môi trường
 
 Web:
@@ -141,13 +153,16 @@ vào Client Component.
 ```bash
 pnpm docker:dev
 pnpm docker:mobile
+pnpm docker:api
+pnpm docker:db
 pnpm docker:check
 pnpm docker:down
 ```
 
 - Next.js: `http://localhost:3000`
 - Expo/Metro: `http://localhost:8081`
-- API `apps/api`: `http://localhost:8089` (cổng chốt khi dựng)
+- API `apps/api`: `http://localhost:8089` — `docker:api` kéo theo PostgreSQL
+- PostgreSQL: `localhost:5432` (đổi bằng `POSTGRES_PORT` nếu máy đã có Postgres khác)
 
 Khi lockfile hoặc dependency thay đổi, xóa volume dependency rồi build lại container:
 
@@ -163,7 +178,9 @@ Không có bước sinh mã từ tài liệu API. Định nghĩa dữ liệu kha
 mẫu, kiểu dữ liệu suy ra bằng `z.infer`. Sửa một trường là cả ba ứng dụng báo lỗi biên dịch.
 
 Cấu trúc cơ sở dữ liệu chỉ thay đổi qua migration Prisma có đánh số trong `apps/api`; không
-sửa tay DB. Lệnh chạy API và migration bổ sung vào đây khi dựng `apps/api`.
+sửa tay DB. Quy trình: [.agents/tasks/ADD_DB_MIGRATION.md](./.agents/tasks/ADD_DB_MIGRATION.md) —
+đọc mục "một user cơ sở dữ liệu, mọi bảng bật RLS" trước khi chạy migration ở bất kỳ môi trường
+nào.
 
 ## Quy chuẩn quan trọng
 

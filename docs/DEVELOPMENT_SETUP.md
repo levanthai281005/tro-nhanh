@@ -1,7 +1,8 @@
 # Dựng dự án trên máy mới
 
 Danh sách những thứ **thật sự cần** để chạy được repo này, kiểm chứng từ `.nvmrc`,
-`package.json`, `.env.example` và `.github/workflows/ci.yml` — không phải liệt kê theo trí nhớ.
+`package.json`, `compose.yaml`, `apps/api/.env.example` và `.github/workflows/ci.yml` — không
+phải liệt kê theo trí nhớ.
 
 `README.md` mô tả đầy đủ kiến trúc và quy chuẩn code. File này chỉ trả lời đúng một câu hỏi:
 **cần cài gì để máy mới không lỗi.**
@@ -10,12 +11,13 @@ Danh sách những thứ **thật sự cần** để chạy được repo này, 
 
 ## 1. Bắt buộc — thiếu là lỗi ngay
 
-| Thứ              | Phiên bản      | Vì sao đúng con số này                          |
-| ---------------- | -------------- | ----------------------------------------------- |
-| Node.js          | **22.14.x**    | `.nvmrc` ghi `22.14.0`, `engines` ghi `22.14.x` |
-| pnpm             | **9.15.0**     | Trường `packageManager`. Bật qua corepack       |
-| Git              | bản mới bất kỳ | —                                               |
-| Đăng nhập GitHub | —              | Chưa đăng nhập là push thất bại                 |
+| Thứ              | Phiên bản      | Vì sao đúng con số này                                       |
+| ---------------- | -------------- | ------------------------------------------------------------ |
+| Node.js          | **22.14.x**    | `.nvmrc` ghi `22.14.0`, `engines` ghi `22.14.x`              |
+| pnpm             | **9.15.0**     | Trường `packageManager`. Bật qua corepack                    |
+| Git              | bản mới bất kỳ | —                                                            |
+| Đăng nhập GitHub | —              | Chưa đăng nhập là push thất bại                              |
+| Docker Desktop   | bản mới bất kỳ | Chạy PostgreSQL cho backend. Chỉ làm web/mobile thì chưa cần |
 
 **Không dùng `npm install` hay `yarn`.** Đây là pnpm workspace; dùng sai trình quản lý gói sẽ
 hỏng `node_modules` của cả monorepo.
@@ -49,23 +51,92 @@ Nếu máy có `nvm`, chạy `nvm use` trong repo để nó tự đọc `.nvmrc`
 
 ---
 
-## 3. KHÔNG cần — khỏi mất công đi tìm
+## 3. Chạy backend `apps/api`
 
-- **File `.env`.** Repo hiện không có file `.env` nào mà vẫn chạy. `packages/api` có tạo axios
-  client đọc `NEXT_PUBLIC_API_URL`, nhưng `apiClient` **chưa được gọi ở bất kỳ đâu** — toàn bộ
-  màn hình đang chạy mock data. Khi nối API thật mới cần.
-- **Backend.** Chưa nối. Sẽ là NestJS đặt **trong cùng repo này** (repo đã đổi tên từ
-  `tro-nhanh-fe` sang `tro-nhanh` ngày 21/09/2026 để chứa cả hai). Chưa dựng nên chưa cần chạy.
-- **`pnpm api:gen`.** `packages/types/src/api.ts` còn là stub rỗng vì backend chưa sinh
-  `openapi.json` thật.
-- **Docker.** Có sẵn `compose.yaml` nhưng chạy `pnpm dev:web` trực tiếp là đủ.
+```bash
+cp apps/api/.env.example apps/api/.env
+pnpm docker:db                       # PostgreSQL 17 trong Docker, cổng 5432
+pnpm dev:api                         # sinh Prisma Client, build, chạy, tự chạy lại khi sửa code
+curl http://localhost:8089/api/v1/health
+```
 
-`.env.example` chỉ có đúng một biến `EXPO_HOST_IP`, và nó chỉ dùng khi mở Expo trên điện thoại
-thật qua Docker.
+`/health` trả `{"status":"ok","database":"up"}` là xong. Trả `503` nghĩa là API chạy nhưng không
+kết nối được cơ sở dữ liệu — xem lại `DATABASE_URL` trong `apps/api/.env`.
+
+Chạy cả API lẫn cơ sở dữ liệu trong Docker thay vì trên máy: `pnpm docker:api` (không cần
+`apps/api/.env`, compose tự đặt chuỗi kết nối).
+
+Các lệnh cơ sở dữ liệu — chạy trong `apps/api` hoặc thêm `pnpm --filter api` ở gốc repo:
+
+| Lệnh               | Làm gì                                                                    |
+| ------------------ | ------------------------------------------------------------------------- |
+| `pnpm db:generate` | Sinh Prisma Client vào `src/generated/` (không commit)                    |
+| `pnpm db:migrate`  | Sinh migration mới từ `prisma/schema/` và áp vào DB local — **chỉ local** |
+| `pnpm db:deploy`   | Áp các migration có sẵn, không sinh mới — dùng cho Supabase               |
+| `pnpm db:reset`    | Xóa sạch DB local rồi chạy lại toàn bộ migration — **chỉ local**          |
+
+Quy trình viết migration: `.agents/tasks/ADD_DB_MIGRATION.md`.
 
 ---
 
-## 4. Tùy chọn theo nhu cầu
+## 4. Cơ sở dữ liệu: local và Supabase
+
+Hệ thống chạy trên **Supabase — chỉ dùng PostgreSQL và lưu trữ tệp**, không dùng phần đăng nhập
+của Supabase (AS-029). Máy dev dùng PostgreSQL trong Docker, vì `prisma migrate dev` cần tạo một
+shadow database mà Supabase không cho tạo. Migration viết ở local, áp lên Supabase bằng
+`pnpm db:deploy`.
+
+### Hai chuỗi kết nối
+
+| Biến           | Ai dùng                         | Trên Supabase                                                                         |
+| -------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| `DATABASE_URL` | Ứng dụng (`PrismaService`)      | Bộ gộp kết nối Supavisor, chế độ transaction, cổng **6543**                           |
+| `DIRECT_URL`   | Prisma CLI (`prisma.config.ts`) | Kết nối trực tiếp, cổng **5432** — mạng chỉ có IPv4 thì dùng session pooler cổng 5432 |
+
+Migration phải đi đường trực tiếp: nó giữ khóa và phiên, việc mà bộ gộp chế độ transaction không
+làm được. Kết nối trực tiếp của Supabase chỉ chạy trên IPv6 (trừ khi mua IPv4 add-on), nên mạng
+nhà chỉ có IPv4 thì `DIRECT_URL` dùng session pooler.
+
+Ở máy local không có bộ gộp nên hai biến trùng nhau.
+
+### ⚠️ Migration và ứng dụng PHẢI dùng cùng một user cơ sở dữ liệu
+
+Mọi bảng bật RLS (Row Level Security) mà **không có policy nào**. Supabase mở bảng `public` qua
+Data API bằng anon key — khóa này vốn công khai — nên RLS không policy là thứ chặn đường vào đó.
+Ứng dụng không bị chặn chỉ vì một lẽ: **chủ sở hữu bảng vượt qua RLS**, và user chạy migration
+tạo bảng nên sở hữu bảng.
+
+Nếu migration chạy bằng user quản trị còn ứng dụng dùng một user khác, ứng dụng không phải chủ
+bảng: **mọi truy vấn đọc trả về rỗng mà không báo lỗi**, mọi lệnh ghi bị từ chối. Trông y như
+"cơ sở dữ liệu chưa có gì", rất khó lần ra nguyên nhân.
+
+Vì vậy `DATABASE_URL` và `DIRECT_URL` khác đường đi nhưng **cùng user**.
+
+PostgreSQL local dùng user `tronhanh` là superuser nên vượt RLS kể cả khi cấu hình sai — **máy
+local không lộ được lỗi này**. Kiểm kỹ ở môi trường Supabase.
+
+### Dựng một project Supabase mới
+
+1. Tạo user riêng cho ứng dụng (Supabase khuyên, xem
+   [Prisma với Supabase](https://supabase.com/docs/guides/database/prisma)) — đặt cả hai chuỗi
+   kết nối bằng user này.
+2. **Tắt Data API** trong Project Settings → API. Dự án không dùng Data API; để bật là mở thêm
+   một đường vào dữ liệu nằm ngoài NestJS. RLS là lớp chặn thứ hai, không thay cho bước này.
+3. Chạy `pnpm --filter api db:deploy` với `DIRECT_URL` của project đó.
+
+---
+
+## 5. KHÔNG cần — khỏi mất công đi tìm
+
+- **File `.env` ở gốc repo.** Chỉ `apps/api` cần `.env` (bước 3). `.env.example` ở gốc chỉ có
+  `EXPO_HOST_IP`, dùng khi mở Expo trên điện thoại thật qua Docker.
+- **`NEXT_PUBLIC_API_URL`.** Web vẫn chạy mock data; `apiClient` ở `packages/api` chưa được gọi ở
+  đâu. Khi nối API thật mới cần.
+- **Docker để chạy web.** Có sẵn `compose.yaml` nhưng chạy `pnpm dev:web` trực tiếp là đủ.
+
+---
+
+## 6. Tùy chọn theo nhu cầu
 
 ### Prototype để đối chiếu giao diện
 
@@ -107,7 +178,7 @@ Chưa dựng màn nào nên chưa cần.
 
 ---
 
-## 5. Kiểm tra máy mới đã ổn chưa
+## 7. Kiểm tra máy mới đã ổn chưa
 
 Chạy đúng bộ mà GitHub Actions chạy (`.github/workflows/ci.yml`):
 
@@ -119,19 +190,32 @@ pnpm test
 pnpm build
 ```
 
-Mốc để đối chiếu: `pnpm test` phải ra **29 test pass** ở `@tronhanh/utils` (22 của `vietqr`,
-7 của `invoiceNote`) và **26 test** ở `@tronhanh/access`.
+Mốc để đối chiếu: `pnpm test` phải ra **29 test pass** ở `@tronhanh/utils`, **15** ở
+`@tronhanh/schemas`, **26** ở `@tronhanh/access` và **7** ở `api`.
 
 Xanh hết là máy mới dựng đúng.
 
 ---
 
-## 6. Cạm bẫy dễ dính trên máy mới
+## 8. Cạm bẫy dễ dính trên máy mới
 
 **Cổng 3000 bị chiếm.** Dev server cũ chưa tắt thì Next tự nhảy sang 3001, rồi mở nhầm cổng và
-tưởng code không ăn. Luôn tắt dev server sau khi kiểm xong.
+tưởng code không ăn. Luôn tắt dev server sau khi kiểm xong. API giữ cổng 8089 — cũng tắt sau khi
+kiểm.
+
+**Cổng 5432 bị chiếm.** Máy đã có PostgreSQL khác (cài thẳng, hoặc container của dự án khác) thì
+`pnpm docker:db` báo `port is already allocated`. Chạy trên cổng khác rồi sửa hai chuỗi kết nối
+trong `apps/api/.env` theo:
+
+```bash
+POSTGRES_PORT=5433 docker compose up -d postgres
+```
 
 **Cài Node "bản mới nhất" thay vì 22.14.x.** Xem lại mục 1.
+
+**Đừng gõ `nest build` hay `nest generate`.** Nest CLI 12 cần Node ≥ 22.22.3 kể cả để build, còn
+repo ghim 22.14.0 — nó sập ngay khi khởi động. `apps/api` build bằng Rspack (`pnpm build`); module
+mới tạo tay theo `.agents/tasks/CREATE_API_MODULE.md`.
 
 **Class Tailwind sai tên không gây lỗi build.** Tailwind lặng lẽ không sinh CSS, typecheck vẫn
 xanh, giao diện sai âm thầm. `pnpm lint` là hàng rào duy nhất — đừng bỏ qua nó. Nghi ngờ thì
