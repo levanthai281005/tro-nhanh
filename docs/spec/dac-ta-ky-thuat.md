@@ -1560,19 +1560,31 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
   mỗi giờ**.
 - Giới hạn gửi theo **địa chỉ IP** của người yêu cầu: tối đa **20 lần mỗi giờ**, tính gộp mọi số
   điện thoại.
-- **Trần tổng cho toàn hệ thống:** tổng số tin nhắn gửi mã trong một ngày (tính theo giờ Việt Nam)
-  không vượt một mức đặt bằng **biến cấu hình**, không cố định trong mã nguồn. Chạm trần thì
-  **tạm ngưng gửi mã tới hết ngày**: người dùng nhận thông báo rõ rằng hệ thống đang tạm ngưng gửi
-  mã — không báo như thể đã gửi — và hệ thống ghi cảnh báo cho người vận hành.
+- **Trần mỗi ngày, riêng cho từng mục đích:** số tin nhắn gửi mã trong một ngày (tính theo giờ
+  Việt Nam) cho **đăng ký** và cho **khôi phục mật khẩu** có **hai trần riêng**, mỗi trần đặt bằng
+  một **biến cấu hình**, không cố định trong mã nguồn. Chạm trần của mục đích nào thì **tạm ngưng
+  gửi mã cho riêng mục đích đó tới hết ngày**: người dùng nhận thông báo rõ rằng hệ thống đang tạm
+  ngưng gửi mã — không báo như thể đã gửi — và hệ thống ghi cảnh báo cho người vận hành.
+- **Khôi phục mật khẩu chỉ gửi tin cho số đã có tài khoản**, nhưng trả về **cùng một thông báo**,
+  trong khoảng thời gian như nhau, dù số đó có tài khoản hay không. Khi luồng này đang tạm ngưng vì
+  chạm trần thì mọi yêu cầu đều nhận thông báo tạm ngưng, kể cả với số chưa đăng ký.
 - Bản ghi mã quá **30 ngày** thì bị **xóa hẳn** — ngoại lệ của quy ước xóa mềm ở Mục 6.
 - **Lý do giới hạn theo IP:** chỉ giới hạn theo số thì kẻ phá hoại đổi số liên tục vẫn đốt được
   tiền tin nhắn không giới hạn. Mức theo IP đặt cao hơn mức theo số vì nhiều người dùng mạng di
   động đi chung một địa chỉ IP.
-- **Lý do có trần tổng:** giới hạn theo IP không chặn được kẻ tấn công dùng proxy xoay vòng — mỗi
-  yêu cầu đến từ một địa chỉ mới. Chỉ trần tổng mới giới hạn được thiệt hại tối đa về tiền.
-- **Đánh đổi của trần tổng:** khi bị tấn công, người dùng thật cũng **không đăng ký được tới hết
-  ngày** — và cũng không khôi phục được mật khẩu, vì hai việc dùng chung một trần. Chấp nhận đánh
-  đổi này vì thiệt hại về tiền khi không có trần là không giới hạn, còn gián đoạn có điểm dừng.
+- **Lý do có trần mỗi ngày:** giới hạn theo IP không chặn được kẻ tấn công dùng proxy xoay vòng —
+  mỗi yêu cầu đến từ một địa chỉ mới. Chỉ trần mới giới hạn được thiệt hại tối đa về tiền.
+- **Lý do tách trần theo mục đích:** tấn công vào luồng đăng ký chỉ đốt trần của đăng ký, người đã
+  có tài khoản vẫn khôi phục được mật khẩu. Một cuộc tấn công không được phép khóa người dùng thật
+  ngoài tài khoản của chính họ.
+- **Lý do chỉ gửi cho số đã có tài khoản:** khôi phục mật khẩu chỉ có nghĩa với tài khoản đã có;
+  gửi cho số lạ là đốt tiền vô ích và biến hệ thống thành công cụ bắn tin tới số bất kỳ. Nhờ vậy,
+  tấn công luồng này bằng số ngẫu nhiên gần như không gửi được tin nào nên khó đốt hết trần. Thông
+  báo và thời gian phản hồi phải như nhau để không ai dùng màn này dò xem số nào đã có tài khoản —
+  có gửi tin thì phản hồi chậm hơn hẳn không gửi, nên chỉ lệch thời gian thôi cũng đủ làm lộ.
+- **Đánh đổi:** khi luồng đăng ký bị tấn công, người dùng mới **không đăng ký được tới hết ngày**.
+  Chấp nhận vì thiệt hại về tiền khi không có trần là không giới hạn, còn gián đoạn này có điểm
+  dừng và không chạm tới người đã có tài khoản.
 - **Lý do xóa hẳn:** mã chỉ có một triệu khả năng nên bản băm dò ngược được; địa chỉ IP là dữ
   liệu cá nhân. Giữ lâu không có ích mà chỉ thêm rủi ro.
 
@@ -1627,7 +1639,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **IncidentComment** | Trao đổi trong một sự cố | `incidentId`, `authorUserId`, `content`, `isFromLandlord` | n-1 Incident/User |
 | **DeviceToken** | Token push cho app mobile | `userId`, `token` (unique), `platform` (iOS/Android), `lastActiveAt` | n-1 User |
 
-**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `VerificationCode(phoneNumber, purpose, createdAt)`; `VerificationCode(requestIp, createdAt)`; `VerificationCode(createdAt)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
+**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `VerificationCode(phoneNumber, purpose, createdAt)`; `VerificationCode(requestIp, createdAt)`; `VerificationCode(purpose, createdAt)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
 
 ---
 
