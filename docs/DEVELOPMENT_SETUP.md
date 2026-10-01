@@ -213,9 +213,24 @@ POSTGRES_PORT=5433 docker compose up -d postgres
 
 **Cài Node "bản mới nhất" thay vì 22.14.x.** Xem lại mục 1.
 
-**Đừng gõ `nest build` hay `nest generate`.** Nest CLI 12 cần Node ≥ 22.22.3 kể cả để build, còn
-repo ghim 22.14.0 — nó sập ngay khi khởi động. `apps/api` build bằng Rspack (`pnpm build`); module
-mới tạo tay theo `.agents/tasks/CREATE_API_MODULE.md`.
+**Repo không dùng được lệnh tạo khung của NestJS, và hướng dẫn build trong tài liệu chính thức
+không áp dụng.**
+
+- **Không dùng:** `nest new`, `nest generate` (`nest g module …`), `nest build`, `nest start`. Phần
+  tài liệu NestJS hướng dẫn build và chạy bằng các lệnh này, hay cấu hình `nest-cli.json`, bỏ qua.
+  Phần chạy của NestJS — module, decorator, DI, guard — vẫn dùng bình thường; chỉ bộ công cụ
+  dòng lệnh là không.
+- **Lý do:** Nest CLI 12 nạp `@angular-devkit`, gói này `require()` một gói ESM nằm trong vòng
+  import (`ERR_REQUIRE_CYCLE_MODULE`) — chỉ Node ≥ 22.22.3 xử lý được. Repo ghim Node 22.14.0 nên
+  CLI sập ngay khi khởi động, **kể cả `nest build`**, dù hướng dẫn nâng cấp của NestJS chỉ nói
+  `nest new` và `nest generate` cần Node mới.
+- **Làm thay:** build bằng `pnpm --filter api build` (Rspack, cấu hình ở `apps/api/rspack.config.js`),
+  chạy dev bằng `pnpm dev:api`. Module mới tạo tay theo `.agents/tasks/CREATE_API_MODULE.md`.
+- **Cách gỡ nếu cần:** nâng Node lên ≥ 22.22.3 **ở mọi chỗ cùng lúc** — `.nvmrc`, `engines` trong
+  `package.json` gốc, dòng `FROM` của `Dockerfile.dev` (CI đọc `.nvmrc` nên tự theo) — rồi cài
+  `@nestjs/cli` vào `apps/api`. Build vẫn nên giữ Rspack: kể cả khi dùng Nest CLI, cấu hình Rspack
+  riêng vẫn cần để gói `@tronhanh/*` vào bundle. Đổi phiên bản Node là quyết định riêng, không
+  làm lẻ trong một PR tính năng.
 
 **Class Tailwind sai tên không gây lỗi build.** Tailwind lặng lẽ không sinh CSS, typecheck vẫn
 xanh, giao diện sai âm thầm. `pnpm lint` là hàng rào duy nhất — đừng bỏ qua nó. Nghi ngờ thì
