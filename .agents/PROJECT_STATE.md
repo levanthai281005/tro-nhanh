@@ -458,7 +458,8 @@ sẽ sinh lỗi kiểu "máy tôi chạy được".
 
 **`prisma@latest` trên npm là bản RC 8.x** trong khi `@prisma/client@latest` là 7.x. Cài không
 ghim là CLI và client lệch major. `prisma`, `@prisma/client`, `@prisma/adapter-pg` ghim **chính
-xác** cùng một bản — nâng thì nâng cả ba.
+xác** cùng một bản — nâng thì nâng cả ba. Prisma CLI thỉnh thoảng in hộp "Update available" kèm
+lệnh `npm i …@latest` — **đừng làm theo**, nó kéo đúng bản RC đó về.
 
 **Turbo 2 lọc biến môi trường của task.** Biến không khai trong `turbo.json` (`env` hoặc
 `passThroughEnv`) không tới được task — `pnpm dev:api` trong Docker từng bỏ qua `DATABASE_URL`

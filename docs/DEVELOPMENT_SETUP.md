@@ -68,12 +68,14 @@ Chạy cả API lẫn cơ sở dữ liệu trong Docker thay vì trên máy: `pn
 
 Các lệnh cơ sở dữ liệu — chạy trong `apps/api` hoặc thêm `pnpm --filter api` ở gốc repo:
 
-| Lệnh               | Làm gì                                                                    |
-| ------------------ | ------------------------------------------------------------------------- |
-| `pnpm db:generate` | Sinh Prisma Client vào `src/generated/` (không commit)                    |
-| `pnpm db:migrate`  | Sinh migration mới từ `prisma/schema/` và áp vào DB local — **chỉ local** |
-| `pnpm db:deploy`   | Áp các migration có sẵn, không sinh mới — dùng cho Supabase               |
-| `pnpm db:reset`    | Xóa sạch DB local rồi chạy lại toàn bộ migration — **chỉ local**          |
+| Lệnh                      | Làm gì                                                                    |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `pnpm db:generate`        | Sinh Prisma Client vào `src/generated/` (không commit)                    |
+| `pnpm db:migrate`         | Sinh migration mới từ `prisma/schema/` và áp vào DB local — **chỉ local** |
+| `pnpm db:deploy`          | Áp các migration có sẵn, không sinh mới — vào DB trong `.env`             |
+| `pnpm db:reset`           | Xóa sạch DB local rồi chạy lại toàn bộ migration — **chỉ local**          |
+| `pnpm db:deploy:supabase` | Như `db:deploy` nhưng vào Supabase, đọc `.env.supabase.local` (mục 4)     |
+| `pnpm start:supabase`     | Chạy bản đã build, kết nối Supabase qua bộ gộp — để kiểm (mục 4)          |
 
 Quy trình viết migration: `.agents/tasks/ADD_DB_MIGRATION.md`.
 
@@ -84,18 +86,37 @@ Quy trình viết migration: `.agents/tasks/ADD_DB_MIGRATION.md`.
 Hệ thống chạy trên **Supabase — chỉ dùng PostgreSQL và lưu trữ tệp**, không dùng phần đăng nhập
 của Supabase (AS-029). Máy dev dùng PostgreSQL trong Docker, vì `prisma migrate dev` cần tạo một
 shadow database mà Supabase không cho tạo. Migration viết ở local, áp lên Supabase bằng
-`pnpm db:deploy`.
+`pnpm db:deploy:supabase`.
+
+Hai file biến môi trường trong `apps/api`, **cả hai bị git bỏ qua**:
+
+| File                  | Trỏ tới                 | Ai đọc                                                       |
+| --------------------- | ----------------------- | ------------------------------------------------------------ |
+| `.env`                | PostgreSQL Docker ở máy | Mọi lệnh thường: `dev:api`, `db:migrate`, `db:deploy`, test… |
+| `.env.supabase.local` | Project Supabase thật   | Chỉ `pnpm db:deploy:supabase` và `pnpm start:supabase`       |
+
+Bản mẫu được commit là `.env.example` và `.env.supabase.example` — chỉ có tên biến, không có giá
+trị thật (`.env.example` có sẵn chuỗi tới Postgres Docker, trùng `compose.yaml`, không phải bí
+mật). Hai lệnh `:supabase` đọc file `.local` bằng `scripts/with-supabase-env.js`: **thiếu file
+hoặc để trống thì dừng hẳn**, không lặng lẽ chạy trên Postgres ở máy.
 
 ### Hai chuỗi kết nối
 
-| Biến           | Ai dùng                         | Trên Supabase                                                                         |
-| -------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
-| `DATABASE_URL` | Ứng dụng (`PrismaService`)      | Bộ gộp kết nối Supavisor, chế độ transaction, cổng **6543**                           |
-| `DIRECT_URL`   | Prisma CLI (`prisma.config.ts`) | Kết nối trực tiếp, cổng **5432** — mạng chỉ có IPv4 thì dùng session pooler cổng 5432 |
+| Biến           | Ai dùng                         | Trên Supabase (gói miễn phí)                            | User                   |
+| -------------- | ------------------------------- | ------------------------------------------------------- | ---------------------- |
+| `DATABASE_URL` | Ứng dụng (`PrismaService`)      | Bộ gộp Supavisor, chế độ **transaction**, cổng **6543** | `prisma.<project-ref>` |
+| `DIRECT_URL`   | Prisma CLI (`prisma.config.ts`) | Bộ gộp Supavisor, chế độ **session**, cổng **5432**     | `prisma.<project-ref>` |
 
-Migration phải đi đường trực tiếp: nó giữ khóa và phiên, việc mà bộ gộp chế độ transaction không
-làm được. Kết nối trực tiếp của Supabase chỉ chạy trên IPv6 (trừ khi mua IPv4 add-on), nên mạng
-nhà chỉ có IPv4 thì `DIRECT_URL` dùng session pooler.
+- **Qua bộ gộp, tên user luôn có hậu tố mã project**: `prisma.<project-ref>` — bộ gộp dùng chung
+  nhiều project nên cần biết bạn thuộc project nào. **Kết nối trực tiếp** (`db.<project-ref>.supabase.co`)
+  thì không có hậu tố: user là `prisma`.
+- Migration không đi qua chế độ transaction được — nó giữ khóa và phiên. Ở gói miễn phí, kết nối
+  trực tiếp **chỉ chạy trên IPv6**, nên `DIRECT_URL` dùng **session pooler** (chạy IPv4 lẫn IPv6).
+  Chỉ dùng kết nối trực tiếp khi chắc mạng có IPv6 hoặc đã mua IPv4 add-on.
+- Chế độ transaction không hỗ trợ prepared statement có tên. `@prisma/adapter-pg` chỉ đặt tên khi
+  truyền `statementNameGenerator` — **đừng thêm tùy chọn đó** vào `PrismaService`.
+- Host bộ gộp **chép từ nút Connect**, không tự ghép từ tên vùng: trong host có chỉ số cụm
+  (`aws-0-…`, `aws-1-…`) mà một vùng có thể có nhiều cụm.
 
 Ở máy local không có bộ gộp nên hai biến trùng nhau.
 
@@ -117,9 +138,20 @@ local không lộ được lỗi này**. Kiểm kỹ ở môi trường Supabase
 
 ### Dựng một project Supabase mới
 
-**Bước 1 — Tạo user `prisma`.** Mở SQL Editor của Supabase (chạy bằng quyền `postgres` mặc định)
-và chạy **một lần**. Thay `<MẬT_KHẨU>` bằng mật khẩu lấy từ trình tạo mật khẩu, **chỉ gồm chữ và
-số**, dài từ 32 ký tự — ký tự như `@ : / ? # %` phải mã hóa khi đưa vào chuỗi kết nối, rất dễ sai.
+Mật khẩu và chuỗi kết nối **không bao giờ** dán vào chat, issue, PR hay commit.
+
+**Bước 1 — Sinh mật khẩu cho user `prisma`** ngay trên máy mình:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(24).toString('hex'))"
+```
+
+Ra 48 ký tự `0-9a-f` — đủ mạnh, và không chứa ký tự nào phải mã hóa khi đưa vào chuỗi kết nối
+(`@ : / ? # %` mà lọt vào là chuỗi kết nối hỏng một cách khó hiểu). Cất vào trình quản lý mật
+khẩu.
+
+**Bước 2 — Tạo user `prisma`.** Mở SQL Editor của Supabase (chạy bằng quyền `postgres` mặc định),
+dán đoạn dưới, thay `<MẬT_KHẨU>` bằng mật khẩu ở bước 1, chạy **một lần**:
 
 ```sql
 -- User duy nhất mà CẢ migration LẪN ứng dụng dùng. Nó tạo bảng nên sở hữu bảng,
@@ -143,29 +175,51 @@ grant usage, create on schema public to prisma;
 - **Không `createdb`.** `prisma migrate dev` cần tạo shadow database nên chỉ chạy ở máy local,
   không bao giờ chạy trên Supabase.
 - **Không cấp quyền trên bảng, hàm, sequence do `postgres` sở hữu.** Schema `public` của dự án chỉ
-  chứa bảng do `prisma` tạo; bảng nào do `postgres` sở hữu là đang sai — bước 4 kiểm điều này.
+  chứa bảng do `prisma` tạo; bảng nào do `postgres` sở hữu là đang sai — bước 6 kiểm điều này.
 
-**Bước 2 — Đặt hai chuỗi kết nối.** Lấy host từ nút **Connect** trên dashboard (mỗi project một
-host), rồi thay user và mật khẩu bằng của `prisma`. Qua bộ gộp Supavisor, user có dạng
-`prisma.<project-ref>`; kết nối trực tiếp dùng `prisma`. Hai chuỗi khác đường nhưng **cùng user**:
-
-```dotenv
-# Ứng dụng — Supavisor chế độ transaction
-DATABASE_URL=postgresql://prisma.<project-ref>:<MẬT_KHẨU>@<host-pooler>:6543/postgres
-
-# Migration — kết nối trực tiếp (chỉ chạy trên IPv6)
-DIRECT_URL=postgresql://prisma:<MẬT_KHẨU>@db.<project-ref>.supabase.co:5432/postgres
-# …hoặc session pooler nếu mạng chỉ có IPv4:
-# DIRECT_URL=postgresql://prisma.<project-ref>:<MẬT_KHẨU>@<host-pooler>:5432/postgres
-```
+Chạy xong thì **xóa câu lệnh vừa chạy khỏi SQL Editor** (snippet / lịch sử): nó đang chứa mật khẩu
+ở dạng chữ thường.
 
 **Bước 3 — Tắt Data API** trong Project Settings → API. Dự án không dùng Data API; để bật là mở
 thêm một đường vào dữ liệu nằm ngoài NestJS. RLS là lớp chặn thứ hai, không thay cho bước này.
 
-**Bước 4 — Áp migration rồi kiểm.**
+**Bước 4 — Điền chuỗi kết nối vào `apps/api/.env.supabase.local`.**
 
 ```bash
-pnpm --filter api db:deploy
+cp apps/api/.env.supabase.example apps/api/.env.supabase.local
+```
+
+Bấm **Connect** trên dashboard, chọn mục pooler, lấy hai thứ: **host bộ gộp** và **mã project**
+(phần sau `postgres.` trong tên user mẫu — cũng là Reference ID ở Project Settings → General). Chuỗi
+mẫu trong Connect dùng user `postgres` và mật khẩu của project — **đổi cả hai** thành của `prisma`:
+
+```dotenv
+DATABASE_URL=postgresql://prisma.<project-ref>:<MẬT_KHẨU>@<host-bộ-gộp>:6543/postgres
+DIRECT_URL=postgresql://prisma.<project-ref>:<MẬT_KHẨU>@<host-bộ-gộp>:5432/postgres
+```
+
+Hai chuỗi chung host, khác cổng (6543 / 5432), **cùng user**. Chỉ khi mạng có IPv6 (hoặc đã mua
+IPv4 add-on) mới có thể đổi `DIRECT_URL` sang kết nối trực tiếp — lúc đó user **không** có hậu
+tố: `postgresql://prisma:<MẬT_KHẨU>@db.<project-ref>.supabase.co:5432/postgres`.
+
+Kiểm: `git status` **không** được thấy `.env.supabase.local`.
+
+**Bước 5 — Kiểm đường ứng dụng qua bộ gộp.** Chạy được ngay, chưa cần migration — `/health` chỉ
+chạy `SELECT 1`:
+
+```bash
+pnpm --filter api build
+pnpm --filter api start:supabase
+curl http://localhost:8089/api/v1/health      # {"status":"ok","database":"up"}
+```
+
+Trả 503 thì log của API ghi lý do (sai mật khẩu, sai tên user, sai host) — đọc log, không cần
+in chuỗi kết nối ra. Tắt API sau khi kiểm.
+
+**Bước 6 — Áp migration rồi kiểm** (khi đã có migration):
+
+```bash
+pnpm --filter api db:deploy:supabase
 ```
 
 Chạy hai truy vấn dưới trong SQL Editor — **cả hai phải ra 0 dòng**:
@@ -181,9 +235,7 @@ join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity;
 ```
 
-**Bước 5 — Kiểm qua bộ gộp kết nối.** Đặt hai chuỗi ở bước 2 vào `apps/api/.env`, chạy
-`pnpm dev:api` rồi gọi `GET /api/v1/health` — phải trả `{"status":"ok","database":"up"}`. Đây là
-bước duy nhất chạm tới đường ứng dụng thật dùng trên Supabase (cổng 6543).
+Chạy lại bước 5 để chắc ứng dụng vẫn truy vấn được sau khi có bảng.
 
 ---
 

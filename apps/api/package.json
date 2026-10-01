@@ -7,12 +7,14 @@
     "dev": "rspack build --watch --env dev",
     "build": "rspack build",
     "start": "node --enable-source-maps dist/main.js",
+    "start:supabase": "node scripts/with-supabase-env.js node --enable-source-maps dist/main.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "db:deploy:supabase": "node scripts/with-supabase-env.js prisma migrate deploy",
     "db:reset": "prisma migrate reset"
   },
   "dependencies": {
