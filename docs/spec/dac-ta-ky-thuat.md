@@ -1560,10 +1560,19 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
   mỗi giờ**.
 - Giới hạn gửi theo **địa chỉ IP** của người yêu cầu: tối đa **20 lần mỗi giờ**, tính gộp mọi số
   điện thoại.
+- **Trần tổng cho toàn hệ thống:** tổng số tin nhắn gửi mã trong một ngày (tính theo giờ Việt Nam)
+  không vượt một mức đặt bằng **biến cấu hình**, không cố định trong mã nguồn. Chạm trần thì
+  **tạm ngưng gửi mã tới hết ngày**: người dùng nhận thông báo rõ rằng hệ thống đang tạm ngưng gửi
+  mã — không báo như thể đã gửi — và hệ thống ghi cảnh báo cho người vận hành.
 - Bản ghi mã quá **30 ngày** thì bị **xóa hẳn** — ngoại lệ của quy ước xóa mềm ở Mục 6.
 - **Lý do giới hạn theo IP:** chỉ giới hạn theo số thì kẻ phá hoại đổi số liên tục vẫn đốt được
   tiền tin nhắn không giới hạn. Mức theo IP đặt cao hơn mức theo số vì nhiều người dùng mạng di
   động đi chung một địa chỉ IP.
+- **Lý do có trần tổng:** giới hạn theo IP không chặn được kẻ tấn công dùng proxy xoay vòng — mỗi
+  yêu cầu đến từ một địa chỉ mới. Chỉ trần tổng mới giới hạn được thiệt hại tối đa về tiền.
+- **Đánh đổi của trần tổng:** khi bị tấn công, người dùng thật cũng **không đăng ký được tới hết
+  ngày** — và cũng không khôi phục được mật khẩu, vì hai việc dùng chung một trần. Chấp nhận đánh
+  đổi này vì thiệt hại về tiền khi không có trần là không giới hạn, còn gián đoạn có điểm dừng.
 - **Lý do xóa hẳn:** mã chỉ có một triệu khả năng nên bản băm dò ngược được; địa chỉ IP là dữ
   liệu cá nhân. Giữ lâu không có ích mà chỉ thêm rủi ro.
 
@@ -1618,7 +1627,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **IncidentComment** | Trao đổi trong một sự cố | `incidentId`, `authorUserId`, `content`, `isFromLandlord` | n-1 Incident/User |
 | **DeviceToken** | Token push cho app mobile | `userId`, `token` (unique), `platform` (iOS/Android), `lastActiveAt` | n-1 User |
 
-**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `VerificationCode(phoneNumber, purpose, createdAt)`; `VerificationCode(requestIp, createdAt)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
+**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `VerificationCode(phoneNumber, purpose, createdAt)`; `VerificationCode(requestIp, createdAt)`; `VerificationCode(createdAt)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
 
 ---
 
