@@ -485,9 +485,12 @@ kiểu — "trường học", "Trường học", "gần trường" — không nh
   một **biến cấu hình**, không cố định trong mã nguồn. Chạm trần của mục đích nào thì **tạm ngưng
   gửi mã cho riêng mục đích đó tới hết ngày**: người dùng nhận thông báo rõ rằng hệ thống đang tạm
   ngưng gửi mã — không báo như thể đã gửi — và hệ thống ghi cảnh báo cho người vận hành.
-- **Khôi phục mật khẩu chỉ gửi tin cho số đã có tài khoản**, nhưng trả về **cùng một thông báo**,
-  trong khoảng thời gian như nhau, dù số đó có tài khoản hay không. Khi luồng này đang tạm ngưng vì
-  chạm trần thì mọi yêu cầu đều nhận thông báo tạm ngưng, kể cả với số chưa đăng ký.
+- **Khôi phục mật khẩu chỉ gửi tin cho số đã có tài khoản**, nhưng trả về **cùng một thông báo**
+  dù số đó có tài khoản hay không. **Phản hồi trả về ngay, việc gửi tin chạy ở nền** — không đợi
+  nhà mạng, và **không cố ý làm chậm phản hồi** để giả thời gian gửi tin. Việc tra tài khoản và các
+  giới hạn theo số điện thoại cũng chạy ở phần nền, để phản hồi không phụ thuộc số đó có tài khoản
+  hay không. Khi luồng này đang tạm ngưng vì chạm trần thì mọi yêu cầu đều nhận thông báo tạm
+  ngưng, kể cả với số chưa đăng ký.
 - Bản ghi mã quá **30 ngày** thì bị **xóa hẳn** — ngoại lệ của quy ước xóa mềm.
 
 **Lý do giới hạn theo IP:** chỉ giới hạn theo số thì kẻ phá hoại đổi số liên tục vẫn đốt được
@@ -504,8 +507,13 @@ ngoài tài khoản của chính họ.
 **Lý do chỉ gửi cho số đã có tài khoản:** khôi phục mật khẩu chỉ có nghĩa với tài khoản đã có;
 gửi cho số lạ là đốt tiền vô ích và biến hệ thống thành công cụ bắn tin tới số bất kỳ. Nhờ vậy,
 tấn công luồng này bằng số ngẫu nhiên gần như không gửi được tin nào nên khó đốt hết trần. Thông
-báo và thời gian phản hồi phải như nhau để không ai dùng màn này dò xem số nào đã có tài khoản —
-có gửi tin thì phản hồi chậm hơn hẳn không gửi, nên chỉ lệch thời gian thôi cũng đủ làm lộ.
+báo phải như nhau và phản hồi không được chờ gửi tin, để không ai dùng màn này dò xem số nào đã có
+tài khoản — chờ gửi tin thì phản hồi với số có tài khoản chậm hơn hẳn, chỉ lệch thời gian thôi
+cũng đủ làm lộ.
+
+**Lý do gửi ở nền thay vì làm chậm cho bằng nhau:** độ trễ giả không bao giờ khớp hoàn toàn với
+thời gian gửi tin thật, vì thời gian đó dao động theo nhà mạng — nên vẫn dò được bằng thống kê
+trên nhiều lần thử. Gửi ở nền thì cả hai trường hợp cùng trả về ngay, không còn gì để đo.
 
 **Đánh đổi:** khi luồng đăng ký bị tấn công, người dùng mới **không đăng ký được tới hết ngày**.
 Chấp nhận vì thiệt hại về tiền khi không có trần là không giới hạn, còn gián đoạn này có điểm
