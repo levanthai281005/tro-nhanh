@@ -117,12 +117,73 @@ local không lộ được lỗi này**. Kiểm kỹ ở môi trường Supabase
 
 ### Dựng một project Supabase mới
 
-1. Tạo user riêng cho ứng dụng (Supabase khuyên, xem
-   [Prisma với Supabase](https://supabase.com/docs/guides/database/prisma)) — đặt cả hai chuỗi
-   kết nối bằng user này.
-2. **Tắt Data API** trong Project Settings → API. Dự án không dùng Data API; để bật là mở thêm
-   một đường vào dữ liệu nằm ngoài NestJS. RLS là lớp chặn thứ hai, không thay cho bước này.
-3. Chạy `pnpm --filter api db:deploy` với `DIRECT_URL` của project đó.
+**Bước 1 — Tạo user `prisma`.** Mở SQL Editor của Supabase (chạy bằng quyền `postgres` mặc định)
+và chạy **một lần**. Thay `<MẬT_KHẨU>` bằng mật khẩu lấy từ trình tạo mật khẩu, **chỉ gồm chữ và
+số**, dài từ 32 ký tự — ký tự như `@ : / ? # %` phải mã hóa khi đưa vào chuỗi kết nối, rất dễ sai.
+
+```sql
+-- User duy nhất mà CẢ migration LẪN ứng dụng dùng. Nó tạo bảng nên sở hữu bảng,
+-- và chủ sở hữu bảng vượt qua RLS.
+create role prisma with login password '<MẬT_KHẨU>';
+
+-- Tài khoản quản trị của dashboard (postgres) vẫn quản lý được bảng do prisma sở hữu.
+grant prisma to postgres;
+
+-- Quyền tạo bảng trong schema public — thiếu thì migration đầu tiên báo không đủ quyền.
+grant usage, create on schema public to prisma;
+```
+
+Đoạn này **cố ý khác** mẫu trong
+[hướng dẫn Prisma của Supabase](https://supabase.com/docs/guides/database/prisma) ở ba chỗ:
+
+- **Không `bypassrls`.** Vượt RLS nhờ sở hữu bảng là đủ. `bypassrls` vượt RLS ở mọi bảng, mọi
+  lúc, không tắt được theo từng bảng — nếu sau này thêm policy thật làm lớp cô lập dữ liệu giữa các
+  chủ trọ, nó vô hiệu hóa policy đó mà không ai thấy. Vượt RLS nhờ sở hữu thì vẫn tắt được cho
+  từng bảng bằng `FORCE ROW LEVEL SECURITY`.
+- **Không `createdb`.** `prisma migrate dev` cần tạo shadow database nên chỉ chạy ở máy local,
+  không bao giờ chạy trên Supabase.
+- **Không cấp quyền trên bảng, hàm, sequence do `postgres` sở hữu.** Schema `public` của dự án chỉ
+  chứa bảng do `prisma` tạo; bảng nào do `postgres` sở hữu là đang sai — bước 4 kiểm điều này.
+
+**Bước 2 — Đặt hai chuỗi kết nối.** Lấy host từ nút **Connect** trên dashboard (mỗi project một
+host), rồi thay user và mật khẩu bằng của `prisma`. Qua bộ gộp Supavisor, user có dạng
+`prisma.<project-ref>`; kết nối trực tiếp dùng `prisma`. Hai chuỗi khác đường nhưng **cùng user**:
+
+```dotenv
+# Ứng dụng — Supavisor chế độ transaction
+DATABASE_URL=postgresql://prisma.<project-ref>:<MẬT_KHẨU>@<host-pooler>:6543/postgres
+
+# Migration — kết nối trực tiếp (chỉ chạy trên IPv6)
+DIRECT_URL=postgresql://prisma:<MẬT_KHẨU>@db.<project-ref>.supabase.co:5432/postgres
+# …hoặc session pooler nếu mạng chỉ có IPv4:
+# DIRECT_URL=postgresql://prisma.<project-ref>:<MẬT_KHẨU>@<host-pooler>:5432/postgres
+```
+
+**Bước 3 — Tắt Data API** trong Project Settings → API. Dự án không dùng Data API; để bật là mở
+thêm một đường vào dữ liệu nằm ngoài NestJS. RLS là lớp chặn thứ hai, không thay cho bước này.
+
+**Bước 4 — Áp migration rồi kiểm.**
+
+```bash
+pnpm --filter api db:deploy
+```
+
+Chạy hai truy vấn dưới trong SQL Editor — **cả hai phải ra 0 dòng**:
+
+```sql
+-- Bảng không do prisma sở hữu: ứng dụng sẽ đọc rỗng ở bảng đó mà không báo lỗi.
+select tablename, tableowner from pg_tables
+where schemaname = 'public' and tableowner <> 'prisma';
+
+-- Bảng chưa bật RLS: lộ ra Data API nếu ai đó bật lại nó.
+select c.relname from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity;
+```
+
+**Bước 5 — Kiểm qua bộ gộp kết nối.** Đặt hai chuỗi ở bước 2 vào `apps/api/.env`, chạy
+`pnpm dev:api` rồi gọi `GET /api/v1/health` — phải trả `{"status":"ok","database":"up"}`. Đây là
+bước duy nhất chạm tới đường ứng dụng thật dùng trên Supabase (cổng 6543).
 
 ---
 
