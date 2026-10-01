@@ -1,0 +1,47 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rspack build --watch --env dev",
+    "build": "rspack build",
+    "start": "node --enable-source-maps dist/main.js",
+    "start:supabase": "node scripts/with-supabase-env.js node --enable-source-maps dist/main.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:deploy:supabase": "node scripts/with-supabase-env.js prisma migrate deploy",
+    "db:reset": "prisma migrate reset"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.1.1",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.1.1",
+    "@nestjs/platform-express": "^12.1.1",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^12.1.1",
+    "@rspack/cli": "^2.2.8",
+    "@rspack/core": "^2.2.8",
+    "@swc/core": "^1.16.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22",
+    "@types/supertest": "^7.2.1",
+    "dotenv": "^18.0.4",
+    "prisma": "7.10.0",
+    "supertest": "^7.3.0",
+    "typescript": "~6.0.3",
+    "unplugin-swc": "^2.0.0",
+    "vitest": "^4.1.10",
+    "webpack-node-externals": "^3.0.0"
+  }
+}

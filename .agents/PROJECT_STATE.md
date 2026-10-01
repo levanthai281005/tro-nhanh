@@ -3,8 +3,10 @@
 **File sống — cập nhật sau mỗi nhánh hoàn thành.** Agent đọc file này đầu tiên để biết đang
 ở đâu, tránh làm lại việc đã xong hoặc làm nhầm thứ tự.
 
-Cập nhật lần cuối: **đồng bộ đặc tả v3.6** (23/09/2026 — BR-042/043, bốn khoảng trống dữ liệu đã
-chốt; **bộ tài liệu đóng băng sau đợt này**, xem mục "Đã xong"). Trước đó: **đồng bộ đặc tả v3.5**
+Cập nhật lần cuối: **khung `apps/api`** (29/09/2026 — NestJS 12 + Prisma 7, PostgreSQL local,
+service `api` trong Docker; chưa có bảng nào, bảng vào PR schema). Trước đó: **đồng bộ đặc tả
+v3.6** (23/09/2026 — BR-042/043, bốn khoảng trống dữ liệu đã chốt; **bộ tài liệu đóng băng sau
+đợt này**, xem mục "Đã xong"). Trước nữa: **đồng bộ đặc tả v3.5**
 (BR-039/040/041 và BR-024), **B9 chi tiết phòng**, **tiện ích cho phòng** (PR #22),
 **B12 điện nước & hóa đơn** (PR #20), **B11 hợp đồng** (PR #19).
 
@@ -33,7 +35,8 @@ rebuild_tronhanh-fe/
 └── prototype/        ← bản demo cũ, CHỈ ĐỌC, chạy được để đối chiếu
 ```
 
-Backend NestJS nằm ngay trong repo tại `apps/api` — **chưa dựng**, là việc kế tiếp.
+Backend NestJS nằm ngay trong repo tại `apps/api` — **đã có khung** (chạy được, `/api/v1/health`),
+chưa có bảng hay module nghiệp vụ nào. Cách chạy: `docs/DEVELOPMENT_SETUP.md` mục 3–4.
 
 ## Stack đã chốt
 
@@ -41,7 +44,8 @@ Backend NestJS nằm ngay trong repo tại `apps/api` — **chưa dựng**, là 
 |---|---|
 | Web | Next.js App Router, TypeScript, Tailwind **v3** (bắt buộc), shadcn/ui, Lucide |
 | Mobile | Expo + React Native, Expo Router, NativeWind (chưa dựng) |
-| Backend | NestJS · TypeScript · Node 22 LTS · Prisma — migration có đánh số là nguồn chân lý về cấu trúc dữ liệu (chưa dựng) |
+| Backend | NestJS 12 (ESM) · TypeScript · Node 22 LTS · build bằng Rspack · Prisma 7 — migration có đánh số là nguồn chân lý về cấu trúc dữ liệu |
+| Cơ sở dữ liệu, lưu tệp | Supabase — chỉ PostgreSQL và Storage, **không** dùng Supabase Auth (AS-029). Máy dev dùng PostgreSQL 17 trong Docker |
 | Dùng chung | pnpm workspace, Turborepo, Zod, TanStack Query, Zustand, React Hook Form, Axios |
 | Định nghĩa dữ liệu | Zod schema ở `packages/schemas`, kiểu suy ra bằng `z.infer` — backend validate, web/mobile dựng form; **không codegen** từ OpenAPI |
 | Thanh toán | PayOS — chỉ thu phí nền tảng (đẩy tin, gói SaaS); webhook là nơi duy nhất kích hoạt quyền lợi |
@@ -342,15 +346,29 @@ ngày — cần lâu hơn thì chia nhỏ.
 
 ### Đang làm
 
+- [x] **Khung `apps/api`** — `feat/api-bootstrap` (29/09/2026)
+      - NestJS 12 **ESM**, build bằng **Rspack** (không dùng Nest CLI — xem Cạm bẫy), test bằng
+        Vitest + `unplugin-swc`, env kiểm bằng Zod lúc khởi động, `PrismaModule` (hạ tầng, không
+        tính vào 17 module) + `GET /api/v1/health` có truy vấn DB. Cổng 8089.
+      - Prisma 7.10.0 **ghim chính xác**, hai chuỗi kết nối: `DATABASE_URL` (ứng dụng, bộ gộp
+        Supavisor) và `DIRECT_URL` (migration). Schema chia file trong `prisma/schema/`.
+      - `compose.yaml` thêm `postgres` (17) và service `api`; `Dockerfile.dev` thêm `apps/api`.
+      - Quy tắc bắt buộc đã ghi vào `tasks/ADD_DB_MIGRATION.md` và `docs/DEVELOPMENT_SETUP.md`:
+        **migration và ứng dụng cùng một user DB**, mọi bảng bật RLS không policy.
+- [ ] **PR schema** — 25 bảng MVP + 2 bảng nối theo đặc tả **v3.8** (thêm `VerificationCode`,
+      `PlatformTransaction.planId`), 7 migration theo nhóm, RLS mọi bảng, seed danh mục (4 vai trò,
+      3 loại hình, 10 tiện ích, 3 gói đẩy tin, gói dùng thử + gói 12/36 tháng), job CI chạy
+      migration trên Postgres trắng + kiểm schema khớp migration + seed hai lần + mọi bảng đã bật
+      RLS (chạy bằng user thường, không superuser, để bắt lỗi sai user).
 - [ ] **Dựng backend NestJS theo lát cắt dọc** — mỗi lát: Zod schema → module NestJS (Prisma,
       migration) → nối ngay với frontend thay mock. **Lát 1 = xác thực:** `AuthModule`
       (`/auth/register`, `/verify-otp`, `/login`, `/refresh`, `/logout`, `GET /me`,
-      `POST /me/become-landlord`) + migration đầu tiên (`User`, `AuthMethod`, `RefreshToken`,
-      `Profile`), rồi `AuthContext` phía web thay `MOCK_SELLER_ID`/`MOCK_RENTER_ID` (mọi trang
-      đã ghi sẵn `// TODO: nối AuthContext khi có`). **Thay quyết định cũ "A7 để cuối cùng"** —
-      chủ dự án đảo lại ngày 22/09/2026 vì backend nay cùng repo, xác thực là nền cho mọi lát
-      sau. Lập kế hoạch riêng cho lát này (cấu trúc thư mục `apps/api`, DB, cách chạy local)
-      trước khi viết code.
+      `POST /me/become-landlord`) trên các bảng PR schema đã tạo, mã xác thực theo BR-045, rồi
+      `AuthContext` phía web thay `MOCK_SELLER_ID`/`MOCK_RENTER_ID` (mọi trang đã ghi sẵn
+      `// TODO: nối AuthContext khi có`). Lát này cũng dựng phần chung còn thiếu: validation pipe
+      Zod, interceptor `{ data, meta }`, exception filter, guard. **Thay quyết định cũ "A7 để cuối
+      cùng"** — chủ dự án đảo lại ngày 22/09/2026 vì backend nay cùng repo, xác thực là nền cho
+      mọi lát sau.
 - [ ] **Giai đoạn 4 — phần còn lại của Workspace.** Kế tiếp: **B3 dashboard** — 4/5 nhóm số
       lấy từ Contract/Invoice/Payment, giờ đã có đủ nguồn. Rồi B1/B2 onboarding,
       B15 gói dịch vụ, B16 đánh giá, B17 sự cố, B18 duyệt chỉ số.
@@ -368,9 +386,11 @@ ngày — cần lâu hơn thì chia nhỏ.
       `GET /me/context`; tài liệu nay là `role` đơn, `subscriptionStatus`, `GET /me`. Đồng bộ
       khi làm lát xác thực (là lúc `features/session` nhận dữ liệu thật); 26 test phải viết lại
       theo bảng quyết định mới.
-- [ ] **Dấu vết cầu nối OpenAPI cũ trong code** — gỡ khi dựng `apps/api`: tên package
-      `tro-nhanh-fe` trong `package.json` gốc; script `api:gen`; devDependency
-      `openapi-typescript`; file `openapi.json`; `packages/types/src/api.ts` (stub rỗng).
+- [ ] **Placeholder tên phường cũ ở mock B6/B7** — mã phường đã đổi sang mã sau sáp nhập
+      (`6b97b2f`) nhưng tên còn là tên cũ. Sửa khi làm lát khu trọ (chủ dự án chốt 29/09/2026).
+- [ ] **Tên project compose vẫn là `tro-nhanh-fe`** (`compose.yaml` dòng đầu). Đổi thì mọi volume
+      `node_modules` và `postgres_data` cũ thành mồ côi, container cài lại từ đầu — làm khi tiện,
+      không gộp vào PR khác.
 - [ ] **Code B9/B10 còn `linkStatus`** — 7 file trong `apps/web/src/features/workspace`
       (`types/occupancy.ts`, `constants/mockOccupancies.ts`, `services/occupanciesService.ts`,
       `components/occupancy/OccupancyCard.tsx`, `components/occupancy/OccupantLinkBadge.tsx`,
@@ -408,6 +428,10 @@ ngày — cần lâu hơn thì chia nhỏ.
 | Prisma + migration có đánh số là nguồn chân lý | Không sửa tay DB; lịch sử cấu trúc nằm trong git, ai clone cũng dựng lại được đúng schema |
 | Mọi thao tác ghi đi qua `apps/api` | Server Actions ghi thẳng DB thì quy tắc nghiệp vụ và kiểm tra quyền phải viết hai lần; Server Actions chỉ cho việc thuần server của web (cookie phiên, revalidate) |
 | Cổng thanh toán PayOS | Không đòi giấy phép kinh doanh; mô hình tạo link ở máy chủ + webhook khớp luồng đã thiết kế |
+| Supabase chỉ cho PostgreSQL + Storage, không dùng Supabase Auth | Xác thực tự làm theo BR-016/BR-045 (SĐT, không email); AS-029 |
+| Mã xác thực lưu bảng PostgreSQL có thời hạn, không Redis | Không thêm hạ tầng; xác thực mã và kích hoạt tài khoản chung một transaction; giới hạn gửi theo SĐT và theo IP đếm bền qua nhiều instance (BR-045) |
+| Migration và ứng dụng cùng một user DB; mọi bảng bật RLS không policy | Chặn Data API của Supabase; chủ bảng vượt RLS. Sai user thì truy vấn trả rỗng không báo lỗi |
+| `apps/api` build bằng Rspack, không bằng Nest CLI | `@tronhanh/*` export mã TS nên phải bundle; Nest CLI 12 cần Node ≥ 22.22.3 kể cả để build |
 | SMS chỉ cho mã xác thực | Nhắc hạn đi qua thông báo trong ứng dụng — rẻ hơn và không phụ thuộc nhà mạng |
 | Hai bounded context + Shared Kernel | Giữ transaction đơn giản, vẫn có ranh giới sạch để tách service sau |
 | Residency là module trong SaaS | Tách thành context thứ ba sẽ tạo phụ thuộc vòng |
@@ -426,6 +450,28 @@ Dùng theo thói quen sẽ lệch mà rất khó thấy bằng mắt.
 
 **Node phải đúng 22.14.0** theo `.nvmrc`. Chạy `nvm use` trong repo; mỗi người một phiên bản
 sẽ sinh lỗi kiểu "máy tôi chạy được".
+
+**Nest CLI 12 sập ngay trên Node 22.14** (`ERR_REQUIRE_CYCLE_MODULE` từ `@angular-devkit`) — kể cả
+`nest build`, dù hướng dẫn nâng cấp của Nest chỉ nói `nest new/generate` cần Node ≥ 22.22.3.
+`apps/api` vì thế build bằng Rspack trực tiếp. Muốn dùng lại Nest CLI thì phải nâng `.nvmrc`,
+`engines`, `Dockerfile.dev` và CI cùng lúc — quyết định riêng.
+
+**`prisma@latest` trên npm là bản RC 8.x** trong khi `@prisma/client@latest` là 7.x. Cài không
+ghim là CLI và client lệch major. `prisma`, `@prisma/client`, `@prisma/adapter-pg` ghim **chính
+xác** cùng một bản — nâng thì nâng cả ba. Prisma CLI thỉnh thoảng in hộp "Update available" kèm
+lệnh `npm i …@latest` — **đừng làm theo**, nó kéo đúng bản RC đó về.
+
+**Turbo 2 lọc biến môi trường của task.** Biến không khai trong `turbo.json` (`env` hoặc
+`passThroughEnv`) không tới được task — `pnpm dev:api` trong Docker từng bỏ qua `DATABASE_URL`
+của compose, đọc `apps/api/.env` và gọi nhầm `localhost`. Thêm biến mới mà task cần thì khai
+vào `apps/api/turbo.json`.
+
+**Cổng 5432 hay bị chiếm** (Postgres cài thẳng, hoặc container của dự án khác tự bật cùng Docker
+Desktop). `POSTGRES_PORT=5433 pnpm docker:db` rồi sửa hai chuỗi kết nối trong `apps/api/.env`.
+
+**Postgres local chạy bằng superuser nên vượt RLS** — cấu hình sai user (migration một user, ứng
+dụng một user) không lộ ra ở máy local, chỉ lộ trên Supabase: truy vấn trả rỗng, không báo lỗi.
+Xem `tasks/ADD_DB_MIGRATION.md` mục đầu.
 
 **Prototype dựng trước khi chốt nghiệp vụ mới.** Không port nguyên hành vi cũ ở: gating
 Workspace, đánh giá verified, liên kết người ở có hiệu lực ngay (BR-029), báo cáo vi phạm bắt

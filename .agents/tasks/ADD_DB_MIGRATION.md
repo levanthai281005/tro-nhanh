@@ -13,6 +13,26 @@ Luật nằm ở `../rules/CODING_STANDARDS.md`. File này là các bước và 
 
 ---
 
+## Trước hết: một user cơ sở dữ liệu, mọi bảng bật RLS
+
+Cơ sở dữ liệu thật chạy trên Supabase (AS-029). Supabase mở bảng `public` qua Data API bằng anon
+key vốn công khai, nên **mọi bảng bật RLS (Row Level Security) mà không có policy nào** — đường
+Data API bị chặn hoàn toàn. Ứng dụng không bị chặn chỉ vì **chủ sở hữu bảng vượt qua RLS**.
+
+Điều đó chỉ đúng khi **migration và ứng dụng dùng CÙNG MỘT user cơ sở dữ liệu** — user chạy
+migration tạo bảng nên sở hữu bảng. Migration chạy bằng user quản trị còn ứng dụng dùng user
+khác thì ứng dụng không phải chủ bảng: **mọi truy vấn đọc trả về rỗng mà không báo lỗi**, mọi
+lệnh ghi bị từ chối. Trông y như "chưa có dữ liệu", rất khó lần ra.
+
+- `DATABASE_URL` (ứng dụng, qua bộ gộp kết nối) và `DIRECT_URL` (migration, kết nối trực tiếp)
+  khác đường đi nhưng **cùng user**. Hướng dẫn cài đặt: `docs/DEVELOPMENT_SETUP.md` mục 4.
+- Mỗi bảng mới, migration phải có `ALTER TABLE "<bảng>" ENABLE ROW LEVEL SECURITY;`. Prisma
+  không sinh dòng này — thêm tay vào SQL trước khi commit, cùng lúc đọc SQL ở Bước 3.
+- PostgreSQL local chạy bằng superuser, vượt RLS kể cả khi cấu hình sai — **máy local không lộ
+  được lỗi sai user**. Đừng coi "local chạy được" là bằng chứng.
+
+---
+
 ## Bước 1 — Đối chiếu tài liệu trước khi đổi cấu trúc
 
 `../business/DATA_ENTITIES.md` mô tả bảng, cột và index đề xuất. Thay đổi khớp tài liệu thì
@@ -60,7 +80,8 @@ sẽ không có ai chạy script đó.
 
 Migration chỉ chứa thay đổi cấu trúc và phần điền dữ liệu cho chính thay đổi đó. Dữ liệu danh
 mục khởi tạo (loại tin, gói dùng thử, danh sách ngân hàng, từ khóa cấm) là **dữ liệu** chứ
-không phải cấu trúc; cách nạp chốt lúc dựng `apps/api`.
+không phải cấu trúc — nạp bằng seed của `apps/api` (dựng cùng PR schema), không nhét vào
+migration.
 
 ## Bước 5 — Migration đã merge thì sai cũng không sửa
 

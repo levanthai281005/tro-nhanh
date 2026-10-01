@@ -1,0 +1,12 @@
+// Mỗi nhóm bảng một file trong thư mục này, cùng tên nhóm với migration sinh ra từ nó.
+// Chuỗi kết nối không khai ở đây: CLI đọc `prisma.config.ts`, ứng dụng đọc `PrismaService`.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
