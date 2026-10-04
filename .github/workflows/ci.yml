@@ -23,3 +23,75 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+
+  # Migration chạy trên PostgreSQL trắng, bằng một user KHÔNG phải superuser — như user `prisma`
+  # trên Supabase. Superuser vượt RLS nên chạy bằng nó thì lỗi sai user không bao giờ lộ ra.
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tronhanh
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ADMIN_URL: postgresql://postgres:postgres@localhost:5432/tronhanh
+      DATABASE_URL: postgresql://prisma:prisma@localhost:5432/tronhanh
+      DIRECT_URL: postgresql://prisma:prisma@localhost:5432/tronhanh
+      SHADOW_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shadow
+      OTHER_URL: postgresql://app_other:other@localhost:5432/tronhanh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter api db:generate
+
+      - name: Tạo user prisma như trên Supabase (docs/DEVELOPMENT_SETUP.md mục 4)
+        run: |
+          psql "$ADMIN_URL" -v ON_ERROR_STOP=1 \
+            -c "create role prisma login password 'prisma'" \
+            -c "grant usage, create on schema public to prisma" \
+            -c "create role app_other login password 'other'" \
+            -c "grant usage on schema public to app_other" \
+            -c "create database shadow"
+
+      - name: Áp toàn bộ migration lên database trắng
+        run: pnpm --filter api db:deploy
+
+      - name: Schema khớp migration (sửa schema mà quên sinh migration là đỏ)
+        run: pnpm --filter api exec prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema --exit-code
+
+      - name: Seed hai lần — lần hai không chèn thêm dòng nào
+        run: |
+          pnpm --filter api db:seed
+          pnpm --filter api db:seed | tee seed-second-run.log
+          grep -q "vai trò 0/4, loại hình 0/3, tiện ích 0/10, gói đẩy tin 0/3, gói dịch vụ 0/3" seed-second-run.log
+
+      - name: Mọi bảng do user chạy migration sở hữu và đã bật RLS
+        run: |
+          not_owned=$(psql "$DIRECT_URL" -tAc "select count(*) from pg_tables where schemaname = 'public' and tableowner <> current_user")
+          no_rls=$(psql "$DIRECT_URL" -tAc "select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity")
+          echo "Bảng không do prisma sở hữu: $not_owned · Bảng chưa bật RLS: $no_rls"
+          test "$not_owned" = "0" && test "$no_rls" = "0"
+
+      - name: User khác dù có quyền SELECT cũng đọc ra 0 dòng (RLS đang chặn)
+        run: |
+          psql "$DIRECT_URL" -v ON_ERROR_STOP=1 -c "grant select on roles to app_other"
+          owner_rows=$(psql "$DIRECT_URL" -tAc "select count(*) from roles")
+          other_rows=$(psql "$OTHER_URL" -tAc "select count(*) from roles")
+          echo "prisma đọc $owner_rows dòng · app_other đọc $other_rows dòng"
+          test "$owner_rows" = "4" && test "$other_rows" = "0"
