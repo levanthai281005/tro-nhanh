@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "db:generate"],
+      "outputs": ["dist/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck", "db:generate"]
+    },
+    "test": {
+      "dependsOn": ["db:generate"]
+    },
+    "dev": {
+      "dependsOn": ["db:generate"],
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": ["NODE_ENV", "PORT", "DATABASE_URL", "DIRECT_URL", "WATCHPACK_POLLING"]
+    }
+  }
+}

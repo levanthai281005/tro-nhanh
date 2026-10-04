@@ -1,8 +1,8 @@
 # Getting Started
 
 Dựng dự án trên máy mới: đọc [development setup](./docs/DEVELOPMENT_SETUP.md) — danh sách
-đúng những thứ cần cài, và những thứ **không** cần. Phần chạy backend `apps/api` (Prisma, cơ sở
-dữ liệu, PayOS sandbox) bổ sung vào đó khi dựng.
+đúng những thứ cần cài, những thứ **không** cần, và cách chạy backend `apps/api` cùng cơ sở dữ
+liệu. PayOS sandbox bổ sung vào đó khi dựng `SubscriptionModule`.
 
 Đọc [README](./README.md) để cài đặt và chạy dự án, sau đó đọc
 [source code guidelines](./SOURCE_CODE_GUIDELINES.md) để hiểu cấu trúc workspace. Trước khi viết
@@ -28,8 +28,13 @@ mã, đọc thêm [workspace guidelines](./.agents/AGENTS.md),
 - [NativeWind v4 documentation](https://www.nativewind.dev/v4/overview/)
 - [TanStack Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview)
 - [Zod documentation](https://zod.dev/)
-- [NestJS documentation](https://docs.nestjs.com/)
-- [Prisma documentation](https://www.prisma.io/docs)
+- [NestJS documentation](https://docs.nestjs.com/) — bản 12, ESM
+  ([migration guide v11 → v12](https://docs.nestjs.com/migration-guide))
+- [Prisma documentation](https://www.prisma.io/docs) — bản 7
+  ([upgrade guide lên v7](https://www.prisma.io/docs/orm/more/upgrade-guides/upgrading-versions/upgrading-to-prisma-7))
+- [Prisma với Supabase](https://supabase.com/docs/guides/database/prisma)
+- [Rspack](https://rspack.rs/) — bundler build `apps/api`
+- [Vitest](https://vitest.dev/)
 - [PayOS documentation](https://payos.vn/docs/)
 - [React Hook Form documentation](https://react-hook-form.com/get-started)
 - [Axios documentation](https://axios-http.com/docs/intro)

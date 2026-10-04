@@ -19,6 +19,10 @@
     "typecheck": {
       "dependsOn": ["^typecheck"]
     },
-    "test": {}
+    "test": {},
+    "db:generate": {
+      "inputs": ["prisma/**", "prisma.config.ts"],
+      "outputs": ["src/generated/**"]
+    }
   }
 }

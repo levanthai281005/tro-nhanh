@@ -7,11 +7,16 @@ dist/
 .expo-shared/
 coverage/
 *.log
+# Mọi file biến môi trường, ở mọi thư mục (kể cả apps/api/.env, .env.supabase.local).
+# Chỉ commit bản mẫu *.example — bản mẫu chỉ có tên biến và chỗ trống, không có giá trị thật.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 .DS_Store
 *.tsbuildinfo
+# Prisma Client sinh ra từ schema — `pnpm --filter api db:generate`
+apps/api/src/generated/
 # Bản sao lưu nén (VD .agents.rar) — không bao giờ commit
 *.rar
 *.zip
