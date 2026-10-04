@@ -1,6 +1,7 @@
 # Ca kiểm thử tối thiểu cho bốn vùng bắt buộc
 
 Mỗi bảng là mức **tối thiểu**, không phải mức đủ. Thêm ca khi lát cắt có tình huống riêng.
+Mục 5 (mã xác thực) nằm ngoài bốn vùng nhưng cũng viết cùng lát cắt của nó.
 
 ---
 
@@ -236,3 +237,41 @@ tiền, nhưng phải để lại đủ dấu vết cho người xử lý.
 Hành vi gửi lại cụ thể của PayOS — gửi lại bao nhiêu lần, cách nhau bao lâu, mã trạng thái nào
 thì cổng dừng — cần **đối chiếu tài liệu PayOS khi viết thật**, và chỉnh lại hai ca trên nếu
 tài liệu nói khác.
+
+---
+
+## 5. Mã xác thực (BR-045)
+
+> Chưa nằm trong bốn vùng bắt buộc của `../SKILL.md`, nhưng **viết cùng lát `AuthModule`**: sai ở
+> đây cũng không lộ ra trên màn hình — tiền tin nhắn bị đốt, hoặc số nào đã có tài khoản bị dò ra.
+
+### 5.1 Khôi phục mật khẩu không lộ số đã có tài khoản
+
+Cách làm đã chốt: **trả phản hồi ngay, mọi việc còn lại chạy ở nền** — tra tài khoản, giới hạn
+theo số, tạo mã, gửi tin. **Không** có độ trễ giả: nó không bao giờ khớp thời gian gửi tin thật
+(dao động theo nhà mạng), nên vẫn dò được bằng thống kê.
+
+**Không kiểm bằng cách đo thời gian** — đo bằng đồng hồ thì test chập chờn và vẫn không chứng
+minh được gì. Kiểm bằng cấu trúc: thay dịch vụ gửi tin bằng bản giả **không bao giờ trả về**, rồi
+chứng minh phản hồi vẫn tới.
+
+| Ca | Kỳ vọng |
+|---|---|
+| Số **đã có** tài khoản | Trả về ngay thông báo chung; mã được tạo và tin được gửi ở nền, sau khi phản hồi đã đi |
+| Số **chưa có** tài khoản | **Cùng** mã trạng thái HTTP, **cùng** nội dung phản hồi với ca trên; không tạo mã, không gửi tin |
+| So sánh phản hồi của hai ca trên | Giống hệt nhau — test so trực tiếp hai body và hai mã trạng thái |
+| Dịch vụ gửi tin treo vô hạn (bản giả không bao giờ trả về) | Phản hồi vẫn tới — chứng minh handler không chờ việc gửi tin |
+| Dịch vụ gửi tin báo lỗi | Phản hồi đã trả từ trước, không đổi; lỗi chỉ ghi log ở phần nền |
+| Số đã có tài khoản nhưng vừa xin mã chưa đủ 60 giây, hoặc đã quá 5 lần trong giờ | **Vẫn** trả thông báo chung y như hai ca đầu; phần nền bỏ qua, không gửi. Giới hạn theo số không được lộ ra phản hồi |
+| Trong luồng này có `sleep` hay độ trễ cố ý | Không được có — rà khi review, vì test không đo thời gian |
+
+### 5.2 Trần mỗi ngày theo mục đích
+
+| Ca | Kỳ vọng |
+|---|---|
+| Luồng đăng ký chạm trần | Đăng ký nhận thông báo tạm ngưng; khôi phục mật khẩu **vẫn gửi bình thường** |
+| Luồng khôi phục chạm trần | Ngược lại: khôi phục tạm ngưng, đăng ký vẫn chạy |
+| Luồng khôi phục đang chạm trần, yêu cầu cho số **chưa có** tài khoản | Cùng thông báo tạm ngưng như số đã có tài khoản |
+| Thông báo khi chạm trần | Nói rõ đang tạm ngưng gửi mã — **không** trả thông báo kiểu "đã gửi mã" |
+| Chạm trần | Ghi cảnh báo cho người vận hành |
+| Ranh giới ngày | Theo giờ Việt Nam: 23:59 vẫn tính ngày cũ, 00:00 trần mở lại. Server chạy UTC không được làm lệch 7 giờ |

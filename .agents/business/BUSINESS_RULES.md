@@ -1,4 +1,4 @@
-# Quy tắc nghiệp vụ (BR-001 → BR-044)
+# Quy tắc nghiệp vụ (BR-001 → BR-045)
 
 Danh mục tra cứu toàn bộ quy tắc của hệ thống, chép theo Mục 5 của
 `docs/spec/dac-ta-ky-thuat.md` — nội dung, tên quy tắc và thứ tự mã giữ đúng như đặc tả. Mọi
@@ -55,6 +55,7 @@ Quy tắc phát biểu bằng lời. Tên cột và giá trị enum tương ứn
 | BR-042 | Ba cách tính tiền nước |
 | BR-043 | Danh mục hành chính và cách lưu địa chỉ |
 | BR-044 | Định danh bằng mã cho danh mục |
+| BR-045 | Mã xác thực |
 
 ---
 
@@ -467,5 +468,58 @@ chính ở BR-043.
 
 **Lý do tập giá trị cố định cho tiện ích xung quanh:** để chuỗi tự do thì mỗi chủ trọ gõ một
 kiểu — "trường học", "Trường học", "gần trường" — không nhóm được và không lọc được.
+
+## BR-045 — Mã xác thực
+
+- Mã xác thực gửi qua tin nhắn khi đăng ký và khi khôi phục mật khẩu, gồm 6 chữ số. Hệ thống
+  **chỉ lưu bản băm** của mã, không lưu mã gốc.
+- Mã hết hạn sau **5 phút** và chỉ dùng được **một lần**. Nhập sai quá **5 lần** thì mã đó hết
+  hiệu lực, người dùng phải xin mã mới.
+- Xin mã mới thì mã cũ **cùng mục đích** của số điện thoại đó hết hiệu lực ngay.
+- Giới hạn gửi theo **số điện thoại**: hai lần gửi cách nhau ít nhất **60 giây**, tối đa **5 lần
+  mỗi giờ**.
+- Giới hạn gửi theo **địa chỉ IP** của người yêu cầu: tối đa **20 lần mỗi giờ**, tính gộp mọi số
+  điện thoại.
+- **Trần mỗi ngày, riêng cho từng mục đích:** số tin nhắn gửi mã trong một ngày (tính theo giờ
+  Việt Nam) cho **đăng ký** và cho **khôi phục mật khẩu** có **hai trần riêng**, mỗi trần đặt bằng
+  một **biến cấu hình**, không cố định trong mã nguồn. Chạm trần của mục đích nào thì **tạm ngưng
+  gửi mã cho riêng mục đích đó tới hết ngày**: người dùng nhận thông báo rõ rằng hệ thống đang tạm
+  ngưng gửi mã — không báo như thể đã gửi — và hệ thống ghi cảnh báo cho người vận hành.
+- **Khôi phục mật khẩu chỉ gửi tin cho số đã có tài khoản**, nhưng trả về **cùng một thông báo**
+  dù số đó có tài khoản hay không. **Phản hồi trả về ngay, việc gửi tin chạy ở nền** — không đợi
+  nhà mạng, và **không cố ý làm chậm phản hồi** để giả thời gian gửi tin. Việc tra tài khoản và các
+  giới hạn theo số điện thoại cũng chạy ở phần nền, để phản hồi không phụ thuộc số đó có tài khoản
+  hay không. Khi luồng này đang tạm ngưng vì chạm trần thì mọi yêu cầu đều nhận thông báo tạm
+  ngưng, kể cả với số chưa đăng ký.
+- Bản ghi mã quá **30 ngày** thì bị **xóa hẳn** — ngoại lệ của quy ước xóa mềm.
+
+**Lý do giới hạn theo IP:** chỉ giới hạn theo số thì kẻ phá hoại đổi số liên tục vẫn đốt được
+tiền tin nhắn không giới hạn. Mức theo IP đặt cao hơn mức theo số vì nhiều người dùng mạng di
+động đi chung một địa chỉ IP.
+
+**Lý do có trần mỗi ngày:** giới hạn theo IP không chặn được kẻ tấn công dùng proxy xoay vòng —
+mỗi yêu cầu đến từ một địa chỉ mới. Chỉ trần mới giới hạn được thiệt hại tối đa về tiền.
+
+**Lý do tách trần theo mục đích:** tấn công vào luồng đăng ký chỉ đốt trần của đăng ký, người đã
+có tài khoản vẫn khôi phục được mật khẩu. Một cuộc tấn công không được phép khóa người dùng thật
+ngoài tài khoản của chính họ.
+
+**Lý do chỉ gửi cho số đã có tài khoản:** khôi phục mật khẩu chỉ có nghĩa với tài khoản đã có;
+gửi cho số lạ là đốt tiền vô ích và biến hệ thống thành công cụ bắn tin tới số bất kỳ. Nhờ vậy,
+tấn công luồng này bằng số ngẫu nhiên gần như không gửi được tin nào nên khó đốt hết trần. Thông
+báo phải như nhau và phản hồi không được chờ gửi tin, để không ai dùng màn này dò xem số nào đã có
+tài khoản — chờ gửi tin thì phản hồi với số có tài khoản chậm hơn hẳn, chỉ lệch thời gian thôi
+cũng đủ làm lộ.
+
+**Lý do gửi ở nền thay vì làm chậm cho bằng nhau:** độ trễ giả không bao giờ khớp hoàn toàn với
+thời gian gửi tin thật, vì thời gian đó dao động theo nhà mạng — nên vẫn dò được bằng thống kê
+trên nhiều lần thử. Gửi ở nền thì cả hai trường hợp cùng trả về ngay, không còn gì để đo.
+
+**Đánh đổi:** khi luồng đăng ký bị tấn công, người dùng mới **không đăng ký được tới hết ngày**.
+Chấp nhận vì thiệt hại về tiền khi không có trần là không giới hạn, còn gián đoạn này có điểm
+dừng và không chạm tới người đã có tài khoản.
+
+**Lý do xóa hẳn:** mã chỉ có một triệu khả năng nên bản băm dò ngược được; địa chỉ IP là dữ liệu
+cá nhân. Giữ lâu không có ích mà chỉ thêm rủi ro.
 
 ---

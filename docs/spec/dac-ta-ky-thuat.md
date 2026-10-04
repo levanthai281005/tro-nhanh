@@ -109,7 +109,7 @@ Nền tảng **không cầm, không trung chuyển tiền thuê** giữa ngườ
 | Dịch vụ gửi tin nhắn SMS | **Chỉ dùng để gửi mã xác thực khi đăng ký và khôi phục mật khẩu** | Mọi nhắc hạn đều đi qua thông báo trong ứng dụng, không gửi SMS |
 | Map service | Hiển thị vị trí phòng, tính khoảng cách tiện ích | Geocoding địa chỉ khi đăng tin (AS-018) |
 | Cổng thanh toán — **PayOS** | Thu **phí dịch vụ của nền tảng**: đẩy tin nổi bật và gói phần mềm quản lý | Không xử lý tiền thuê nhà. Chọn PayOS vì mô hình tạo link ở máy chủ rồi nhận kết quả qua webhook khớp đúng luồng đã thiết kế, và không đòi hỏi giấy phép kinh doanh như các cổng truyền thống |
-| Lưu trữ tệp | Ảnh tin, bản chụp hợp đồng, ảnh sự cố, ảnh chỉ số, file hóa đơn | Cơ sở dữ liệu chỉ lưu đường dẫn; tệp riêng tư có phân quyền |
+| Lưu trữ tệp — **Supabase Storage** | Ảnh tin, bản chụp hợp đồng, ảnh sự cố, ảnh chỉ số, file hóa đơn | Cơ sở dữ liệu chỉ lưu đường dẫn; tệp riêng tư có phân quyền. Cùng nhà cung cấp với cơ sở dữ liệu PostgreSQL, không dùng phần đăng nhập của Supabase (AS-029) |
 
 ### 1.5 Cơ chế liên hệ giữa người dùng
 
@@ -415,7 +415,7 @@ kênh nhận mã xác thực. Hệ thống cũng **không hỗ trợ đăng nh�
 gì), *hoạt động* (bình thường), *bị khóa* (không đăng nhập được; tin đăng của tài khoản tự ẩn
 khỏi trang công khai, nhưng dữ liệu quản lý vận hành được giữ nguyên để khôi phục sau).
 
-*Quy tắc áp dụng: BR-016, BR-028 — xem Mục 5.*
+*Quy tắc áp dụng: BR-016, BR-028, BR-045 — xem Mục 5.*
 
 ### Module 2 — Hồ sơ cá nhân `[Dùng chung]`
 
@@ -1152,6 +1152,7 @@ năng ở trên đều có dòng "Quy tắc áp dụng" trỏ về đây.
 | BR-042 | Ba cách tính tiền nước |
 | BR-043 | Danh mục hành chính và cách lưu địa chỉ |
 | BR-044 | Định danh bằng mã cho danh mục |
+| BR-045 | Mã xác thực |
 
 ---
 
@@ -1547,9 +1548,56 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
   chính ở BR-043.
 - **Lý do tập giá trị cố định cho tiện ích xung quanh:** để chuỗi tự do thì mỗi chủ trọ gõ một
   kiểu — "trường học", "Trường học", "gần trường" — không nhóm được và không lọc được.
+
+### BR-045 — Mã xác thực
+
+- Mã xác thực gửi qua tin nhắn khi đăng ký và khi khôi phục mật khẩu, gồm 6 chữ số. Hệ thống
+  **chỉ lưu bản băm** của mã, không lưu mã gốc.
+- Mã hết hạn sau **5 phút** và chỉ dùng được **một lần**. Nhập sai quá **5 lần** thì mã đó hết
+  hiệu lực, người dùng phải xin mã mới.
+- Xin mã mới thì mã cũ **cùng mục đích** của số điện thoại đó hết hiệu lực ngay.
+- Giới hạn gửi theo **số điện thoại**: hai lần gửi cách nhau ít nhất **60 giây**, tối đa **5 lần
+  mỗi giờ**.
+- Giới hạn gửi theo **địa chỉ IP** của người yêu cầu: tối đa **20 lần mỗi giờ**, tính gộp mọi số
+  điện thoại.
+- **Trần mỗi ngày, riêng cho từng mục đích:** số tin nhắn gửi mã trong một ngày (tính theo giờ
+  Việt Nam) cho **đăng ký** và cho **khôi phục mật khẩu** có **hai trần riêng**, mỗi trần đặt bằng
+  một **biến cấu hình**, không cố định trong mã nguồn. Chạm trần của mục đích nào thì **tạm ngưng
+  gửi mã cho riêng mục đích đó tới hết ngày**: người dùng nhận thông báo rõ rằng hệ thống đang tạm
+  ngưng gửi mã — không báo như thể đã gửi — và hệ thống ghi cảnh báo cho người vận hành.
+- **Khôi phục mật khẩu chỉ gửi tin cho số đã có tài khoản**, nhưng trả về **cùng một thông báo**
+  dù số đó có tài khoản hay không. **Phản hồi trả về ngay, việc gửi tin chạy ở nền** — không đợi
+  nhà mạng, và **không cố ý làm chậm phản hồi** để giả thời gian gửi tin. Việc tra tài khoản và các
+  giới hạn theo số điện thoại cũng chạy ở phần nền, để phản hồi không phụ thuộc số đó có tài khoản
+  hay không. Khi luồng này đang tạm ngưng vì chạm trần thì mọi yêu cầu đều nhận thông báo tạm
+  ngưng, kể cả với số chưa đăng ký.
+- Bản ghi mã quá **30 ngày** thì bị **xóa hẳn** — ngoại lệ của quy ước xóa mềm ở Mục 6.
+- **Lý do giới hạn theo IP:** chỉ giới hạn theo số thì kẻ phá hoại đổi số liên tục vẫn đốt được
+  tiền tin nhắn không giới hạn. Mức theo IP đặt cao hơn mức theo số vì nhiều người dùng mạng di
+  động đi chung một địa chỉ IP.
+- **Lý do có trần mỗi ngày:** giới hạn theo IP không chặn được kẻ tấn công dùng proxy xoay vòng —
+  mỗi yêu cầu đến từ một địa chỉ mới. Chỉ trần mới giới hạn được thiệt hại tối đa về tiền.
+- **Lý do tách trần theo mục đích:** tấn công vào luồng đăng ký chỉ đốt trần của đăng ký, người đã
+  có tài khoản vẫn khôi phục được mật khẩu. Một cuộc tấn công không được phép khóa người dùng thật
+  ngoài tài khoản của chính họ.
+- **Lý do chỉ gửi cho số đã có tài khoản:** khôi phục mật khẩu chỉ có nghĩa với tài khoản đã có;
+  gửi cho số lạ là đốt tiền vô ích và biến hệ thống thành công cụ bắn tin tới số bất kỳ. Nhờ vậy,
+  tấn công luồng này bằng số ngẫu nhiên gần như không gửi được tin nào nên khó đốt hết trần. Thông
+  báo phải như nhau và phản hồi không được chờ gửi tin, để không ai dùng màn này dò xem số nào đã
+  có tài khoản — chờ gửi tin thì phản hồi với số có tài khoản chậm hơn hẳn, chỉ lệch thời gian
+  thôi cũng đủ làm lộ.
+- **Lý do gửi ở nền thay vì làm chậm cho bằng nhau:** độ trễ giả không bao giờ khớp hoàn toàn với
+  thời gian gửi tin thật, vì thời gian đó dao động theo nhà mạng — nên vẫn dò được bằng thống kê
+  trên nhiều lần thử. Gửi ở nền thì cả hai trường hợp cùng trả về ngay, không còn gì để đo.
+- **Đánh đổi:** khi luồng đăng ký bị tấn công, người dùng mới **không đăng ký được tới hết ngày**.
+  Chấp nhận vì thiệt hại về tiền khi không có trần là không giới hạn, còn gián đoạn này có điểm
+  dừng và không chạm tới người đã có tài khoản.
+- **Lý do xóa hẳn:** mã chỉ có một triệu khả năng nên bản băm dò ngược được; địa chỉ IP là dữ
+  liệu cá nhân. Giữ lâu không có ích mà chỉ thêm rủi ro.
+
 ---
 
-## 6. DANH SÁCH DỮ LIỆU (37 entity)
+## 6. DANH SÁCH DỮ LIỆU (38 entity)
 
 > **Quy ước chung cho mọi bảng:** khóa chính `id` kiểu uuid, cùng bộ cột kiểm toán
 > `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, và `isDeleted` (xóa mềm — đánh dấu đã
@@ -1562,6 +1610,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **AuthMethod** | Cách đăng nhập của một tài khoản | `userId`, `provider` (Password/Google/…), `secretHash` (null với đăng nhập bên thứ ba), `providerUserId` (null), `linkedAt`; unique (`userId`, `provider`) | n-1 User |
 | **Profile** | Hồ sơ | `userId`, `fullName`, `avatarUrl`, `contactPhone`, `displaySettings` (jsonb) | 1-1 User |
 | **RefreshToken** | Phiên đăng nhập | `userId`, `tokenHash`, `expiresAt`, `revokedAt` (null) | n-1 User |
+| **VerificationCode** | Mã xác thực gửi qua tin nhắn | `phoneNumber`, `purpose` (Register/ResetPassword), `codeHash` (**chỉ lưu bản băm**), `requestIp` (địa chỉ IP yêu cầu gửi — để giới hạn theo IP), `expiresAt`, `attemptCount` (mặc định 0), `consumedAt` (null) — **xóa hẳn sau 30 ngày**, ngoại lệ của quy ước xóa mềm (BR-045) | (độc lập — tra theo `phoneNumber`) |
 | **RentalListing** | Tin cho thuê | `landlordId`, `typeId`, `propertyId` (null — gắn để hiện điểm đánh giá khu và bật đồng bộ chống tin ảo), `roomId` (null), `title`, `provinceCode` + `wardCode` (**mã hành chính, dùng để lọc**), `wardName` + `addressDetail` (**dùng để hiển thị**), `latitude` + `longitude` (null — dùng cho bản đồ, AS-018), `area`, `price`, `description`, `accessPolicy` (Free/Restricted), `accessOpenTime`/`accessCloseTime` (null), `contactPhone`, `status`, `rejectReason` (null), `approvedAt` (null), `expireAt` (= approvedAt + 60 ngày), `boostExpireAt` (null — **trạng thái đẩy tin suy từ cột này**, không giữ cờ riêng) | n-1 User/ListingType/Property(null)/Room(null); 1-1 ListingCost; 1-n ListingNearbyPlace/Media/Favorite/Report/Conversation/ContactEvent; n-n Amenity |
 | **ListingType** | Danh mục loại hình cho thuê | `code` (unique), `name`, `description` | 1-n RentalListing |
 | **ListingCost** | Các khoản chi phí của một tin | `listingId` (unique — quan hệ một-một), `electricityBill`, `waterBill`, `waterPricingMethod` (để tin hiển thị đúng "20.000đ/người" hay "15.000đ/khối"), `serviceFee`, `deposit` | 1-1 RentalListing |
@@ -1576,7 +1625,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **InvoiceItem** | Dòng hóa đơn | `invoiceId`, `type` (Rent/Electricity/Water/Service/Deposit/Other), `description`, `quantity`, `unitPrice`, `amount` | n-1 Invoice |
 | **UtilityReading** | Chỉ số điện nước | `roomId`, `type` (Electricity/Water), `period`, `previousReading`, `currentReading` (null khi nước không tính theo khối), `unitPrice`, `pricingMethod` (**chốt cứng lúc ghi** cùng đơn giá — BR-036, BR-042), `occupantCount` (null — số người dùng để tính khi tính theo đầu người), **`invoiceId` (null — đánh dấu đã lên hóa đơn)**; **unique (roomId, type, period)** | n-1 Room; n-1 Invoice (null) |
 | **Payment** | Ghi nhận thu **tiền thuê** (tay) | `invoiceId` (bắt buộc), `amount`, `method` (Cash/BankTransfer), `paidAt`, `note` | n-1 Invoice |
-| **PlatformTransaction** | Giao dịch **phí nền tảng** qua cổng thanh toán — dùng chung cho cả đẩy tin và gói dịch vụ | `landlordId`, `type` (Boost/Subscription), `listingId` (null), `boostPackageId` (null), `userSubscriptionId` (null), `amount`, `paymentMethod`, `status` (Pending/Success/Failed), `gatewayTxnId` (null), `idempotencyKey` (unique), `paidAt` (null) | n-1 User; n-1 RentalListing/BoostPackage/UserSubscription (tùy loại) |
+| **PlatformTransaction** | Giao dịch **phí nền tảng** qua cổng thanh toán — dùng chung cho cả đẩy tin và gói dịch vụ | `landlordId`, `type` (Boost/Subscription), `listingId` (null), `boostPackageId` (null), `userSubscriptionId` (null), `planId` (null — gói được chọn khi mua hoặc gia hạn; webhook dựa vào đây để biết kích hoạt gói nào, vì gói đã đăng ký chưa tồn tại lúc tạo giao dịch mua lần đầu), `amount`, `paymentMethod`, `status` (Pending/Success/Failed), `gatewayTxnId` (null), `idempotencyKey` (unique), `paidAt` (null) | n-1 User; n-1 RentalListing/BoostPackage/UserSubscription/SubscriptionPlan (tùy loại) |
 | **BoostPackage** | Danh mục gói đẩy tin | `code` (unique), `name`, `description`, `durationDays`, `price`, `isActive` | 1-n PlatformTransaction |
 | **Notification** | Thông báo | `userId`, `type` (ListingApproved/Rejected/NewMessage/ContractExpiring/InvoiceDue/InvoiceOverdue/**InvoiceReceived**/SubscriptionRenewal/TrialEnding/ReviewModerated/**OccupancyLinked**/**ListingAutoRented**/FavoriteChanged/System), `title`, `content`, `isRead`, `refType/refId` | n-1 User |
 | **Favorite** | Tin đã lưu | `tenantId`, `listingId`; unique (tenantId, listingId) | n-1 User/RentalListing |
@@ -1584,7 +1633,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **Conversation** | Hội thoại | `refType`, `refId`, **`initiatorId`** (người bắt chuyện), **`posterId`** (người đăng tin), `status` (Active/Archived/Blocked), `lastMessageAt`; **unique (initiatorId, refType, refId)** | n-1 User (x2); 1-n Message |
 | **Message** | Tin nhắn | `conversationId`, `senderId`, `content`, `isRead`, `readAt` (null) | n-1 Conversation/User |
 | **ContactEvent** | Tương tác liên hệ | `listingId`, `userId` (null), `type` (Call/Message) | n-1 RentalListing; n-1 User (null) |
-| **SubscriptionPlan** | Gói SaaS | `name`, `durationMonths`, `price`, `renewalPrice`, `trialDays` (default 30), `maxProperties`, `maxRooms`, **`isTrialPlan` (boolean — plan Trial định nghĩa hạn mức dùng thử)**, `isActive` | 1-n UserSubscription |
+| **SubscriptionPlan** | Gói SaaS | `name`, `durationMonths`, `price`, `renewalPrice`, `trialDays` (default 30), `maxProperties`, `maxRooms`, **`isTrialPlan` (boolean — plan Trial định nghĩa hạn mức dùng thử)**, `isActive` | 1-n UserSubscription/PlatformTransaction |
 | **UserSubscription** | Gói của Landlord | `landlordId`, `planId`, `startDate`, `expireDate`, `status` (Trial/Active/Expired/Cancelled) | n-1 User/SubscriptionPlan; 1-n PlatformTransaction |
 
 
@@ -1597,7 +1646,7 @@ dịch vụ ngoài đồng nghĩa gửi số tài khoản và số tiền của 
 | **IncidentComment** | Trao đổi trong một sự cố | `incidentId`, `authorUserId`, `content`, `isFromLandlord` | n-1 Incident/User |
 | **DeviceToken** | Token push cho app mobile | `userId`, `token` (unique), `platform` (iOS/Android), `lastActiveAt` | n-1 User |
 
-**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
+**Index đề xuất:** `RentalListing(status, provinceCode, wardCode, price, typeId, approvedAt, boostExpireAt, propertyId)`; `User(phoneNumber unique)`; `AuthMethod(userId, provider unique)`; `VerificationCode(phoneNumber, purpose, createdAt)`; `VerificationCode(requestIp, createdAt)`; `VerificationCode(purpose, createdAt)`; `Room(propertyId, status)`; `Occupancy(roomId, userId)`; `Invoice(contractId, period unique)`; `Invoice(invoiceCode unique)`; `UtilityReading(roomId, type, period unique)`; `Notification(userId, isRead)`; `Conversation(initiatorId, posterId, refType, refId)`; `Message(conversationId, createdAt)`; `Review(propertyId, status)`; `Property(publicSlug unique, isPublicProfileEnabled)`; `PlatformTransaction(idempotencyKey unique)`; `Incident(roomId, status)`; `ListingCost(listingId unique)`; `ListingNearbyPlace(listingId)`.
 
 ---
 
@@ -1879,7 +1928,7 @@ GET /admin/dashboard
 **Shared Kernel (5):**
 | Service | Trách nhiệm |
 |---|---|
-| `AuthModule` | Đăng ký/đăng nhập, OTP, token + RefreshToken, vai trò (nâng cấp qua "Trở thành chủ trọ"; quản trị viên điều chỉnh), kiểm tra phân quyền |
+| `AuthModule` | Đăng ký/đăng nhập, mã xác thực (`VerificationCode`, BR-045), token + RefreshToken, vai trò (nâng cấp qua "Trở thành chủ trọ"; quản trị viên điều chỉnh), kiểm tra phân quyền |
 | `UserProfileModule` | Profile, display settings, xóa tài khoản |
 | `MediaModule` | Upload, signed URL, phân quyền file, job dọn media mồ côi |
 | `NotificationModule` | Thông báo trong ứng dụng và qua SMS; tác vụ định kỳ (Overdue, Contract Expired, tin Expired, nhắc gói, TRIAL, giao dịch treo) |
@@ -1959,6 +2008,7 @@ GET /admin/dashboard
 | AS-027 | Địa chỉ dùng **mô hình hành chính hai cấp** (tỉnh/thành → phường/xã) theo quy định áp dụng từ 01/07/2025; lọc theo mã, hiển thị theo tên |
 | AS-028 | SMS **chỉ dùng cho mã xác thực**; mọi nhắc hạn đi qua thông báo trong ứng dụng và trên web |
 | AS-025 | Định nghĩa dữ liệu dùng chung đặt ở `packages/schemas` dưới dạng Zod schema — backend dùng để kiểm tra đầu vào, web và mobile dùng cho biểu mẫu. Không còn bước sinh mã từ tài liệu API |
+| AS-029 | Cơ sở dữ liệu PostgreSQL và lưu trữ tệp dùng **Supabase** — chỉ dùng hai phần này, **không dùng phần đăng nhập của Supabase**; xác thực do hệ thống tự làm (BR-016, BR-045) |
 
 ---
 

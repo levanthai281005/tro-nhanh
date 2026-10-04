@@ -43,7 +43,7 @@ Nền tảng **không cầm, không trung chuyển tiền thuê** giữa ngườ
 | SMS gateway | **Chỉ** gửi mã xác thực khi đăng ký và khôi phục mật khẩu | Mọi nhắc hạn (HĐ, thanh toán, gia hạn gói, tin nhắn mới) đi qua thông báo trong ứng dụng và push trên mobile — không SMS, không email (BR-016) |
 | Map service | Hiển thị vị trí phòng, tính khoảng cách tiện ích | Geocoding địa chỉ khi đăng tin (AS-018) |
 | Cổng thanh toán — **PayOS** | Thu **phí nền tảng** (boost + gói SaaS) từ Landlord, qua `PlatformTransaction` + webhook | KHÔNG xử lý tiền thuê (AS-002). Chọn PayOS vì mô hình tạo link ở máy chủ rồi nhận kết quả qua webhook khớp luồng đã thiết kế, và không đòi giấy phép kinh doanh như cổng truyền thống |
-| Object/Cloud storage | Ảnh tin, bản chụp hợp đồng, ảnh sự cố, ảnh chỉ số, file hóa đơn | DB chỉ lưu URL; file riêng tư phân quyền |
+| Lưu trữ tệp — **Supabase Storage** | Ảnh tin, bản chụp hợp đồng, ảnh sự cố, ảnh chỉ số, file hóa đơn | DB chỉ lưu URL; file riêng tư phân quyền. Cùng nhà cung cấp với cơ sở dữ liệu PostgreSQL, không dùng phần đăng nhập của Supabase (AS-029) |
 
 ## Cơ chế liên hệ giữa người dùng
 

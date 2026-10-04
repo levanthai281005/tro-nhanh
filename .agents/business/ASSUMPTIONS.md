@@ -1,4 +1,4 @@
-# Bảng giả định chuẩn (AS-001 → AS-028)
+# Bảng giả định chuẩn (AS-001 → AS-029)
 
 Các giả định đã chốt của dự án. Mọi tài liệu khác tham chiếu theo mã AS ở đây. Nếu một
 yêu cầu mâu thuẫn với giả định nào, dừng lại và hỏi thay vì tự quyết. Thứ tự dòng theo đúng
@@ -36,5 +36,6 @@ Mục 13 của đặc tả để dễ đối chiếu.
 | AS-027 | Địa chỉ dùng **mô hình hành chính hai cấp** (tỉnh/thành → phường/xã) theo quy định áp dụng từ 01/07/2025; lọc theo mã, hiển thị theo tên |
 | AS-028 | SMS **chỉ dùng cho mã xác thực**; mọi nhắc hạn đi qua thông báo trong ứng dụng và trên web |
 | AS-025 | Định nghĩa dữ liệu dùng chung đặt ở `packages/schemas` dưới dạng Zod schema — backend dùng để kiểm tra đầu vào, web và mobile dùng cho biểu mẫu. Không còn bước sinh mã từ tài liệu API |
+| AS-029 | Cơ sở dữ liệu PostgreSQL và lưu trữ tệp dùng **Supabase** — chỉ dùng hai phần này, **không dùng phần đăng nhập của Supabase**; xác thực do hệ thống tự làm (BR-016, BR-045) |
 
 ---
