@@ -1,0 +1,193 @@
+// Khu trọ, phòng, người ở, hợp đồng — PropertyRoomModule, OccupancyContractModule.
+// Migration: create_property_management_tables.
+
+enum AccessPolicy {
+  Free
+  Restricted
+
+  @@map("access_policy")
+}
+
+/// Cách tính tiền nước (BR-042) — dùng ở khu (nguồn chính), tin đăng (hiển thị) và bản ghi chỉ số
+/// (chốt cứng lúc ghi).
+enum WaterPricingMethod {
+  PerCubicMeter
+  PerPerson
+  FlatRate
+
+  @@map("water_pricing_method")
+}
+
+enum RoomStatus {
+  Available
+  Deposited
+  Rented
+  Hidden
+
+  @@map("room_status")
+}
+
+enum ContractStatus {
+  Draft
+  Active
+  Expired
+  Terminated
+
+  @@map("contract_status")
+}
+
+/// Đơn giá và cách tính nước của khu cho phép null = CHƯA CẤU HÌNH. Không mặc định 0, vì 0 nghĩa là
+/// miễn phí (BR-036) — mặc định 0 sẽ lặng lẽ sinh hóa đơn 0đ. Billing chặn ghi chỉ số khi trống.
+model Property {
+  id                           String              @id @default(uuid(7)) @db.Uuid
+  landlordId                   String              @map("landlord_id") @db.Uuid
+  name                         String
+  address                      String
+  provinceCode                 String?             @map("province_code") @db.Char(2)
+  wardCode                     String?             @map("ward_code") @db.Char(5)
+  /// Máy chủ suy từ `wardCode` (BR-043), không nhận từ client.
+  wardName                     String?             @map("ward_name")
+  floorCount                   Int?                @map("floor_count")
+  note                         String?
+  /// Lưu MÃ ngân hàng (BIN dùng cho VietQR), không lưu tên.
+  bankName                     String?             @map("bank_name") @db.VarChar(20)
+  bankAccountNumber            String?             @map("bank_account_number") @db.VarChar(20)
+  bankAccountName              String?             @map("bank_account_name")
+  isPublicProfileEnabled       Boolean             @default(false) @map("is_public_profile_enabled")
+  /// Unique tuyệt đối: đường dẫn công khai cũ không được trỏ sang khu khác.
+  publicSlug                   String?             @unique @map("public_slug") @db.VarChar(160)
+  avgRating                    Float?              @map("avg_rating")
+  reviewCount                  Int                 @default(0) @map("review_count")
+  allowOccupantMeterSubmission Boolean             @default(false) @map("allow_occupant_meter_submission")
+  electricityUnitPrice         Int?                @map("electricity_unit_price")
+  waterUnitPrice               Int?                @map("water_unit_price")
+  serviceFee                   Int?                @map("service_fee")
+  waterPricingMethod           WaterPricingMethod? @map("water_pricing_method")
+  createdAt                    DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                    DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy                    String?             @map("created_by") @db.Uuid
+  updatedBy                    String?             @map("updated_by") @db.Uuid
+  isDeleted                    Boolean             @default(false) @map("is_deleted")
+
+  landlord User            @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  rooms    Room[]
+  listings RentalListing[]
+
+  @@index([landlordId])
+  @@map("properties")
+}
+
+/// Đơn giá riêng của phòng: null = dùng giá khu, 0 = miễn phí (BR-036).
+model Room {
+  id               String       @id @default(uuid(7)) @db.Uuid
+  propertyId       String       @map("property_id") @db.Uuid
+  roomCode         String       @map("room_code") @db.VarChar(20)
+  floor            Int
+  area             Float
+  price            Int
+  status           RoomStatus   @default(Available)
+  accessPolicy     AccessPolicy @default(Free) @map("access_policy")
+  /// `HH:mm`, cùng định dạng Zod `timeOfDaySchema`.
+  accessOpenTime   String?      @map("access_open_time") @db.Char(5)
+  accessCloseTime  String?      @map("access_close_time") @db.Char(5)
+  note             String?
+  electricityPrice Int?         @map("electricity_price")
+  waterPrice       Int?         @map("water_price")
+  servicePrice     Int?         @map("service_price")
+  maxOccupants     Int?         @map("max_occupants")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy        String?      @map("created_by") @db.Uuid
+  updatedBy        String?      @map("updated_by") @db.Uuid
+  isDeleted        Boolean      @default(false) @map("is_deleted")
+
+  property        Property         @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  amenities       RoomAmenity[]
+  occupancies     Occupancy[]
+  contracts       Contract[]
+  listings        RentalListing[]
+  utilityReadings UtilityReading[]
+  invoices        Invoice[]
+
+  /// Chỉ tính phòng chưa xóa: xóa P101 rồi tạo lại P101 không bị báo trùng.
+  @@unique([propertyId, roomCode], map: "rooms_property_id_room_code_live_key", where: raw("is_deleted = false"))
+  @@index([propertyId, status])
+  @@map("rooms")
+}
+
+model RoomAmenity {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  roomId    String   @map("room_id") @db.Uuid
+  amenityId String   @map("amenity_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy String?  @map("created_by") @db.Uuid
+  updatedBy String?  @map("updated_by") @db.Uuid
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  room    Room    @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Restrict)
+
+  @@unique([roomId, amenityId], map: "room_amenities_room_id_amenity_id_live_key", where: raw("is_deleted = false"))
+  @@index([amenityId])
+  @@map("room_amenities")
+}
+
+/// Một phòng nhiều người ở (BR-037). `fullName` luôn có: khi liên kết tài khoản, service chép tên
+/// từ hồ sơ — để "Không phải tôi" gỡ liên kết xong bản ghi vẫn còn tên (BR-029).
+/// `occupantCount` gồm cả chính người đứng tên (Mục 6 + BR-042).
+/// `endDate` là ngày ĐẦU TIÊN không còn ở.
+model Occupancy {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  roomId        String    @map("room_id") @db.Uuid
+  userId        String?   @map("user_id") @db.Uuid
+  fullName      String    @map("full_name")
+  phoneNumber   String    @map("phone_number") @db.VarChar(20)
+  startDate     DateTime  @map("start_date") @db.Date
+  endDate       DateTime? @map("end_date") @db.Date
+  occupantCount Int       @default(1) @map("occupant_count")
+  isPrimary     Boolean   @default(false) @map("is_primary")
+  note          String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+
+  room      Room       @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  contracts Contract[]
+
+  @@index([roomId, userId])
+  @@index([userId])
+  @@map("occupancies")
+}
+
+/// Mỗi phòng tối đa MỘT hợp đồng Active (Mục 9) — khóa ở DB để hai request đồng thời không lọt.
+/// Chồng lấn ngày (BR-006) vẫn kiểm ở service.
+model Contract {
+  id              String         @id @default(uuid(7)) @db.Uuid
+  roomId          String         @map("room_id") @db.Uuid
+  /// Người đại diện đứng tên hợp đồng.
+  occupancyId     String         @map("occupancy_id") @db.Uuid
+  startDate       DateTime       @map("start_date") @db.Date
+  endDate         DateTime       @map("end_date") @db.Date
+  rentPrice       Int            @map("rent_price")
+  deposit         Int
+  status          ContractStatus @default(Draft)
+  terminateReason String?        @map("terminate_reason")
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy       String?        @map("created_by") @db.Uuid
+  updatedBy       String?        @map("updated_by") @db.Uuid
+  isDeleted       Boolean        @default(false) @map("is_deleted")
+
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  occupancy Occupancy @relation(fields: [occupancyId], references: [id], onDelete: Restrict)
+  invoices  Invoice[]
+
+  @@unique([roomId], map: "contracts_room_id_active_key", where: raw("status = 'Active' AND is_deleted = false"))
+  @@index([roomId, status])
+  @@index([occupancyId])
+  @@map("contracts")
+}

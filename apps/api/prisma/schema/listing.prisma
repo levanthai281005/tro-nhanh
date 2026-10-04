@@ -1,0 +1,144 @@
+// Tin cho thuê — ListingModule. Migration: create_rental_listing_tables.
+
+enum ListingStatus {
+  Draft
+  PendingApproval
+  Active
+  Rejected
+  Expired
+  Rented
+  Hidden
+
+  @@map("listing_status")
+}
+
+/// Tập giá trị cố định (BR-044) — không để chuỗi tự do.
+enum ListingNearbyType {
+  School
+  University
+  Market
+  Supermarket
+  ConvenienceStore
+  Hospital
+  Pharmacy
+  Restaurant
+  Cafe
+  BusStation
+  MetroStation
+  Park
+  Gym
+  Other
+
+  @@map("listing_nearby_type")
+}
+
+/// Cột nội dung cho phép null vì bản nháp được lưu dở (`saveListingDraftSchema`); đủ trường khi gửi
+/// duyệt do `createRentalListingSchema` giữ. Trạng thái đẩy tin suy từ `boostExpireAt`, không có cờ.
+model RentalListing {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  landlordId      String        @map("landlord_id") @db.Uuid
+  typeId          String?       @map("type_id") @db.Uuid
+  propertyId      String?       @map("property_id") @db.Uuid
+  roomId          String?       @map("room_id") @db.Uuid
+  title           String?
+  provinceCode    String?       @map("province_code") @db.Char(2)
+  wardCode        String?       @map("ward_code") @db.Char(5)
+  wardName        String?       @map("ward_name")
+  addressDetail   String?       @map("address_detail")
+  latitude        Float?
+  longitude       Float?
+  area            Float?
+  price           Int?
+  description     String?
+  accessPolicy    AccessPolicy  @default(Free) @map("access_policy")
+  accessOpenTime  String?       @map("access_open_time") @db.Char(5)
+  accessCloseTime String?       @map("access_close_time") @db.Char(5)
+  contactPhone    String?       @map("contact_phone") @db.VarChar(20)
+  status          ListingStatus @default(Draft)
+  rejectReason    String?       @map("reject_reason")
+  approvedAt      DateTime?     @map("approved_at") @db.Timestamptz(3)
+  expireAt        DateTime?     @map("expire_at") @db.Timestamptz(3)
+  boostExpireAt   DateTime?     @map("boost_expire_at") @db.Timestamptz(3)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy       String?       @map("created_by") @db.Uuid
+  updatedBy       String?       @map("updated_by") @db.Uuid
+  isDeleted       Boolean       @default(false) @map("is_deleted")
+
+  landlord             User                  @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  type                 ListingType?          @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  property             Property?             @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  room                 Room?                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  cost                 ListingCost?
+  nearbyPlaces         ListingNearbyPlace[]
+  amenities            ListingAmenity[]
+  platformTransactions PlatformTransaction[]
+
+  // Index đề xuất ở Mục 6 là một bộ 8 cột; index ghép chỉ dùng được theo tiền tố, nên tách theo
+  // truy vấn — chỉnh bằng EXPLAIN khi dựng SearchModule.
+  @@index([status, provinceCode, wardCode])
+  @@index([status, price])
+  @@index([status, boostExpireAt, approvedAt])
+  @@index([landlordId])
+  @@index([typeId])
+  @@index([propertyId])
+  @@index([roomId])
+  @@map("rental_listings")
+}
+
+/// Một-một với tin. null = chưa cung cấp, 0 = miễn phí.
+model ListingCost {
+  id                 String              @id @default(uuid(7)) @db.Uuid
+  listingId          String              @unique @map("listing_id") @db.Uuid
+  electricityBill    Int?                @map("electricity_bill")
+  waterBill          Int?                @map("water_bill")
+  waterPricingMethod WaterPricingMethod? @map("water_pricing_method")
+  serviceFee         Int?                @map("service_fee")
+  deposit            Int?
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy          String?             @map("created_by") @db.Uuid
+  updatedBy          String?             @map("updated_by") @db.Uuid
+  isDeleted          Boolean             @default(false) @map("is_deleted")
+
+  listing RentalListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@map("listing_costs")
+}
+
+model ListingNearbyPlace {
+  id          String            @id @default(uuid(7)) @db.Uuid
+  listingId   String            @map("listing_id") @db.Uuid
+  type        ListingNearbyType
+  description String?
+  /// Khoảng cách tính bằng km.
+  distance    Float
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy   String?           @map("created_by") @db.Uuid
+  updatedBy   String?           @map("updated_by") @db.Uuid
+  isDeleted   Boolean           @default(false) @map("is_deleted")
+
+  listing RentalListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@index([listingId])
+  @@map("listing_nearby_places")
+}
+
+model ListingAmenity {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  amenityId String   @map("amenity_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy String?  @map("created_by") @db.Uuid
+  updatedBy String?  @map("updated_by") @db.Uuid
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  listing RentalListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  amenity Amenity       @relation(fields: [amenityId], references: [id], onDelete: Restrict)
+
+  @@unique([listingId, amenityId], map: "listing_amenities_listing_id_amenity_id_live_key", where: raw("is_deleted = false"))
+  @@index([amenityId])
+  @@map("listing_amenities")
+}

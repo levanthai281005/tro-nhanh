@@ -19,8 +19,12 @@ export default defineConfig({
   schema: 'prisma/schema',
   migrations: {
     path: 'prisma/migrations',
+    seed: 'tsx prisma/seed/index.ts',
   },
   datasource: {
     url: process.env.DIRECT_URL,
+    // Chỉ CI cần: `migrate diff --from-migrations` dựng lại schema từ migration trên một database
+    // trống riêng. Máy local để trống — `migrate dev` tự tạo shadow database tạm.
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
 });

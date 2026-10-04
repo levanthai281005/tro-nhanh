@@ -1,0 +1,77 @@
+// Shared Kernel — MediaModule, NotificationModule. Migration: create_media_and_notification_tables.
+// Enum lấy đủ tập giá trị của đặc tả, kể cả giá trị trỏ tới bảng chưa dựng (Incident, NewMessage…):
+// enum là từ vựng, không phải khóa ngoại.
+
+enum MediaOwnerType {
+  RentalListing
+  RoommateWantedPost
+  Contract
+  Profile
+  Invoice
+  Incident
+  UtilityReadingSubmission
+
+  @@map("media_owner_type")
+}
+
+enum NotificationType {
+  ListingApproved
+  Rejected
+  NewMessage
+  ContractExpiring
+  InvoiceDue
+  InvoiceOverdue
+  InvoiceReceived
+  SubscriptionRenewal
+  TrialEnding
+  ReviewModerated
+  OccupancyLinked
+  ListingAutoRented
+  FavoriteChanged
+  System
+
+  @@map("notification_type")
+}
+
+/// Đa hình theo `ownerType` + `ownerId` — không có khóa ngoại. `ownerId` null khi vừa tải lên;
+/// sau 24 giờ chưa gắn thì job dọn. `createdBy` là người tải lên.
+model Media {
+  id           String         @id @default(uuid(7)) @db.Uuid
+  ownerType    MediaOwnerType @map("owner_type")
+  ownerId      String?        @map("owner_id") @db.Uuid
+  url          String
+  mimeType     String         @map("mime_type") @db.VarChar(100)
+  sizeBytes    Int            @map("size_bytes")
+  isPrivate    Boolean        @default(false) @map("is_private")
+  /// Ảnh đầu tiên là ảnh đại diện của tin.
+  displayOrder Int            @default(0) @map("display_order")
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy    String?        @map("created_by") @db.Uuid
+  updatedBy    String?        @map("updated_by") @db.Uuid
+  isDeleted    Boolean        @default(false) @map("is_deleted")
+
+  @@index([ownerType, ownerId])
+  @@map("media")
+}
+
+model Notification {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String
+  content   String
+  isRead    Boolean          @default(false) @map("is_read")
+  refType   String?          @map("ref_type") @db.VarChar(40)
+  refId     String?          @map("ref_id") @db.Uuid
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy String?          @map("created_by") @db.Uuid
+  updatedBy String?          @map("updated_by") @db.Uuid
+  isDeleted Boolean          @default(false) @map("is_deleted")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}

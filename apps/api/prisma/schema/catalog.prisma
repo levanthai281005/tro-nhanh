@@ -1,0 +1,88 @@
+// Danh mục do quản trị viên quản lý (Module 13). Migration: create_catalog_tables.
+// Mã (`code`) unique tuyệt đối: muốn dùng lại một mã đã xóa thì khôi phục dòng cũ (BR-044).
+
+enum AmenityType {
+  Room
+  Surrounding
+
+  @@map("amenity_type")
+}
+
+model ListingType {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  code        String   @unique @db.VarChar(40)
+  name        String   @db.VarChar(60)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy   String?  @map("created_by") @db.Uuid
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+
+  listings RentalListing[]
+
+  @@map("listing_types")
+}
+
+model Amenity {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  code      String      @unique @db.VarChar(40)
+  name      String      @db.VarChar(60)
+  /// Tên icon Lucide (web và mobile cùng dùng Lucide).
+  icon      String      @db.VarChar(40)
+  type      AmenityType
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy String?     @map("created_by") @db.Uuid
+  updatedBy String?     @map("updated_by") @db.Uuid
+  isDeleted Boolean     @default(false) @map("is_deleted")
+
+  rooms    RoomAmenity[]
+  listings ListingAmenity[]
+
+  @@map("amenities")
+}
+
+model BoostPackage {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  code         String   @unique @db.VarChar(40)
+  name         String   @db.VarChar(60)
+  description  String?
+  durationDays Int      @map("duration_days")
+  price        Int
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy    String?  @map("created_by") @db.Uuid
+  updatedBy    String?  @map("updated_by") @db.Uuid
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+
+  platformTransactions PlatformTransaction[]
+
+  @@map("boost_packages")
+}
+
+/// Gói khác nhau ở thời hạn, không khác tính năng (Module 15). `isTrialPlan` đánh dấu gói dùng
+/// thử — hạn dùng thử tính bằng `trialDays`. Không có cột mã nên seed dùng id cố định.
+model SubscriptionPlan {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  name           String   @db.VarChar(60)
+  durationMonths Int      @map("duration_months")
+  price          Int
+  renewalPrice   Int      @map("renewal_price")
+  trialDays      Int      @default(30) @map("trial_days")
+  maxProperties  Int      @map("max_properties")
+  maxRooms       Int      @map("max_rooms")
+  isTrialPlan    Boolean  @default(false) @map("is_trial_plan")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy      String?  @map("created_by") @db.Uuid
+  updatedBy      String?  @map("updated_by") @db.Uuid
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+
+  userSubscriptions    UserSubscription[]
+  platformTransactions PlatformTransaction[]
+
+  @@map("subscription_plans")
+}

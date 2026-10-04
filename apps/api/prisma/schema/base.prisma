@@ -1,10 +1,21 @@
 // Mỗi nhóm bảng một file trong thư mục này, cùng tên nhóm với migration sinh ra từ nó.
 // Chuỗi kết nối không khai ở đây: CLI đọc `prisma.config.ts`, ứng dụng đọc `PrismaService`.
+//
+// Quy ước chung (docs/spec Mục 6 và .agents/tasks/ADD_DB_MIGRATION.md):
+// - Model và field đúng tên đặc tả; bảng/cột trong DB là snake_case, bảng số nhiều.
+// - `id` UUIDv7 sinh phía ứng dụng; bộ kiểm toán createdAt/updatedAt/createdBy/updatedBy/isDeleted
+//   ở mọi bảng. `createdBy`/`updatedBy` là uuid KHÔNG có khóa ngoại — null = hệ thống/seed/job.
+// - Tiền và chỉ số đồng hồ là số nguyên (BR-041). Ngày lịch là `date`, thời điểm là `timestamptz`.
+// - Khóa ngoại RESTRICT (xóa mềm là cách xóa duy nhất); CASCADE chỉ ở bảng con định danh của User.
+// - Unique trên khóa nghiệp vụ người dùng xóa được thì chỉ tính dòng chưa xóa (partial index).
+// - Mọi bảng bật RLS không policy — Prisma không sinh, dòng `ENABLE ROW LEVEL SECURITY` thêm tay
+//   vào migration.
 
 generator client {
-  provider     = "prisma-client"
-  output       = "../../src/generated/prisma"
-  moduleFormat = "esm"
+  provider        = "prisma-client"
+  output          = "../../src/generated/prisma"
+  moduleFormat    = "esm"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {

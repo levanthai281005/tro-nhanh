@@ -1,0 +1,158 @@
+// Nhóm định danh — AuthModule, UserProfileModule. Migration: create_identity_tables.
+
+enum RoleCode {
+  TENANT
+  LANDLORD
+  STAFF
+  ADMIN
+
+  @@map("role_code")
+}
+
+enum UserStatus {
+  PendingVerification
+  Active
+  Locked
+
+  @@map("user_status")
+}
+
+/// Hiện chỉ đăng nhập bằng mật khẩu (BR-016); thêm cách khác là thêm giá trị, không sửa bảng User.
+enum AuthProvider {
+  Password
+
+  @@map("auth_provider")
+}
+
+enum VerificationPurpose {
+  Register
+  ResetPassword
+
+  @@map("verification_purpose")
+}
+
+model Role {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  code        RoleCode @unique
+  name        String   @db.VarChar(60)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy   String?  @map("created_by") @db.Uuid
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+
+  users User[]
+
+  @@map("roles")
+}
+
+/// Số điện thoại là định danh duy nhất toàn hệ thống (BR-016) — unique tuyệt đối, kể cả tài khoản
+/// đã xóa mềm. Không có email, không có mật khẩu: thông tin đăng nhập ở AuthMethod.
+model User {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  phoneNumber String     @unique @map("phone_number") @db.VarChar(20)
+  roleId      String     @map("role_id") @db.Uuid
+  status      UserStatus @default(PendingVerification)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy   String?    @map("created_by") @db.Uuid
+  updatedBy   String?    @map("updated_by") @db.Uuid
+  isDeleted   Boolean    @default(false) @map("is_deleted")
+
+  role                 Role                  @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  profile              Profile?
+  authMethods          AuthMethod[]
+  refreshTokens        RefreshToken[]
+  properties           Property[]
+  occupancies          Occupancy[]
+  rentalListings       RentalListing[]
+  userSubscriptions    UserSubscription[]
+  platformTransactions PlatformTransaction[]
+  notifications        Notification[]
+
+  @@index([roleId])
+  @@map("users")
+}
+
+model AuthMethod {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  provider       AuthProvider
+  /// Null với đăng nhập bên thứ ba.
+  secretHash     String?      @map("secret_hash")
+  providerUserId String?      @map("provider_user_id") @db.VarChar(255)
+  linkedAt       DateTime     @default(now()) @map("linked_at") @db.Timestamptz(3)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy      String?      @map("created_by") @db.Uuid
+  updatedBy      String?      @map("updated_by") @db.Uuid
+  isDeleted      Boolean      @default(false) @map("is_deleted")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("auth_methods")
+}
+
+model Profile {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  fullName        String   @map("full_name")
+  avatarUrl       String?  @map("avatar_url")
+  /// Null = dùng số đăng nhập (Module 2).
+  contactPhone    String?  @map("contact_phone") @db.VarChar(20)
+  /// Công tắc chỉ số nhạy cảm (BR-012) — khóa vắng mặt nghĩa là tắt.
+  displaySettings Json     @default("{}") @map("display_settings") @db.JsonB
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy       String?  @map("created_by") @db.Uuid
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  isDeleted Boolean   @default(false) @map("is_deleted")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+/// Mã xác thực (BR-045). Chỉ lưu bản băm; tra theo số điện thoại, không khóa ngoại tới User.
+/// Bản ghi quá 30 ngày bị XÓA HẲN — ngoại lệ của quy ước xóa mềm.
+model VerificationCode {
+  id           String              @id @default(uuid(7)) @db.Uuid
+  phoneNumber  String              @map("phone_number") @db.VarChar(20)
+  purpose      VerificationPurpose
+  codeHash     String              @map("code_hash")
+  /// Đủ dài cho IPv6 dạng chữ (45 ký tự).
+  requestIp    String              @map("request_ip") @db.VarChar(45)
+  expiresAt    DateTime            @map("expires_at") @db.Timestamptz(3)
+  attemptCount Int                 @default(0) @map("attempt_count")
+  consumedAt   DateTime?           @map("consumed_at") @db.Timestamptz(3)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy    String?             @map("created_by") @db.Uuid
+  updatedBy    String?             @map("updated_by") @db.Uuid
+  isDeleted    Boolean             @default(false) @map("is_deleted")
+
+  @@index([phoneNumber, purpose, createdAt])
+  @@index([requestIp, createdAt])
+  @@index([purpose, createdAt])
+  @@map("verification_codes")
+}

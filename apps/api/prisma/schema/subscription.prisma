@@ -1,0 +1,87 @@
+// Gói dịch vụ và giao dịch phí nền tảng — SubscriptionModule. Migration: create_subscription_tables.
+
+enum UserSubscriptionStatus {
+  Trial
+  Active
+  Expired
+  Cancelled
+
+  @@map("user_subscription_status")
+}
+
+enum PlatformTransactionType {
+  Boost
+  Subscription
+
+  @@map("platform_transaction_type")
+}
+
+enum PlatformTransactionStatus {
+  Pending
+  Success
+  Failed
+
+  @@map("platform_transaction_status")
+}
+
+/// Mốc thời gian là `timestamptz` dù tên có "Date": gating so với thời điểm hiện tại, dạng ngày sẽ
+/// lệch múi giờ ở ngày biên.
+model UserSubscription {
+  id         String                 @id @default(uuid(7)) @db.Uuid
+  landlordId String                 @map("landlord_id") @db.Uuid
+  planId     String                 @map("plan_id") @db.Uuid
+  startDate  DateTime               @map("start_date") @db.Timestamptz(3)
+  expireDate DateTime               @map("expire_date") @db.Timestamptz(3)
+  status     UserSubscriptionStatus
+  createdAt  DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy  String?                @map("created_by") @db.Uuid
+  updatedBy  String?                @map("updated_by") @db.Uuid
+  isDeleted  Boolean                @default(false) @map("is_deleted")
+
+  landlord             User                  @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  plan                 SubscriptionPlan      @relation(fields: [planId], references: [id], onDelete: Restrict)
+  platformTransactions PlatformTransaction[]
+
+  @@index([landlordId, status])
+  @@index([planId])
+  @@map("user_subscriptions")
+}
+
+/// Quyền lợi chỉ kích hoạt tại webhook (Mục 4.9). `planId` cho webhook biết kích hoạt gói nào — lúc
+/// tạo giao dịch mua lần đầu chưa có `UserSubscription` (v3.8). `idempotencyKey` unique tuyệt đối.
+model PlatformTransaction {
+  id                 String                    @id @default(uuid(7)) @db.Uuid
+  landlordId         String                    @map("landlord_id") @db.Uuid
+  type               PlatformTransactionType
+  listingId          String?                   @map("listing_id") @db.Uuid
+  boostPackageId     String?                   @map("boost_package_id") @db.Uuid
+  userSubscriptionId String?                   @map("user_subscription_id") @db.Uuid
+  planId             String?                   @map("plan_id") @db.Uuid
+  amount             Int
+  paymentMethod      String                    @map("payment_method") @db.VarChar(30)
+  status             PlatformTransactionStatus @default(Pending)
+  gatewayTxnId       String?                   @map("gateway_txn_id") @db.VarChar(255)
+  idempotencyKey     String                    @unique @map("idempotency_key") @db.VarChar(100)
+  paidAt             DateTime?                 @map("paid_at") @db.Timestamptz(3)
+  createdAt          DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy          String?                   @map("created_by") @db.Uuid
+  updatedBy          String?                   @map("updated_by") @db.Uuid
+  isDeleted          Boolean                   @default(false) @map("is_deleted")
+
+  landlord         User              @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  listing          RentalListing?    @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  boostPackage     BoostPackage?     @relation(fields: [boostPackageId], references: [id], onDelete: Restrict)
+  userSubscription UserSubscription? @relation(fields: [userSubscriptionId], references: [id], onDelete: Restrict)
+  plan             SubscriptionPlan? @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([landlordId])
+  @@index([listingId])
+  @@index([boostPackageId])
+  @@index([userSubscriptionId])
+  @@index([planId])
+  /// Tác vụ 15 phút tìm giao dịch Pending quá hạn (BR-039).
+  @@index([status, createdAt])
+  @@map("platform_transactions")
+}

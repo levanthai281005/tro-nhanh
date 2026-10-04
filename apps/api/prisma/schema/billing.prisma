@@ -1,0 +1,135 @@
+// Điện nước, hóa đơn, thu tiền — BillingModule. Migration: create_billing_tables.
+// Tiền và chỉ số là số nguyên (BR-041).
+
+enum InvoiceStatus {
+  Unpaid
+  PartiallyPaid
+  Paid
+  Overdue
+
+  @@map("invoice_status")
+}
+
+enum InvoiceItemType {
+  Rent
+  Electricity
+  Water
+  Service
+  Deposit
+  Other
+
+  @@map("invoice_item_type")
+}
+
+enum UtilityType {
+  Electricity
+  Water
+
+  @@map("utility_type")
+}
+
+enum PaymentMethod {
+  Cash
+  BankTransfer
+
+  @@map("payment_method")
+}
+
+/// Đơn giá và cách tính CHỐT CỨNG lúc ghi (BR-036, BR-042) — không đọc ngược lên khu hay phòng.
+/// Nước tính theo đầu người hoặc khoán thì không có chỉ số nào: cả hai cột chỉ số để null.
+/// `pricingMethod` null ở dòng điện.
+model UtilityReading {
+  id              String              @id @default(uuid(7)) @db.Uuid
+  roomId          String              @map("room_id") @db.Uuid
+  type            UtilityType
+  /// `YYYY-MM`.
+  period          String              @db.Char(7)
+  previousReading Int?                @map("previous_reading")
+  currentReading  Int?                @map("current_reading")
+  unitPrice       Int                 @map("unit_price")
+  pricingMethod   WaterPricingMethod? @map("pricing_method")
+  occupantCount   Int?                @map("occupant_count")
+  /// Khác null = đã lên hóa đơn.
+  invoiceId       String?             @map("invoice_id") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy       String?             @map("created_by") @db.Uuid
+  updatedBy       String?             @map("updated_by") @db.Uuid
+  isDeleted       Boolean             @default(false) @map("is_deleted")
+
+  room    Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@unique([roomId, type, period], map: "utility_readings_room_id_type_period_live_key", where: raw("is_deleted = false"))
+  @@index([invoiceId])
+  @@map("utility_readings")
+}
+
+/// `invoiceCode` unique TUYỆT ĐỐI, kể cả hóa đơn đã xóa: mã đã nằm trong nội dung chuyển khoản
+/// (BR-038). Còn (hợp đồng, kỳ) chỉ tính hóa đơn chưa xóa — xóa hóa đơn lập sai thì lập lại được.
+model Invoice {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  roomId      String        @map("room_id") @db.Uuid
+  contractId  String        @map("contract_id") @db.Uuid
+  invoiceCode String        @unique @map("invoice_code") @db.VarChar(40)
+  period      String        @db.Char(7)
+  dueDate     DateTime      @map("due_date") @db.Date
+  totalAmount Int           @map("total_amount")
+  status      InvoiceStatus @default(Unpaid)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy   String?       @map("created_by") @db.Uuid
+  updatedBy   String?       @map("updated_by") @db.Uuid
+  isDeleted   Boolean       @default(false) @map("is_deleted")
+
+  room            Room             @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  contract        Contract         @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  items           InvoiceItem[]
+  payments        Payment[]
+  utilityReadings UtilityReading[]
+
+  @@unique([contractId, period], map: "invoices_contract_id_period_live_key", where: raw("is_deleted = false"))
+  @@index([roomId])
+  @@index([status, dueDate])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  invoiceId   String          @map("invoice_id") @db.Uuid
+  type        InvoiceItemType
+  description String
+  /// Số lượng có thể lẻ; số tiền của dòng thì làm tròn tới đồng (BR-041).
+  quantity    Float
+  unitPrice   Int             @map("unit_price")
+  amount      Int
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy   String?         @map("created_by") @db.Uuid
+  updatedBy   String?         @map("updated_by") @db.Uuid
+  isDeleted   Boolean         @default(false) @map("is_deleted")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  invoiceId String        @map("invoice_id") @db.Uuid
+  amount    Int
+  method    PaymentMethod
+  paidAt    DateTime      @map("paid_at") @db.Date
+  note      String?
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdBy String?       @map("created_by") @db.Uuid
+  updatedBy String?       @map("updated_by") @db.Uuid
+  isDeleted Boolean       @default(false) @map("is_deleted")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@map("payments")
+}
