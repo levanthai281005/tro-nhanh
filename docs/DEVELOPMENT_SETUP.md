@@ -68,14 +68,16 @@ Chạy cả API lẫn cơ sở dữ liệu trong Docker thay vì trên máy: `pn
 
 Các lệnh cơ sở dữ liệu — chạy trong `apps/api` hoặc thêm `pnpm --filter api` ở gốc repo:
 
-| Lệnh                      | Làm gì                                                                    |
-| ------------------------- | ------------------------------------------------------------------------- |
-| `pnpm db:generate`        | Sinh Prisma Client vào `src/generated/` (không commit)                    |
-| `pnpm db:migrate`         | Sinh migration mới từ `prisma/schema/` và áp vào DB local — **chỉ local** |
-| `pnpm db:deploy`          | Áp các migration có sẵn, không sinh mới — vào DB trong `.env`             |
-| `pnpm db:reset`           | Xóa sạch DB local rồi chạy lại toàn bộ migration — **chỉ local**          |
-| `pnpm db:deploy:supabase` | Như `db:deploy` nhưng vào Supabase, đọc `.env.supabase.local` (mục 4)     |
-| `pnpm start:supabase`     | Chạy bản đã build, kết nối Supabase qua bộ gộp — để kiểm (mục 4)          |
+| Lệnh                      | Làm gì                                                                            |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| `pnpm db:generate`        | Sinh Prisma Client vào `src/generated/` (không commit)                            |
+| `pnpm db:migrate`         | Sinh migration mới từ `prisma/schema/` và áp vào DB local — **chỉ local**         |
+| `pnpm db:deploy`          | Áp các migration có sẵn, không sinh mới — vào DB trong `.env`                     |
+| `pnpm db:reset`           | Xóa sạch DB local rồi chạy lại toàn bộ migration — **chỉ local**                  |
+| `pnpm db:deploy:supabase` | Như `db:deploy` nhưng vào Supabase, đọc `.env.supabase.local` (mục 4)             |
+| `pnpm db:seed`            | Nạp danh mục khởi tạo — chỉ chèn dòng còn thiếu, chạy lại bao nhiêu lần cũng được |
+| `pnpm db:seed:supabase`   | Như `db:seed` nhưng vào Supabase (mục 4)                                          |
+| `pnpm start:supabase`     | Chạy bản đã build, kết nối Supabase qua bộ gộp — để kiểm (mục 4)                  |
 
 Quy trình viết migration: `.agents/tasks/ADD_DB_MIGRATION.md`.
 
@@ -93,7 +95,7 @@ Hai file biến môi trường trong `apps/api`, **cả hai bị git bỏ qua**:
 | File                  | Trỏ tới                 | Ai đọc                                                       |
 | --------------------- | ----------------------- | ------------------------------------------------------------ |
 | `.env`                | PostgreSQL Docker ở máy | Mọi lệnh thường: `dev:api`, `db:migrate`, `db:deploy`, test… |
-| `.env.supabase.local` | Project Supabase thật   | Chỉ `pnpm db:deploy:supabase` và `pnpm start:supabase`       |
+| `.env.supabase.local` | Project Supabase thật   | Chỉ các lệnh `:supabase` (`db:deploy`, `db:seed`, `start`)   |
 
 Bản mẫu được commit là `.env.example` và `.env.supabase.example` — chỉ có tên biến, không có giá
 trị thật (`.env.example` có sẵn chuỗi tới Postgres Docker, trùng `compose.yaml`, không phải bí
@@ -220,6 +222,7 @@ in chuỗi kết nối ra. Tắt API sau khi kiểm.
 
 ```bash
 pnpm --filter api db:deploy:supabase
+pnpm --filter api db:seed:supabase
 ```
 
 Chạy hai truy vấn dưới trong SQL Editor — **cả hai phải ra 0 dòng**:

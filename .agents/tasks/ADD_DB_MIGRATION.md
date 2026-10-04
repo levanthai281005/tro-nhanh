@@ -50,6 +50,19 @@ Tên mô tả là thứ duy nhất giúp đọc được lịch sử sáu tháng
 Không gộp nhiều thay đổi không liên quan vào một migration cho "đỡ lẻ tẻ": gộp rồi thì khi
 một phần sai, phần đúng cũng không tách ra được.
 
+Cách làm trong `apps/api` (schema chia file theo nhóm ở `prisma/schema/`):
+
+1. `pnpm exec prisma migrate dev --create-only --name <tên>` — chỉ sinh file SQL, chưa áp.
+2. Đọc SQL (Bước 3) và **thêm tay** `ALTER TABLE "<bảng>" ENABLE ROW LEVEL SECURITY;` cho mọi
+   bảng mới (mục đầu file này).
+3. `pnpm exec prisma migrate dev` — áp vào DB local.
+4. `pnpm db:generate` — Prisma 7 **không** tự sinh lại client sau `migrate dev`; quên bước này
+   thì typecheck và test vẫn chạy trên kiểu cũ.
+
+Prisma chặn agent AI chạy `migrate reset` khi chưa có người dùng đồng ý. Cần chạy lại toàn bộ trên
+DB trắng thì tạo một database tạm, áp vào đó bằng `db:deploy`, kiểm xong thì xóa — không reset DB
+dev của người khác.
+
 ## Bước 3 — Đọc SQL sinh ra trước khi commit
 
 Bắt buộc, không phải tùy chọn. Prisma sinh SQL đúng ý trong đa số trường hợp, trừ mấy chỗ sau:
@@ -80,8 +93,13 @@ sẽ không có ai chạy script đó.
 
 Migration chỉ chứa thay đổi cấu trúc và phần điền dữ liệu cho chính thay đổi đó. Dữ liệu danh
 mục khởi tạo (loại tin, gói dùng thử, danh sách ngân hàng, từ khóa cấm) là **dữ liệu** chứ
-không phải cấu trúc — nạp bằng seed của `apps/api` (dựng cùng PR schema), không nhét vào
-migration.
+không phải cấu trúc — nạp bằng seed của `apps/api` (`prisma/seed/`, `pnpm db:seed`), không
+nhét vào migration. Seed chỉ chèn dòng còn thiếu theo id cố định, không ghi đè chỉnh sửa của
+quản trị viên.
+
+CI (job `database`) chạy toàn bộ migration trên DB trắng bằng user không phải superuser, kiểm
+schema khớp migration (`prisma migrate diff --exit-code`), chạy seed hai lần, và kiểm mọi bảng
+thuộc user đó và đã bật RLS.
 
 ## Bước 5 — Migration đã merge thì sai cũng không sửa
 

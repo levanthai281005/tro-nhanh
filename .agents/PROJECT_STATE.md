@@ -355,11 +355,18 @@ ngày — cần lâu hơn thì chia nhỏ.
       - `compose.yaml` thêm `postgres` (17) và service `api`; `Dockerfile.dev` thêm `apps/api`.
       - Quy tắc bắt buộc đã ghi vào `tasks/ADD_DB_MIGRATION.md` và `docs/DEVELOPMENT_SETUP.md`:
         **migration và ứng dụng cùng một user DB**, mọi bảng bật RLS không policy.
-- [ ] **PR schema** — 25 bảng MVP + 2 bảng nối theo đặc tả **v3.8** (thêm `VerificationCode`,
-      `PlatformTransaction.planId`), 7 migration theo nhóm, RLS mọi bảng, seed danh mục (4 vai trò,
-      3 loại hình, 10 tiện ích, 3 gói đẩy tin, gói dùng thử + gói 12/36 tháng), job CI chạy
-      migration trên Postgres trắng + kiểm schema khớp migration + seed hai lần + mọi bảng đã bật
-      RLS (chạy bằng user thường, không superuser, để bắt lỗi sai user).
+- [x] **Schema MVP** — `feat/api-schema` (04/10/2026)
+      - 25 bảng + 2 bảng nối, 20 enum, chia 7 file trong `prisma/schema/` ↔ 7 migration theo
+        nhóm (định danh · danh mục · khu trọ · tin cho thuê · hóa đơn · gói dịch vụ · media và
+        thông báo). Mọi bảng bật RLS, kể cả `_prisma_migrations`.
+      - Unique bỏ qua dòng đã xóa mềm (partial index, Preview `partialIndexes`) cho mã phòng, kỳ hóa
+        đơn, chỉ số theo kỳ, hai bảng nối; DB chặn hợp đồng Active thứ hai của một phòng.
+      - Seed: 4 vai trò, 3 loại hình, 10 tiện ích, 3 gói đẩy tin, gói dùng thử + 12/36 tháng — id
+        cố định, chỉ chèn dòng thiếu. Test đối chiếu 11 enum Prisma ↔ Zod và dữ liệu seed.
+      - Job CI `database`: migration trên Postgres trắng bằng user thường, schema khớp migration,
+        seed hai lần, chủ sở hữu + RLS, user khác đọc ra 0 dòng.
+      - **Còn chờ Supabase:** `db:deploy:supabase` + `db:seed:supabase` + hai truy vấn kiểm +
+        `/health` qua bộ gộp (`docs/DEVELOPMENT_SETUP.md` mục 4 bước 5–6).
 - [ ] **Dựng backend NestJS theo lát cắt dọc** — mỗi lát: Zod schema → module NestJS (Prisma,
       migration) → nối ngay với frontend thay mock. **Lát 1 = xác thực:** `AuthModule`
       (`/auth/register`, `/verify-otp`, `/login`, `/refresh`, `/logout`, `GET /me`,
