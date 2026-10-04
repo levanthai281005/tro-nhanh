@@ -83,10 +83,11 @@ Thứ tự đỡ phải sửa lại: **service (luật nghiệp vụ) → interf
 - Thao tác nhiều bước bọc transaction. Nếu thao tác chạm dữ liệu của module khác thì
   transaction bắt đầu ở service điều phối, không tách thành hai lần ghi rời nhau.
 
-## Bước 8 — Test bốn vùng bắt buộc
+## Bước 8 — Test năm vùng bắt buộc
 
-Module chạm một trong bốn vùng ở `../skills/critical-path-testing/SKILL.md` thì test viết
-trong cùng lát cắt, không để sau.
+Module chạm một trong năm vùng ở `../skills/critical-path-testing/SKILL.md` thì test viết
+trong cùng lát cắt, không để sau. Năm vùng chung một tiêu chí: sai thì mất tiền thật hoặc lộ dữ
+liệu mà không hiện ra trên giao diện — nên không có màn hình nào báo thay test.
 
 ## Bước 9 — Cập nhật tài liệu
 

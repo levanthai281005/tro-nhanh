@@ -33,7 +33,7 @@ Chạy hết checklist này trước khi báo hoàn thành hoặc mở PR.
 - [ ] Giá trị enum khớp đúng `../business/STATUS_ENUMS.md`, không tự dịch
 - [ ] Xử lý lỗi theo `error.code`, không dựa vào chuỗi message
 - [ ] Dữ liệu SaaS và Residency lọc đúng theo chủ sở hữu
-- [ ] Lát cắt chạm một trong bốn vùng bắt buộc đã có test kèm theo (`../skills/critical-path-testing/SKILL.md`)
+- [ ] Lát cắt chạm một trong năm vùng bắt buộc (sai thì mất tiền thật hoặc lộ dữ liệu mà không hiện ra trên giao diện) đã có test kèm theo (`../skills/critical-path-testing/SKILL.md`)
 - [ ] Endpoint mới đã vào `../business/API_CONTRACT.md`, đặt đúng module trong `../business/BACKEND_SERVICES.md`
 
 ## Trải nghiệm

@@ -1,7 +1,6 @@
-# Ca kiểm thử tối thiểu cho bốn vùng bắt buộc
+# Ca kiểm thử tối thiểu cho năm vùng bắt buộc
 
 Mỗi bảng là mức **tối thiểu**, không phải mức đủ. Thêm ca khi lát cắt có tình huống riêng.
-Mục 5 (mã xác thực) nằm ngoài bốn vùng nhưng cũng viết cùng lát cắt của nó.
 
 ---
 
@@ -242,8 +241,8 @@ tài liệu nói khác.
 
 ## 5. Mã xác thực (BR-045)
 
-> Chưa nằm trong bốn vùng bắt buộc của `../SKILL.md`, nhưng **viết cùng lát `AuthModule`**: sai ở
-> đây cũng không lộ ra trên màn hình — tiền tin nhắn bị đốt, hoặc số nào đã có tài khoản bị dò ra.
+> Vùng bắt buộc thứ năm của `../SKILL.md` — **viết cùng lát `AuthModule`**. Đủ tiêu chí chung: sai
+> ở đây không lộ ra trên màn hình, mà tiền tin nhắn bị đốt hoặc số nào đã có tài khoản bị dò ra.
 
 ### 5.1 Khôi phục mật khẩu không lộ số đã có tài khoản
 
